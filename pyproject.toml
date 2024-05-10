@@ -1,0 +1,29 @@
+[build-system]
+requires = ["flit_core>=3.4", "astropy", "matplotlib", "numpy", "scikit-learn", "scipy", "tensorflow"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "organic"
+version = "0.0.3"
+authors = [ 
+  { name="Toon De Prins", email="toon.deprins@protonmail.com" },
+  { name="Jacques Kluska"},
+  { name="Rik Claes"},
+]
+description = 'A package for image reconstuction from optical interferometry data using GANs.'
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+  "astropy==4.0.2",
+  "matplotlib==3.3.2",
+  "numpy==1.19.2",
+  "scikit-learn==0.24.2",
+  "scipy==1.4.1",
+  "tensorflow==2.2.0",
+]
