@@ -574,7 +574,7 @@ effect:
             inform(f'Making an image reconstruction grid ({niters} reconstructions) on {ngrid} parameter(s): {gridpars}')
             self.runGrid()
         else:
-            inform('Running a single image reconstruction BOIIIIII')
+            inform('Running a single image reconstruction')
             self.dir = 'ImageRec'
             self.SingleImgRec()
 
