@@ -531,11 +531,11 @@ class cube:
         plt.show()
         plt.close()
 
-def main():
+def main(sys_argv):
     dirdata = '/Users/jacques/Work/Organic/diagnostics/ImageRec_mu=0.1/'
     file = 'c_imaging_contest2.fits'
 
-    arg = sys.argv[1:]
+    arg = sys_argv[1:]
     Cube0 = cube(arg[0], nPCA = 10, nKmeans=3)
     Cube0.giveBest()
     #Cube0.getChi2(dirdata, file)

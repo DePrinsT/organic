@@ -1,3 +1,10 @@
+
+<p align='center'>
+  <br/>
+  <img src="./docs/logo/organic_logo.png" width="240" height="78">
+  <br/>
+</p>
+
 # ORGANIC
 **O**bject **R**econstruction with **G**enerative **A**dversarial **N**etworks from **I**nterferometri**C** data
 You can find the associated paper [here](https://ui.adsabs.harvard.edu/abs/2020SPIE11446E..1UC/abstract)
