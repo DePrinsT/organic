@@ -140,7 +140,7 @@ If you face any issues when installing or using ORGANIC, report them at the proj
 
 # Developers and contributors
 
-**Devlopers**
+**Developers**
 
 - [Toon De Prins](https://deprinst.github.io/)
 - [Jacques Kluska](https://www.linkedin.com/in/jacques-kluska/) (inactive)
