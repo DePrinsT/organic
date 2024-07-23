@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="organic.post_organic package" href="organic.post_organic.html" />
+    <link rel="next" title="organic.auxiliary.ReadOIFITS module" href="organic.auxiliary.ReadOIFITS.html" />
     <link rel="prev" title="organic package" href="organic.html" /> 
 </head>
 
@@ -46,15 +46,12 @@
 <li class="toctree-l2 current"><a class="reference internal" href="organic.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">organic.auxiliary package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-organic.auxiliary.ReadOIFITS">organic.auxiliary.ReadOIFITS module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-organic.auxiliary.SelectData">organic.auxiliary.SelectData module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="organic.post_organic.html">organic.post_organic package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="organic.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="organic.html#module-organic.organic">organic.organic module</a></li>
 </ul>
 </li>
 </ul>
@@ -89,377 +86,12 @@
 <p>Package containing auxiliary modules for reading in OIFITS data. Original modules written by A. Corporaal and J. Kluska.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
-</section>
-<section id="module-organic.auxiliary.ReadOIFITS">
-<span id="organic-auxiliary-readoifits-module"></span><h2>organic.auxiliary.ReadOIFITS module<a class="headerlink" href="#module-organic.auxiliary.ReadOIFITS" title="Permalink to this headline"></a></h2>
-<p>Provides a class to read in observation data from OIFITS files. This is a modification of the original module stored at
-<a class="reference external" href="https://github.com/kluskaj/ReadOIFITS">https://github.com/kluskaj/ReadOIFITS</a> on GitHub.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.Bases">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">Bases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.Bases" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.DataUnpack">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">DataUnpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.DataUnpack" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.GiveDataValues">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">GiveDataValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.GiveDataValues" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.ListCP">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">ListCP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.ListCP" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.ListV2">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">ListV2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.ListV2" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.Load">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">Load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.Load" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIARRAY">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIARRAY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UNKNOWN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tel_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIARRAY" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIARRAY.addarray">
-<span class="sig-name descname"><span class="pre">addarray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tel_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIARRAY.addarray" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIFLUX">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIFLUX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calstat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dateobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mjd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxdata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxerr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIFLUX" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIT3">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIT3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dateobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mjd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3amperr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3phierr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u1coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u2coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIT3" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OITARGET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.addtarget">
-<span class="sig-name descname"><span class="pre">addtarget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.addtarget" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.giveid">
-<span class="sig-name descname"><span class="pre">giveid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.giveid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.givetarget">
-<span class="sig-name descname"><span class="pre">givetarget</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.givetarget" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.givetargetid">
-<span class="sig-name descname"><span class="pre">givetargetid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.givetargetid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.givetheid">
-<span class="sig-name descname"><span class="pre">givetheid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.givetheid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.givethetarget">
-<span class="sig-name descname"><span class="pre">givethetarget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.givethetarget" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OITARGET.printtarget">
-<span class="sig-name descname"><span class="pre">printtarget</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OITARGET.printtarget" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIVIS">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIVIS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amptype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UNKNOWN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phitype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UNKNOWN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dateobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mjd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visamperr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visphi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visphierr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ucoord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcoord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIVIS" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIVIS2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIVIS2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dateobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mjd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis2data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis2err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ucoord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcoord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIVIS2" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIWAVE">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">OIWAVE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effwave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIWAVE" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.OIWAVE.addwave">
-<span class="sig-name descname"><span class="pre">addwave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">insname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effwave</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effband</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.OIWAVE.addwave" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">bcolors</span></span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.BOLD">
-<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.BOLD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.ENDC">
-<span class="sig-name descname"><span class="pre">ENDC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.ENDC" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.FAIL">
-<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.FAIL" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.HEADER">
-<span class="sig-name descname"><span class="pre">HEADER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.HEADER" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.OKBLUE">
-<span class="sig-name descname"><span class="pre">OKBLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.OKBLUE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.OKGREEN">
-<span class="sig-name descname"><span class="pre">OKGREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.OKGREEN" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.UNDERLINE">
-<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.UNDERLINE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bcolors.WARNING">
-<span class="sig-name descname"><span class="pre">WARNING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bcolors.WARNING" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.bold">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">bold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.bold" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*fits'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeFlagged</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.associateFreq">
-<span class="sig-name descname"><span class="pre">associateFreq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.associateFreq" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.associateWave">
-<span class="sig-name descname"><span class="pre">associateWave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.associateWave" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.extendMJD">
-<span class="sig-name descname"><span class="pre">extendMJD</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.extendMJD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.filterFlagged">
-<span class="sig-name descname"><span class="pre">filterFlagged</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.filterFlagged" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.giveV2">
-<span class="sig-name descname"><span class="pre">giveV2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">removeflagged</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.giveV2" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.givedataJK">
-<span class="sig-name descname"><span class="pre">givedataJK</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.givedataJK" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.plotV2CP">
-<span class="sig-name descname"><span class="pre">plotV2CP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Data.pdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V2sigclip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CPsigclip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Blim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CPext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V2min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V2max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.plotV2CP" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.read">
-<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.read" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readARRAY">
-<span class="sig-name descname"><span class="pre">readARRAY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readARRAY" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readFLUX">
-<span class="sig-name descname"><span class="pre">readFLUX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readFLUX" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readT3">
-<span class="sig-name descname"><span class="pre">readT3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readT3" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readTARGET">
-<span class="sig-name descname"><span class="pre">readTARGET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readTARGET" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readVIS">
-<span class="sig-name descname"><span class="pre">readVIS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readVIS" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readVIS2">
-<span class="sig-name descname"><span class="pre">readVIS2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readVIS2" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readWAVE">
-<span class="sig-name descname"><span class="pre">readWAVE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readWAVE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.readfile">
-<span class="sig-name descname"><span class="pre">readfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.readfile" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.data.writeOIFITS">
-<span class="sig-name descname"><span class="pre">writeOIFITS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.data.writeOIFITS" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.fail">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.fail" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.flatten">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.flatten" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.header">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.header" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.inform">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">inform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.inform" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.inform2">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">inform2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.inform2" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.log">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.log" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.read">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeFlagged</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.read" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.underline">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">underline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.underline" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.ReadOIFITS.warn">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.ReadOIFITS.</span></span><span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.ReadOIFITS.warn" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</section>
-<section id="module-organic.auxiliary.SelectData">
-<span id="organic-auxiliary-selectdata-module"></span><h2>organic.auxiliary.SelectData module<a class="headerlink" href="#module-organic.auxiliary.SelectData" title="Permalink to this headline"></a></h2>
-<p>Module to read in data from OIFITS files within certain limits. Modification of the original file stored at
-‘/STER/akke/Python/Image2OIFITS’ in the local system of KU Leuven’s Institute of Astronomy.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.SelectData">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">SelectData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_T3_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.SelectData" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the data that is selected based on:
-wave_1: the lower bound of the wavelength range
-that should be taken into account (in micron)
-wave_2: the upper bound of the wavelength range (in micron)
-lim_V2_err: limit up to which the errors on the visibility should be taken into account
-lim_V2: limit up to which the visibility should be taken into account. Can be used if some
-visibilities are negative.
-base_1 and base_2: lower and upper limit, respectively, of bases taken into account
-(baseline should be in B/lambda)
-lim_T3_err: limit up to which the closure phases should be taken into account
-All defaults are set to False. Set to a number if applicable</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.SelectData_data_and_image">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">SelectData_data_and_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_T3_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.SelectData_data_and_image" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the data that is selected based on:
-wave_1: the lower bound of the wavelength range
-that should be taken into account (in micron)
-wave_2: the upper bound of the wavelength range (in micron)
-lim_V2_err: limit up to which the errors on the visibility should be taken into account
-lim_V2: limit up to which the visibility should be taken into account. Can be used if some
-visibilities are negative.
-base_1 and base_2: lower and upper limit, respectively, of bases taken into account
-(baseline should be in B/lambda)
-lim_T3_err: limit up to which the closure phases should be taken into account
-All defaults are set to False. Set to a number if applicable</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.Select_T3err">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">Select_T3err</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_T3_err</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.Select_T3err" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.Select_vis2_lim">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">Select_vis2_lim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.Select_vis2_lim" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.Select_vis_t3_base">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">Select_vis_t3_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.Select_vis_t3_base" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.Select_vis_t3_wavelength">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">Select_vis_t3_wavelength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.Select_vis_t3_wavelength" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="organic.auxiliary.SelectData.Select_viserr">
-<span class="sig-prename descclassname"><span class="pre">organic.auxiliary.SelectData.</span></span><span class="sig-name descname"><span class="pre">Select_viserr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_V2_err</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.auxiliary.SelectData.Select_viserr" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="organic.auxiliary.ReadOIFITS.html">organic.auxiliary.ReadOIFITS module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organic.auxiliary.SelectData.html">organic.auxiliary.SelectData module</a></li>
+</ul>
+</div>
 </section>
 </section>
 
@@ -468,7 +100,7 @@ All defaults are set to False. Set to a number if applicable</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="organic.html" class="btn btn-neutral float-left" title="organic package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="organic.post_organic.html" class="btn btn-neutral float-right" title="organic.post_organic package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="organic.auxiliary.ReadOIFITS.html" class="btn btn-neutral float-right" title="organic.auxiliary.ReadOIFITS module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

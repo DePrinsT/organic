@@ -9,10 +9,7 @@ organic.post\_organic package
 Submodules
 ----------
 
-organic.post\_organic.post\_organic module
-------------------------------------------
+.. toctree::
+   :maxdepth: 2
 
-.. automodule:: organic.post_organic.post_organic
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   organic.post_organic.post_organic
