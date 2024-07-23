@@ -17,7 +17,7 @@ Neural networks can learn the main characteristics of the image from the models 
 
 To install ORGANIC you should type this in your terminal:
 
-```{.python}
+```python
 conda create -n organic python=3.9
 conda activate organic
 pip install organicoi
@@ -33,7 +33,7 @@ Set the paths and name of the neural network discriminator (`dis`) and generator
 There is a pretrained network for disks as seen in the near-infrared (in the `theGANextended2/saved_models` folder).
 Load the Neural Network:
 
-```{.python}
+```python
 thegan = org.GAN(dis=dis, gen=gen, Adam_lr=0.0001, Adam_beta_1=0.91, amsgrad=True)
 ```
 
@@ -46,7 +46,7 @@ More informatino on the Adam optimizer can be found [here](https://keras.io/api/
 SPARCO is an approach allowing to model the star(s) as a geometrical model and image the environment only.
 This improves the image of the stellar environment and takes into account the spectral index difference between the stars and the environment.
 
-```{.python}
+```python
 sparco = org.sparco(fstar=0.61, fstar=0.6, dstar=-4.0, denv=0.0, UDstar=0.01, fsec=0.0,
                         dsec=-4, xsec = 0.0, ysec = 0.0, wave0=1.65e-6,)
 ```
@@ -67,7 +67,7 @@ The SPARCO parameters can be obtained either by making a grid on them with an im
 
 3. Perform the image reconstruction
 
-```{.python}
+```python
 thegan.ImageReconstruction(datafiles, sparco, data_dir=data_dir, mu=1, ps=0.6, diagnostics=False, epochs=50, nrestar=50, name='output1', boot=False, nboot=100, )
 ```
 
@@ -100,7 +100,7 @@ Then you can train your neural network such as indicated in the files `TrainGanE
 
 First you need to initialise an empty GAN:
 
-```{.python}
+```python
 mygan = org.GAN()
 ```
 
@@ -110,7 +110,7 @@ The images should be **128 by 128 pixels** (unless you change the shape of the n
 ORGANIC will take care of augmenting your data with random rotations, shifts and rescaling.
 You can load a cube of images using this command:
 
-```{.python}
+```python
 imgs = org.inputImages(dir, file, width_shift_range=0, height_shift_range=0,zoom_range=[0.8,1.3],)
 ```
 
