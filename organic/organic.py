@@ -1370,11 +1370,11 @@ effect:
             lossValue = (K.mean(V2loss) * nV2 + K.mean(CPloss) * nCP) / (nV2 + nCP)
 
             if training:
-                plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
+                # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
                 return tf.cast(lossValue, tf.float32)
 
             else:
-                plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
+                # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
                 return lossValue, V2loss, CPloss
 
         self.data_loss = data_loss
