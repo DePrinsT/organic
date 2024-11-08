@@ -1,7 +1,7 @@
 
 <p align='center'>
   <br/>
-  <img src="./docs/logo/organic_logo.png" width="240" height="78" alt=>
+  <img src="./docs/logo/organic_logo.png" width="320" height=auto alt=>
   <br/>
 </p>
 
