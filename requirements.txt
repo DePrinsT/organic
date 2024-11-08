@@ -1,10 +1,10 @@
 # requirements file with hard dependencies so ReadTheDocs can generate the documentation properly
 astropy==4.0.2
 matplotlib==3.3.2
-numpy==1.19.2
+numpy==1.19.5
 scikit-learn==0.24.2
 scipy==1.4.1
-tensorflow==2.2.0
+tensorflow==2.4.0
 pip==21.3.1  # specify version of pip so editable local install will work properly  
 sphinx==4.4.0  # sphinx only for developing documentation
 sphinx-rtd-theme==1.1.0  # this version is required for proper HTML margins

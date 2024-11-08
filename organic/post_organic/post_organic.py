@@ -465,7 +465,6 @@ class cube:
 
         self.compute_profile(R, image, std)
         self.plot_profile()
-        #self.plot_std_profile(R, image, std)
 
     def set_coord(self):
         n = self.n
@@ -532,19 +531,20 @@ class cube:
         plt.close()
 
 def main(sys_argv):
-    dirdata = '/Users/jacques/Work/Organic/diagnostics/ImageRec_mu=0.1/'
-    file = 'c_imaging_contest2.fits'
-
     arg = sys_argv[1:]
+
+    dirdata = arg[0]
+    file = f'{dirdata}/MedianImage.fits'
+    
     Cube0 = cube(arg[0], nPCA = 10, nKmeans=3)
     Cube0.giveBest()
-    #Cube0.getChi2(dirdata, file)
-    Cube0.writeImages(add_stars=False)
-    #Cube0.radial_profiles(R=100)
+    Cube0.getChi2(dirdata, file)
+    Cube0.writeImages(add_stars=True)
+    Cube0.radial_profiles(R=100)
     #Cube0.radial_profiles(R=100,set=0)
     #Cube0.radial_profiles(R=100,set=1)
     #Cube0.radial_profiles(R=100,set=2)
-    #Cube0.plotSet(0)
+    #Cube0.Set(0)
 
 if __name__ == '__main__':
     print(sys.argv)

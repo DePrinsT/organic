@@ -9,8 +9,18 @@ organic.auxiliary package
 Submodules
 ----------
 
-.. toctree::
-   :maxdepth: 2
+organic.auxiliary.ReadOIFITS module
+-----------------------------------
 
-   organic.auxiliary.ReadOIFITS
-   organic.auxiliary.SelectData
+.. automodule:: organic.auxiliary.ReadOIFITS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+organic.auxiliary.SelectData module
+-----------------------------------
+
+.. automodule:: organic.auxiliary.SelectData
+   :members:
+   :undoc-members:
+   :show-inheritance:

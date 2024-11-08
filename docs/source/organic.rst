@@ -18,7 +18,10 @@ Subpackages
 Submodules
 ----------
 
-.. toctree::
-   :maxdepth: 2
+organic.organic module
+----------------------
 
-   organic.organic
+.. automodule:: organic.organic
+   :members:
+   :undoc-members:
+   :show-inheritance:

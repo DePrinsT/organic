@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-import tensorflow.keras.optimizers as optimizers
+import tensorflow.keras.optimizers as optimizers  # not needed?
 from tensorflow.keras.utils import plot_model
 import os
 from astropy.io import fits
@@ -24,9 +24,9 @@ import sys
 import shutil
 import glob
 
-mpl.use("Agg")  # %matplotlib inline
+# mpl.use("Agg")  # not needed?
 
-
+# some colors for printing warnings, etc
 class bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -38,9 +38,7 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
-# Some fancy message writing...
-
-
+# Some fancy message writing functions
 def header(msg):
     print(bcolors.HEADER + msg + bcolors.ENDC)
 
@@ -74,17 +72,33 @@ def log(msg, dir):
     f.write(msg + "\n")
     f.close()
 
-
+# return the binary cross-entropy function
+# DEPRECATED in newer tf versions -> use tf.keras.losses.BinaryCrossentropy
+# Loss class now    
 def CrossEntropy(y_true, y_pred):
     return K.binary_crossentropy(y_true, y_pred, from_logits=False)
 
-
+## definition of the GAN class
+# gen = path to the generator model file (h5 file)
+# dis = path to the discriminator model file (h5 file)
+# npix = number of pixels (used a lot -> will require extensive rewrites before extensions are made),
+# not used if the generator and discriminator are read in from a file, the it is just read in from the generator output
+# train_disc = whether or not to train the discriminator (is passed to the create_gan method), i.e. no training 
+# of the discriminator when doing image reconstruction
+# noiselength = length of the noise vector at the start of the generator
+# Adam_lr = learning rate parameter for the ADAM optimization algorithm
+# Adam_beta_1 = The exponential decay rate for the 1st moment estimates in ADAM (no parameter for 2nd moment estimates
+# yet)
+# resetOpt = whether or not to reset the optimizer when performing restart iterations while doing image reconstruction
+# amsgrad = whether or not to use the amsgrad version of the Adam optimizer (this is generally more efficient and
+# provides better convergence).
+# gen_init = copy of the initial generator state (only created if reading in a GAN from file)
 class GAN:
     """
     The GAN class to train and use it
     The GAN is made from a generator and a discriminator
     """
-
+    # initialization of the network
     def __init__(
         self,
         gen="",
@@ -101,22 +115,29 @@ class GAN:
         self.Adam_lr = Adam_lr
         self.Adam_beta_1 = Adam_beta_1
         self.amsgrad = amsgrad
+        # function call to get Adam optimizer
         self.opt = self.getOptimizer(
             self.Adam_lr, self.Adam_beta_1, amsgrad=self.amsgrad
         )
         self.train_disc = train_disc
         self.noiselength = noiselength
+        # if the paths to the generator and discriminator are not empty -> read them in
         if gen != "" and dis != "":
             self.dispath = dis
             self.genpath = gen
             self.read()
+        # otherwise fall back on default generator/discriminator creation
         else:
-            self.npix = npix4
+            self.npix = npix
             self.gen = self.create_generator()
             self.dis = self.create_discriminator()
-
+        # after the generator and discriminator have been read in -> create the full GAN
         self.gan = self.create_gan(train_disc=self.train_disc)
 
+    # static method means no self argument has to be passed for the function to work ->
+    # i.e. it is only part of the class because of organizational reasons. Calling on this method works from
+    # both calling on an instance of the class as well as on the class itself 
+    # beta2 and epsilon have default values here
     @staticmethod
     def getOptimizer(lr, beta1, beta2=0.999, epsilon=1e-7, amsgrad=False):
         return Adam(
@@ -127,55 +148,77 @@ class GAN:
             amsgrad=amsgrad,
         )
 
+    # function to read in the models from their h5 files
     def read(self):
         """
         Loading the dictionnary from the generator and discriminator pathes
         """
         inform(f"Loading the generator from {self.genpath}")
         gen = load_model(self.genpath)
-        gen.summary()
+        gen.summary()  # call Keras Model.summary function to print out a summary
         inform(f"Loading the discriminator from {self.dispath}")
         dis = load_model(self.dispath)
-        dis.summary()
-        self.gen = gen
-        self.dis = dis
-        self.npix = gen.output.shape[1]
-        # create copy of generator
-        gen_copy = tf.keras.models.clone_model(gen)
-        gen_copy.set_weights(gen.get_weights())
-        self.gen_init = gen_copy
+        dis.summary()  # call summary
+        self.gen = gen  # set the generator model
+        self.dis = dis  # set the discriminator model
+        self.npix = gen.output.shape[1]  # read the number of pixels
+        # create copy of generator architecture at read-in to reset during image reconstruction
+        gen_copy = tf.keras.models.clone_model(gen)  # doesn't set the weights yet
+        gen_copy.set_weights(gen.get_weights())  # call to get and set the weights
+        self.gen_init = gen_copy  # sets the initial generator to be preserved
 
+    # function to create a compiled GAN generator if paths to a generator and discriminator were not specified 
     def create_generator(self, ReLU=0.25):
         inform("Creating the generator")
-        npix = self.npix
+        npix = self.npix  # use GAN-specified number of pixels
+        # create the gemerator architecture
+        # create a Sequential (special case of a Model), where the model is a stack of single-input,
+        # single-ouput layers. I.e., it's just one layer after the other. I.e. something like an inception module
+        # cannot be implemented this way.
+        # NOTE: THE SIZE IN THE ORIGINAL ORGANIC PAPER SCHEMATIC IS WRONG
         generator = keras.Sequential(
             [
+                # first dense layer with noise vector input
+                # several more arguments that aren't used here, inlcuding a lower-rank approximation
                 layers.Dense(
-                    int((npix / 8) * (npix / 8) * 256),
-                    use_bias=False,
+                    int((npix / 8) * (npix / 8) * 256),  # units = dimensionality of output (number of nodes)
+                    use_bias=False,  # whether or not to add a vector of bias parameters
+                    # initializer for the kernel weights matrix (he_normal = truncated normal centered on 0, scaled
+                    # by number of input weights, show to work well for ReLU activation).
                     kernel_initializer="he_normal",
-                    input_shape=(self.noiselength,),
+                    input_shape=(self.noiselength,),  # input shape
                 ),
+                layers.LeakyReLU(alpha=ReLU),  # apply leaky ReLU activation
+                layers.Reshape((int(npix / 8), int(npix / 8), 256)),  # reshape inputs into cube for convolutions
+                # also has additional options, e.g. for input data format (i.e. channels first or channels last,
+                # the default, in shape)
+                # output shape = 16 x 16 x 256 (last number = number of filters)
+                layers.Conv2DTranspose(  # apply first transposed convolution
+                    npix,  # number of filters to be considered
+                    (4, 4),  # shape of the filter
+                    strides=(2, 2),  # stride of the filters movement
+                    # padding option, either 'same' which provides 0-padding (so with 1,1 stride the ouput shape is the
+                    # same as the input), or 'valid' = no padding
+                    padding="same",  
+                    use_bias=False,  # whether to add bias
+                    kernel_initializer="he_normal",  # initialization of kernel weigths
+                ),
+                # output shape = 32 x 32 x 128
+                # Batch normalization layer; has a bunch of options including momentum options for during inference. 
+                # NOTE: it behaves very differently during training and inference
+                # during inference it namely uses a moving mean/variance calculated over all the batches it has
+                # seen during training
+                layers.BatchNormalization(), 
                 layers.LeakyReLU(alpha=ReLU),
-                layers.Reshape((int(npix / 8), int(npix / 8), 256)),
                 layers.Conv2DTranspose(
-                    npix,
+                    64,  # NOTE: this is no longer dependent on npix -> this will only work properly for npix = 128
                     (4, 4),
                     strides=(2, 2),
                     padding="same",
                     use_bias=False,
                     kernel_initializer="he_normal",
                 ),
-                layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=ReLU),
-                layers.Conv2DTranspose(
-                    64,
-                    (4, 4),
-                    strides=(2, 2),
-                    padding="same",
-                    use_bias=False,
-                    kernel_initializer="he_normal",
-                ),
+                # output shape = 64 x 64 x 64
                 layers.BatchNormalization(),
                 layers.LeakyReLU(alpha=ReLU),
                 layers.Conv2DTranspose(
@@ -186,6 +229,7 @@ class GAN:
                     use_bias=False,
                     kernel_initializer="he_normal",
                 ),
+                # output shape = 128 x 128 x 32
                 layers.BatchNormalization(),
                 layers.LeakyReLU(alpha=ReLU),
                 layers.Conv2D(
@@ -195,32 +239,38 @@ class GAN:
                     padding="same",
                     use_bias=False,
                     activation="tanh",
-                    kernel_initializer="glorot_normal",
+                    # last convolution instead uses glorot normal, gaussian initializations caled by number of inputs
+                    # and outputs. Shown to work well for tanh activation functions.
+                    kernel_initializer="glorot_normal",  
                 ),
+                # output shape = 128 x 128 x 1 -> final image to be fed to the discriminator
             ],
             name="generator",
         )
-        generator.summary()
+        generator.summary()  # print summary of the generator architecture
 
+        # compile model for training with binary cross-entropy loss function
         generator.compile(
             loss="binary_crossentropy",
-            optimizer=self.getOptimizer(self.Adam_lr, self.Adam_beta_1),
+            optimizer=self.getOptimizer(self.Adam_lr, self.Adam_beta_1),  # call self-defined getOptimizer to set Adam
         )
         return generator
-
+        
+    # function to create a compiled discriminator generator if paths to a generator and discriminator were not specified 
     def create_discriminator(self, ReLU=0.25, dropout=0.5):
         inform("Creating the discriminator")
         npix = self.npix
         discriminator = keras.Sequential(
             [
                 layers.Conv2D(
-                    npix / 4,
+                    npix / 4,  # to match the 32 filters in the preceding generator layer
                     (3, 3),
                     strides=(2, 2),
                     padding="same",
                     input_shape=[npix, npix, 1],
                     kernel_initializer="he_normal",
                 ),
+                # output size 64 x 64 x 32
                 layers.LeakyReLU(ReLU),
                 layers.SpatialDropout2D(dropout),
                 layers.Conv2D(
@@ -230,6 +280,7 @@ class GAN:
                     padding="same",
                     kernel_initializer="he_normal",
                 ),
+                # output size 32 x 32 x 64
                 layers.LeakyReLU(ReLU),
                 layers.SpatialDropout2D(dropout),
                 layers.Conv2D(
@@ -239,9 +290,11 @@ class GAN:
                     padding="same",
                     kernel_initializer="he_normal",
                 ),
+                # output size 16 x 16 x 128
                 layers.LeakyReLU(ReLU),
                 layers.SpatialDropout2D(dropout),
                 layers.Flatten(),
+                # gets fed using a dense connection into a single node with a sigmoid activation
                 layers.Dense(
                     1,
                     activation="sigmoid",
@@ -251,7 +304,8 @@ class GAN:
             ],
             name="discriminator",
         )
-        discriminator.summary()
+        discriminator.summary()  # print discriminator summary
+        # compile into a working model for the discriminator
         discriminator.compile(
             loss="binary_crossentropy",
             optimizer=self.getOptimizer(self.Adam_lr, self.Adam_beta_1),
@@ -270,18 +324,20 @@ class GAN:
         gan: a compiled keras model where the generator is followed by the discriminator and the discriminator is not trainable
 
     """
-
+    # once the generator and discriminator have been set and compiled -> set the gan
     def create_gan(self, train_disc=False, train_gen=True, reinit=False):
         if reinit:
-            gen = self.gen_init
+            # TODO: CHECK IF THIS ACTUALLY WORKS, SINCE PYTHON OBJECTS ARE PASSED BY REFERENCE (though it seems to)
+            gen = self.gen_init  # if we are reinitializing during image reconstruction -> use the generator copy net
         else:
-            gen = self.gen
-        self.dis.trainable = train_disc
-        gen.trainable = train_gen
+            gen = self.gen  # otherwise, just use the generator itself  (tbh I don't know if this is necessary)
+        self.dis.trainable = train_disc  # set trainability of the discriminator (false when reconstructing of course)
+        gen.trainable = train_gen  # set whether 
         gan_input = layers.Input(shape=(self.noiselength,))
         x = gen(gan_input)
         gan_output = self.dis(x)
         gan = Model(inputs=gan_input, outputs=[gan_output, x])
+        # NOTE: models do need to be recompiled if their trainability has been changed!
         gan.compile(
             loss="binary_crossentropy", optimizer=self.opt, metrics=["accuracy"]
         )
@@ -426,7 +482,7 @@ effect:
 
         return img
 
-    def plot_image(self, img, name="image.pdf", chi2=""):
+    def plot_image(self, img, name="image.png", chi2=""):
         bin = False
         star = False
         d = self.params["ps"] * self.npix / 2.0
@@ -442,6 +498,7 @@ effect:
         plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="hot")
         if star:
             ell = Ellipse((0, 0), UD, UD, 0, color="white", fc="white", fill=True)
+            plt.plot(0, 0, "wx")
             ax.add_artist(ell)
         if bin:
             plt.plot(xb, yb, "g+")
@@ -449,12 +506,12 @@ effect:
         plt.xlabel(r"$\Delta\alpha$ (mas)")
         plt.ylabel(r"$\Delta\delta$ (mas)")
         plt.tight_layout
-        plt.savefig(name)
+        plt.savefig(name, dpi=250)
         plt.close()
 
         return img
 
-    def save_image_from_noise(self, noise, name="image.pdf"):
+    def save_image_from_noise(self, noise, name="image.png"):
         img = self.get_image(noise)
         self.plot_image(img[:, ::-1], name=name)
 
@@ -467,11 +524,11 @@ effect:
 
         return img
 
-    def save_random_image(self, name="randomimage.pdf"):
+    def save_random_image(self, name="randomimage.png"):
         img = self.get_random_image()
         fig, ax = plt.subplots()
         plt.imshow(img)
-        plt.savefig(name)
+        plt.savefig(name, dpi=250)
         plt.close()
 
     def plotGanEvolution(
@@ -509,7 +566,7 @@ effect:
         plt.legend()
         plt.ylabel("Loss")
         plt.xlabel("Epoch")
-        plt.savefig(dir + "LossEvolution.pdf")
+        plt.savefig(dir + "LossEvolution.png", dpi=250)
         plt.close()
 
         fig, ax = plt.subplots()
@@ -519,7 +576,7 @@ effect:
         plt.legend()
         plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
-        plt.savefig(dir + "AccuracyEvolution.pdf")
+        plt.savefig(dir + "AccuracyEvolution.png", dpi=250)
         plt.close()
 
     def saveModel(self, model_name):
@@ -585,7 +642,7 @@ effect:
                 # ax.invert_xaxis()
         plt.axis("off")
         plt.tight_layout()
-        plt.savefig(f"cgan_generated_image_ep{epoch}.png")
+        plt.savefig(f"cgan_generated_image_ep{epoch}.png", dpi=250)
         plt.close()
 
     def ImageReconstruction(
@@ -778,7 +835,7 @@ effect:
             if self.diagnostics:
                 self.give_imgrec_diagnostics(hist, chi2, discloss, r, epochs, mu)
                 self.save_image_from_noise(
-                    noisevector, name=os.path.join(self.dir, f"Image_restart{r}.pdf")
+                    noisevector, name=os.path.join(self.dir, f"Image_restart{r}.png")
                 )
             Chi2s.append(hist[2])
             DisLoss.append(hist[1])
@@ -801,7 +858,7 @@ effect:
         # plot image
         self.plot_image(
             medianImage,
-            name=os.path.join(os.getcwd(), self.dir, "MedianImage.pdf"),
+            name=os.path.join(os.getcwd(), self.dir, "MedianImage.png"),
             chi2=f"chi2={fdata:.1f}",
         )
         # save image
@@ -824,7 +881,7 @@ effect:
         # plot image
         self.plot_image(
             best,
-            name=os.path.join(os.getcwd(), self.dir, "BestImage.pdf"),
+            name=os.path.join(os.getcwd(), self.dir, "BestImage.png"),
             chi2=f"chi2={fdatabest:.1f}",
         )
         # save image
@@ -905,7 +962,7 @@ effect:
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout
-        plt.savefig(f"{self.dir}/lossevol.pdf")
+        plt.savefig(f"{self.dir}/lossevol.png", dpi=250)
         plt.close()
 
     def saveCube(self, cube, losses):
@@ -1089,17 +1146,18 @@ effect:
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
         print(r, hist[0], hist[2], mu * hist[1], sep="\t")
         print(mu)
+        print(type(discloss))
         print(discloss)
         fig, ax = plt.subplots()
         plt.plot(epochs, chi2, label="f_data")
-        plt.plot(epochs, mu * discloss, label="mu * f_discriminator")
-        plt.plot(epochs, np.array(chi2) + np.array(mu * discloss), label="f_tot")
+        plt.plot(epochs, mu * np.array(discloss), label="mu * f_discriminator")
+        plt.plot(epochs, np.array(chi2) + mu * np.array(discloss), label="f_tot")
         plt.legend()
         plt.xlabel("#epochs")
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout
-        plt.savefig(f"{self.dir}/lossevol_restart{r}.pdf")
+        plt.savefig(f"{self.dir}/lossevol_restart{r}.png", dpi=250)
         plt.close()
 
     def createGAN(self):
@@ -1229,7 +1287,7 @@ effect:
             # if bootstrapDir == None:
             #    plt.savefig(os.path.join(os.getcwd(),'V2comparisonNoColor.png'))
             # else:
-            plt.savefig(os.path.join(os.getcwd(), "V2comparisonNoColor.png"))
+            plt.savefig(os.path.join(os.getcwd(), "V2comparisonNoColor.png"), dpi=250)
             plt.close()
 
             # plots the uv coverage
@@ -1258,7 +1316,7 @@ effect:
             plt.ylabel(r"$ v (M\lambda)$")
             plt.gca().set_aspect("equal", adjustable="box")
 
-            plt.savefig(os.path.join(os.getcwd(), "uvCoverage.png"))
+            plt.savefig(os.path.join(os.getcwd(), "uvCoverage.png"), dpi=250)
             plt.close()
 
             # cp with residual comparison without color indicating wavelength
@@ -1305,7 +1363,7 @@ effect:
             plt.xlabel(r"max($\mid B\mid)(M\lambda)$", fontsize=12)
             # plt.ylabel(r'residuals',fontsize =12)
             plt.tight_layout()
-            plt.savefig(os.path.join(os.getcwd(), "cpComparisonNoColor.png"))
+            plt.savefig(os.path.join(os.getcwd(), "cpComparisonNoColor.png"), dpi=250)
 
             plt.close()
 

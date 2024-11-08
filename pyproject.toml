@@ -6,17 +6,22 @@ build-backend = "flit_core.buildapi"
 name = "organic"
 version = "0.0.3"
 authors = [ 
-  { name="Toon De Prins", email="toon.deprins@protonmail.com" },
   { name="Jacques Kluska"},
-  { name="Rik Claes"},
+  { name="Rik Claes"}, 
+  { name="Toon De Prins", email="toon.deprins@protonmail.com" },
+]
+maintainers = [
+  { name="Toon De Prins", email="toon.deprins@protonmail.com" },
 ]
 description = 'A package for image reconstuction from optical interferometry data using GANs.'
 readme = "README.md"
+license = {file = "LICENSE"} 
 requires-python = ">=3.6"
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License",
-    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
 ]
 
 dependencies = [
@@ -27,3 +32,10 @@ dependencies = [
   "scipy==1.4.1",
   "tensorflow==2.2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/DePrinsT/organic"
+Repository = "https://github.com/DePrinsT/organic"
+Documentation = "https://organic.readthedocs.io/en/latest/"
+Issues = "https://github.com/DePrinsT/organic/issues"
+
