@@ -327,25 +327,27 @@ class GAN:
     # once the generator and discriminator have been set and compiled -> set the gan
     def create_gan(self, train_disc=False, train_gen=True, reinit=False):
         if reinit:
-            # TODO: CHECK IF THIS ACTUALLY WORKS, SINCE PYTHON OBJECTS ARE PASSED BY REFERENCE (though it seems to)
+            # TODO: CHECK IF THIS ACTUALLY WORKS, SINCE I THINK PYTHON OBJECTS ARE PASSED BY REFERENCE
+            # (though it seems to work). While the generator state gets reset, the optimizer doesn't
             gen = self.gen_init  # if we are reinitializing during image reconstruction -> use the generator copy net
         else:
-            gen = self.gen  # otherwise, just use the generator itself  (tbh I don't know if this is necessary)
+            gen = self.gen  # otherwise, just use the generator itself (tbh I don't know if this is necessary)
         self.dis.trainable = train_disc  # set trainability of the discriminator (false when reconstructing of course)
         gen.trainable = train_gen  # set whether 
-        gan_input = layers.Input(shape=(self.noiselength,))
-        x = gen(gan_input)
-        gan_output = self.dis(x)
+        gan_input = layers.Input(shape=(self.noiselength,))  # instanciate the input noise vector layer
+        x = gen(gan_input)  # pass the input to the generator and calculate its output
+        gan_output = self.dis(x)  # pass generator output as input to the discriminator to calculate the GAN output
+        # create the final model by specifying inputs and outputs
         gan = Model(inputs=gan_input, outputs=[gan_output, x])
         # NOTE: models do need to be recompiled if their trainability has been changed!
         gan.compile(
             loss="binary_crossentropy", optimizer=self.opt, metrics=["accuracy"]
-        )
+        )  # compile the GAN using binary crossentropy on the
         self.gen = gen
         return gan
 
     """
-    epochs: the number of iterations over a set of image with its size eaqual to the training dataset
+    epochs: the number of iterations over a set of image with its size equal to the training dataset
     batch_size: mini-batch size used for training the gan
     saveDir: directory where the trained networks will be stored
     PlotEpochs: the epoch interval at which examples of generated images will be created
@@ -359,12 +361,12 @@ effect:
     def train(
         self,
         images,
-        save_dir="./saved_models/",
-        nepochs=2000,
-        nbatch=50,
+        save_dir="./saved_models/",  # where to save trained networks
+        nepochs=2000,  # number of epochs to run
+        nbatch=50,  # mini-batch size
         OverTrainDiscr=1,
-        plotEpochs=25,
-        Use1sidedLabelSmooth=False,
+        plotEpochs=25,  # epoch interval after which to plot examples of generated images
+        Use1sidedLabelSmooth=False,  # set the value of 'true' images to 0.9 instead of 1 to prevent overconfidence
         saveEpochs=[],
     ):
         self.save_dir = save_dir
