@@ -10,7 +10,7 @@ import tensorflow.keras.optimizers as optimizers  # not needed?
 from tensorflow.keras.utils import plot_model
 import os
 from astropy.io import fits
-from PIL import Image
+import PIL.Image 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -75,7 +75,7 @@ def log(msg, dir):
 # return the binary cross-entropy function
 # DEPRECATED in newer tf versions -> use tf.keras.losses.BinaryCrossentropy
 # Loss class now    
-def CrossEntropy(y_true, y_pred):
+def cross_entropy(y_true, y_pred):
     return K.binary_crossentropy(y_true, y_pred, from_logits=False)
 
 ## definition of the GAN class
@@ -86,13 +86,16 @@ def CrossEntropy(y_true, y_pred):
 # train_disc = whether or not to train the discriminator (is passed to the create_gan method), i.e. no training 
 # of the discriminator when doing image reconstruction
 # noiselength = length of the noise vector at the start of the generator
-# Adam_lr = learning rate parameter for the ADAM optimization algorithm
-# Adam_beta_1 = The exponential decay rate for the 1st moment estimates in ADAM (no parameter for 2nd moment estimates
+# adam_lr = learning rate parameter for the ADAM optimization algorithm
+# adam_beta1 = The exponential decay rate for the 1st moment estimates in ADAM (no parameter for 2nd moment estimates
 # yet)
-# resetOpt = whether or not to reset the optimizer when performing restart iterations while doing image reconstruction
+# reset_opt = whether or not to reset the optimizer when performing restart iterations while doing image reconstruction
+# set to true by default
 # amsgrad = whether or not to use the amsgrad version of the Adam optimizer (this is generally more efficient and
 # provides better convergence).
 # gen_init = copy of the initial generator state (only created if reading in a GAN from file)
+# also contains self.params -> to store image recosntruction parameters, including both settings like pixelscale and
+# the SPARCO parameters. 
 class GAN:
     """
     The GAN class to train and use it
@@ -106,18 +109,18 @@ class GAN:
         npix=128,
         train_disc=False,
         noiselength=100,
-        Adam_lr=0.0001,
-        Adam_beta_1=0.91,
-        resetOpt=True,
+        adam_lr=0.0001,
+        adam_beta1=0.91,
+        reset_opt=True,
         amsgrad=True,
     ):
-        self.resetOpt = resetOpt
-        self.Adam_lr = Adam_lr
-        self.Adam_beta_1 = Adam_beta_1
+        self.reset_opt = reset_opt
+        self.adam_lr = adam_lr
+        self.adam_beta1 = adam_beta1
         self.amsgrad = amsgrad
         # function call to get Adam optimizer
-        self.opt = self.getOptimizer(
-            self.Adam_lr, self.Adam_beta_1, amsgrad=self.amsgrad
+        self.opt = self.get_optimizer(
+            self.adam_lr, self.adam_beta1, amsgrad=self.amsgrad
         )
         self.train_disc = train_disc
         self.noiselength = noiselength
@@ -125,7 +128,7 @@ class GAN:
         if gen != "" and dis != "":
             self.dispath = dis
             self.genpath = gen
-            self.read()
+            self.read_models()
         # otherwise fall back on default generator/discriminator creation
         else:
             self.npix = npix
@@ -139,7 +142,7 @@ class GAN:
     # both calling on an instance of the class as well as on the class itself 
     # beta2 and epsilon have default values here
     @staticmethod
-    def getOptimizer(lr, beta1, beta2=0.999, epsilon=1e-7, amsgrad=False):
+    def get_optimizer(lr, beta1, beta2=0.999, epsilon=1e-7, amsgrad=False):
         return Adam(
             learning_rate=lr,
             beta_1=beta1,
@@ -149,7 +152,7 @@ class GAN:
         )
 
     # function to read in the models from their h5 files
-    def read(self):
+    def read_models(self):
         """
         Loading the dictionnary from the generator and discriminator pathes
         """
@@ -252,11 +255,12 @@ class GAN:
         # compile model for training with binary cross-entropy loss function
         generator.compile(
             loss="binary_crossentropy",
-            optimizer=self.getOptimizer(self.Adam_lr, self.Adam_beta_1),  # call self-defined getOptimizer to set Adam
+            optimizer=self.get_optimizer(self.adam_lr, self.adam_beta1),  # call self-defined get_optimizer to set Adam
         )
         return generator
         
-    # function to create a compiled discriminator generator if paths to a generator and discriminator were not specified 
+    # function to create a compiled discriminator generator if paths to a generator and discriminator were not specified
+    # note the dropout fraction
     def create_discriminator(self, ReLU=0.25, dropout=0.5):
         inform("Creating the discriminator")
         npix = self.npix
@@ -308,7 +312,7 @@ class GAN:
         # compile into a working model for the discriminator
         discriminator.compile(
             loss="binary_crossentropy",
-            optimizer=self.getOptimizer(self.Adam_lr, self.Adam_beta_1),
+            optimizer=self.get_optimizer(self.adam_lr, self.adam_beta1),
             metrics=["accuracy"],
         )
 
@@ -324,25 +328,31 @@ class GAN:
         gan: a compiled keras model where the generator is followed by the discriminator and the discriminator is not trainable
 
     """
-    # once the generator and discriminator have been set and compiled -> set the gan
-    def create_gan(self, train_disc=False, train_gen=True, reinit=False):
+    # Once the generator and discriminator have been set and compiled -> set the GAN. This will be the object that's
+    # used for actually training the generator (while the )
+    def create_gan(self, train_disc=False, train_gen=True, reinit=True):
         if reinit:
             # TODO: CHECK IF THIS ACTUALLY WORKS, SINCE I THINK PYTHON OBJECTS ARE PASSED BY REFERENCE
             # (though it seems to work). While the generator state gets reset, the optimizer doesn't
-            gen = self.gen_init  # if we are reinitializing during image reconstruction -> use the generator copy net
+            # gen = self.gen_init  # if we are reinitializing during image reconstruction -> use the generator copy net
+            gen_init_copy = tf.keras.models.clone_model(self.gen_init)  # doesn't set the weights yet
+            gen_init_copy.set_weights(self.gen_init.get_weights())  # call to get and set the weights
+            gen = gen_init_copy
         else:
-            gen = self.gen  # otherwise, just use the generator itself (tbh I don't know if this is necessary)
+            gen = self.gen  # otherwise, just use the generator from the previous iteration itself
         self.dis.trainable = train_disc  # set trainability of the discriminator (false when reconstructing of course)
         gen.trainable = train_gen  # set whether 
         gan_input = layers.Input(shape=(self.noiselength,))  # instanciate the input noise vector layer
+        # NOTE: creating a GAN model like below keeps track of the underlying layers/sub-models and the associated
+        # weight. I.e. setting gen.trainable also affects the trainability of those weights in the gan object.
         x = gen(gan_input)  # pass the input to the generator and calculate its output
         gan_output = self.dis(x)  # pass generator output as input to the discriminator to calculate the GAN output
         # create the final model by specifying inputs and outputs
         gan = Model(inputs=gan_input, outputs=[gan_output, x])
-        # NOTE: models do need to be recompiled if their trainability has been changed!
+        # NOTE: models do need to be recompiled if the trainability of inner layers has been changed!
         gan.compile(
             loss="binary_crossentropy", optimizer=self.opt, metrics=["accuracy"]
-        )  # compile the GAN using binary crossentropy on the
+        )  # compile the GAN using binary crossentropy as a loss again
         self.gen = gen
         return gan
 
@@ -351,46 +361,48 @@ class GAN:
     batch_size: mini-batch size used for training the gan
     saveDir: directory where the trained networks will be stored
     PlotEpochs: the epoch interval at which examples of generated images will be created
-    Use1sidedLabelSmooth: whether ornot to use onsided label smoothing (best true when using binary binary_crossentropy, best false when using MSE (LSGAN))
+    Use1sidedLabelSmooth: whether ornot to use onsided label smoothing (best true when using binary binary_crossentropy,
+    best false when using MSE (LSGAN))
 effect:
     Trains the GAN
     Saves plots with examples of generated images and the loss evolution of the gans components
     Saves the trained netorks at the requested and final epochs of training
     """
-
+    # function to train the GAN network
     def train(
         self,
-        images,
+        input_images,  # InputImages object containing the training images
         save_dir="./saved_models/",  # where to save trained networks
-        nepochs=2000,  # number of epochs to run
+        nepochs=2000,  # number of epochs to run over the training set
         nbatch=50,  # mini-batch size
         OverTrainDiscr=1,
         plotEpochs=25,  # epoch interval after which to plot examples of generated images
         Use1sidedLabelSmooth=False,  # set the value of 'true' images to 0.9 instead of 1 to prevent overconfidence
-        saveEpochs=[],
+        saveEpochs=[],  # additional list of epochs at which to save the model
     ):
-        self.save_dir = save_dir
+        self.save_dir = save_dir  # set save directory 
 
-        self.nbatch = nbatch
-        self.nepochs = nepochs
+        self.nbatch = nbatch  # set batch size
+        self.nepochs = nepochs  # set number of epochs
         # this is the GAN
         generator = self.gen
         discriminator = self.dis
         gan = self.gan
         # these are the images
-        X_train = images.images
-        datagen = images.dataGen
-        batch_count = int(np.ceil(X_train.shape[0] / nbatch))  # defining the batches
+        x_train = input_images.images  # retrieve 4D training input images numpy tensor 
+        datagen = input_images.data_gen  # retrieve the image data generator
+        batch_count = int(np.ceil(x_train.shape[0] / nbatch))  # defining the total number batches
 
         # define the labels
         y_real = 1
-        batches = datagen.flow(X_train, y=None, batch_size=nbatch)
+        batches = datagen.flow(x_train, y=None, batch_size=nbatch)  # creates an iterator to give training batches
         if Use1sidedLabelSmooth:
-            y_real = 0.9
+            y_real = 0.9  # re-assign to 0.9 in order to avoid over-confidence
         y_false = np.zeros(nbatch)
         y_true = np.ones(nbatch) * y_real
 
-        disFakeLoss, disRealLoss, disFakeAccuracy, genAccuracy, genLoss = (
+        # create lists for holding the loss and metric values over the different epochs
+        dis_fake_loss, dis_real_loss, dis_fake_accuracy, gen_accuracy, gen_loss = (
             [],
             [],
             [],
@@ -399,65 +411,82 @@ effect:
         )
 
         inform("Starting GAN training")
+        # iterate over the training epochs
         for epoch in np.arange(nepochs):
             inform2(f"Epoch {epoch+1} of {nepochs}")
-            disFakeLossEp, disRealLossEp, disFakeAccuracyEp = 0, 0, 0
-            genLossEp, genAccuracyEp = 0, 0
+            # set loss terms and accuracy terms for this epoch
+            # set the loss terms and accuracy for the discriminator
+            dis_fake_loss_ep, dis_real_loss_ep, dis_fake_accuracy_ep = 0, 0, 0
+            # set the loss term and accuracy for the generator.
+            gen_loss_ep, gen_accuracy_ep = 0, 0 
             for _ in range(nbatch):  # batch_size in version from jacques
                 # generate  random noise as an input  to  initialize the  generator
-                noise = np.random.normal(0, 1, [nbatch, self.noiselength])
+                noise = np.random.normal(0, 1, [nbatch, self.noiselength])  # note the output shape: nbatch x input
                 # Generate ORGANIC images from noised input
-                generated_images = generator.predict(noise)
-                # train the discriminator more than the generator if requested
+                generated_images = generator.predict(noise)  # generate 'fake' generator images from noise input 
+                # train the discriminator (more than the generator if requested)
                 for i in range(OverTrainDiscr):
                     # Get a random set of  real images
-                    image_batch = batches.next()
-                    # if the batch created by the generator is too small, resample
-                    if image_batch.shape[0] != nbatch:
-                        batches = datagen.flow(X_train, y=None, batch_size=nbatch)
-                        image_batch = batches.next()
-                    image_batch = image_batch.reshape(nbatch, self.npix, self.npix, 1)
-                    # Construct different batches of  real and fake data
-                    X = np.concatenate([image_batch, generated_images])
+                    training_image_batch = batches.next()
+                    # if the batch created by the generator is too small, resample (TODO: what does this even do? Is it
+                    # not just redundant?)
+                    # TODO: Why is the amount of 'real' training and 'fake' generator images the same in one batch?
+                    if training_image_batch.shape[0] != nbatch:
+                        batches = datagen.flow(x_train, y=None, batch_size=nbatch)
+                        training_image_batch = batches.next()
+                    # reshape the input image batch to match the shape of the generator's 'fake' images
+                    training_image_batch = training_image_batch.reshape(nbatch, self.npix, self.npix, 1)
+                    # Construct different batches of real and fake data
+                    x_batch = np.concatenate([training_image_batch, generated_images])
                     # Labels for generated and real data
                     y_pred = np.concatenate([y_true, y_false])
-                    # Pre train discriminator on  fake and real data  before starting the gan.
-                    discriminator.trainable = True
-                    discriminator.train_on_batch(X, y_pred)
-                disRealEval = discriminator.evaluate(
-                    image_batch, y_pred[:nbatch], verbose=0
+                    # Pre train discriminator on fake and real data before starting the gan.
+                    discriminator.trainable = True  # TODO: don't models need to recompile if their trainability is changed?
+                    discriminator.train_on_batch(x_batch, y_pred)  # Run a single gradient descent step for the batch
+                    # TODO: why is the evaluation of the metrics done after a gradient descent step instead of before?
+                    # While it doesn't make that much difference probably it doesn't make sense.
+                # evaluate the discriminator loss and metrics in test mode for the 'real' test images
+                dis_real_eval = discriminator.evaluate(
+                    training_image_batch, y_pred[:nbatch], verbose=0
                 )
-                disFakeEval = discriminator.evaluate(
+                # evaluate the discriminator loss and metrics in test mode for the 'fake' generator images
+                dis_fake_eval = discriminator.evaluate(
                     generated_images, y_pred[nbatch:], verbose=0
                 )
                 # evaluations for the cost evolution of the discriminator
-                disFakeLossEp += disFakeEval[0] / batch_count
-                disRealLossEp += disRealEval[0] / batch_count
-                disFakeAccuracyEp += disFakeEval[1] / batch_count
+                # TODO: why the normalisation over batch count?
+                dis_fake_loss_ep += dis_fake_eval[0] / batch_count
+                dis_real_loss_ep += dis_real_eval[0] / batch_count
+                # How many 'fake' generator images were correctly flagged as such (i.e. sensitivity to fakes)
+                dis_fake_accuracy_ep += dis_fake_eval[1] / batch_count
 
-                # Tricking the noised input of the Generator as real data
+                # Treating the noised input of the generator as real data (i.e. the generator will now adapt in order
+                # to attempt to force the discriminator to recognize it's output as real images).
+                # With this formulation the minimization for the gradient descent in this step 
+                # uses eq. 3.25 of Rik Claes' masters thesis.
                 noise = np.random.normal(0, 1, [nbatch, self.noiselength])
                 y_gen = np.ones(nbatch)
 
                 # During the training of gan,
                 # the weights of discriminator should be fixed.
                 # We can enforce that by setting the trainable flag
-                discriminator.trainable = False
+                discriminator.trainable = False  # set discriminator to untrainable for the generator training step
 
-                # training  the GAN by alternating the training of the Discriminator
+                # training the GAN by alternating the training of the Discriminator (i.e. this switches to training 
+                # the generator)
                 gan.train_on_batch(noise, y_gen)
                 # evaluation of generator
-                genEval = gan.evaluate(noise, y_gen, verbose=0)
-                genLossEp += genEval[0] / batch_count
-                genAccuracyEp += genEval[1] / batch_count
+                gen_eval = gan.evaluate(noise, y_gen, verbose=0)
+                gen_loss_ep += gen_eval[0] / batch_count
+                gen_accuracy_ep += gen_eval[1] / batch_count
 
             # Saving all the metrics per epoch
-            genAccuracy.append(genAccuracyEp)
-            genLoss.append(genLossEp)
-            disFakeLoss.append(disFakeLossEp)
-            disRealLoss.append(disRealLossEp)
-            disFakeAccuracy.append(disFakeAccuracyEp)
-            # saveing current state of networks
+            gen_accuracy.append(gen_accuracy_ep)
+            gen_loss.append(gen_loss_ep)
+            dis_fake_loss.append(dis_fake_loss_ep)
+            dis_real_loss.append(dis_real_loss_ep)
+            dis_fake_accuracy.append(dis_fake_accuracy_ep)
+            # save current state of networks
             self.gan = gan
             self.dis = discriminator
             self.gen = generator
@@ -466,57 +495,66 @@ effect:
             if epoch == 1 or epoch % plotEpochs == 0:
                 self.plot_generated_images(epoch)
             if epoch in saveEpochs:
-                self.saveModel(str(epoch) + "thEpoch.h5")
+                self.save_model(str(epoch) + "thEpoch.h5")
 
-        self.saveModel("finalModel.h5")
-        self.plotGanEvolution(
-            disFakeLoss, disRealLoss, genLoss, disFakeAccuracy, genAccuracy
+        self.save_model("finalModel.h5")
+        self.plot_gan_evolution(
+            dis_fake_loss, dis_real_loss, gen_loss, dis_fake_accuracy, gen_accuracy
         )
 
         inform(f"Training succesfully finished.\nResults saved at {self.save_dir}")
 
+    # get random image from the generator
     def get_image(self, noise):
         gan = self.gan
         # random input
-        input = np.array(noise)
-        img = self.gan.predict(input)[1]
+        noise_input = np.array(noise)
+        # NOTE: this works because the generator image output is one of the outputs defined when creating the gan
+        # object
+        img = self.gan.predict(noise_input)[1]  # select second GAN model output, i.e. the generator image
+        # select batch position and channel (both 0, since only 1 channel
+        # and only one noise vector passed through).
         img = np.array(img)[0, :, :, 0]
 
         return img
 
+    # plot an image
     def plot_image(self, img, name="image.png", chi2=""):
-        bin = False
+        binary = False
         star = False
         d = self.params["ps"] * self.npix / 2.0
         if self.params["fsec"] > 0:
-            bin = True
+            binary = True
             xb = self.params["xsec"]
             yb = self.params["ysec"]
         if self.params["fstar"] > 0:
             star = True
-            UD = self.params["UDstar"]
+            ud = self.params["UDstar"]
 
         fig, ax = plt.subplots()
-        plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="hot")
+        plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="inferno")  # note that the x axis is flipped here
         if star:
-            ell = Ellipse((0, 0), UD, UD, 0, color="white", fc="white", fill=True)
+            ell = Ellipse((0, 0), ud, ud, 0, color="white", fc="white", fill=True)
             plt.plot(0, 0, "wx")
             ax.add_artist(ell)
-        if bin:
+        if binary:
             plt.plot(xb, yb, "g+")
         plt.text(0.9 * d, 0.9 * d, chi2, c="white")
         plt.xlabel(r"$\Delta\alpha$ (mas)")
         plt.ylabel(r"$\Delta\delta$ (mas)")
-        plt.tight_layout
+        plt.tight_layout()
         plt.savefig(name, dpi=250)
         plt.close()
 
         return img
 
+    # create and save an image from an input noise vector
     def save_image_from_noise(self, noise, name="image.png"):
         img = self.get_image(noise)
         self.plot_image(img[:, ::-1], name=name)
 
+    # create a generator image from a completely random input noise vector as well
+    # NOTE: the size of the input is hardcoded here
     def get_random_image(self):
         gan = self.gan
         # random input
@@ -526,6 +564,7 @@ effect:
 
         return img
 
+    # create and save a generator image from a completely random input noise vector as well
     def save_random_image(self, name="randomimage.png"):
         img = self.get_random_image()
         fig, ax = plt.subplots()
@@ -533,8 +572,9 @@ effect:
         plt.savefig(name, dpi=250)
         plt.close()
 
-    def plotGanEvolution(
-        self, disFakeLoss, disRealLoss, genLoss, disFakeAccuracy, genAccuracy
+    # plot for following the GAN's evolution during training
+    def plot_gan_evolution(
+        self, dis_fake_loss, dis_real_loss, gen_loss, dis_fake_accuracy, gen_accuracy
     ):
         """
         plotGanEvolution
@@ -553,50 +593,52 @@ effect:
             Plots the cost and accuracy terms as a function of epoch and stores the resulting plots
 
         """
-        dir = self.save_dir
+        save_dir = self.save_dir
 
         fig, ax = plt.subplots()
 
         color = iter(plt.cm.rainbow(np.linspace(0, 1, 5)))
 
         c = next(color)
-        plt.plot(disFakeLoss, label="discriminator fake data loss", c=c)
+        plt.plot(dis_fake_loss, label="discriminator fake data loss", c=c)
         c = next(color)
-        plt.plot(disRealLoss, label="discriminator real data loss", c=c)
+        plt.plot(dis_real_loss, label="discriminator real data loss", c=c)
         c = next(color)
-        plt.plot(genLoss, label="generator loss", c=c)
+        plt.plot(gen_loss, label="generator loss", c=c)
         plt.legend()
         plt.ylabel("Loss")
         plt.xlabel("Epoch")
-        plt.savefig(dir + "LossEvolution.png", dpi=250)
+        plt.savefig(save_dir + "LossEvolution.png", dpi=250)
         plt.close()
 
         fig, ax = plt.subplots()
-        plt.plot(disFakeAccuracy, label="discriminator data accuracy", c=c)
+        plt.plot(dis_fake_accuracy, label="discriminator data accuracy", c=c)
         c = next(color)
-        plt.plot(genAccuracy, label="generator data accuracy", c=c)
+        plt.plot(gen_accuracy, label="generator data accuracy", c=c)
         plt.legend()
         plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
-        plt.savefig(dir + "AccuracyEvolution.png", dpi=250)
+        plt.savefig(save_dir + "AccuracyEvolution.png", dpi=250)
         plt.close()
 
-    def saveModel(self, model_name):
+
+    # function to save a trained GAN model to HDF5 files
+    def save_model(self, model_name):
         """
         saveModel
 
         parameters:
             Modelname: name to be used for storing the networks of this run
         effect:
-            saves the keras models (neural networks) in their curren state
+            saves the keras models (neural networks) in their current state
 
         """
         # test if the path exists, if not, creates it
         if not os.path.isdir(self.save_dir):
             os.makedirs(self.save_dir)
 
-        model_path_GAN = os.path.join(self.save_dir, "GANfull" + model_name)
-        self.gan.save(model_path_GAN)
+        model_path_gan = os.path.join(self.save_dir, "GANfull" + model_name)
+        self.gan.save(model_path_gan)
         plot_model(self.gan, to_file="full.png", show_shapes=True)
 
         model_path_generator = os.path.join(self.save_dir, "generator" + model_name)
@@ -608,8 +650,9 @@ effect:
         )
         self.dis.save(model_path_discriminator)
         plot_model(self.dis, to_file="discriminator.png", show_shapes=True)
-        print(f"Saved trained model at {model_path_GAN}")
+        print(f"Saved trained model at {model_path_gan}")
 
+    # function to plot a certain amount of example images from noise vectors
     def plot_generated_images(self, epoch, examples=36, dim=(6, 6), figsize=(15, 9)):
         """
         plot_generated_images
@@ -625,6 +668,8 @@ effect:
         generator = self.gen
         noise = np.random.normal(loc=0, scale=1, size=[examples, self.noiselength])
         generated_images = generator.predict(noise)
+        # TODO: for some reason a reshape? Which is not done in the get_image function -> have to be really careful
+        # about sign conventions here. Might be because the imshow origin is chosen to be 'lower' here
         generated_images = generated_images.reshape(examples, self.npix, self.npix)
         fig, axs = plt.subplots(
             dim[0], dim[1], figsize=figsize, sharex=True, sharey=True
@@ -635,9 +680,9 @@ effect:
                 i += 1
                 ax.imshow(
                     generated_images[i],
-                    origin="lower",
+                    origin="lower",  # changes the origin from the standard convention
                     interpolation=None,
-                    cmap="hot",
+                    cmap="inferno",
                     vmin=-1,
                     vmax=1,
                 )
@@ -647,7 +692,8 @@ effect:
         plt.savefig(f"cgan_generated_image_ep{epoch}.png", dpi=250)
         plt.close()
 
-    def ImageReconstruction(
+    # master image reconstruction function
+    def image_reconstruction(
         self,
         data_files,
         sparco,
@@ -655,35 +701,37 @@ effect:
         mu=1,
         epochs=50,
         nrestart=50,
+        reinit_gen=False,  # whether to re-initialize generator state each iteration
         boot=False,
         nboot=100,
         ps=0.6,
-        useLowCPapprox=False,
+        use_low_cp_approx=False,
         grid=False,
         diagnostics=False,
         name="",
     ):
-        self.mu = mu
-        self.epochs = epochs
-        self.ps = ps
-        self.nboot = nboot
-        self.boot = boot
-        self.nrestart = nrestart
-        self.useLowCPapprox = useLowCPapprox
-        self.sparco = sparco
-        self.grid = grid
-        self.data = Data(data_dir, data_files)
-        self.diagnostics = diagnostics
-        self.dir0 = name
+        self.mu = mu  # regularization weight
+        self.epochs = epochs  # number of epochs (single gradient descent steps) during a single reconsturction
+        self.ps = ps  # pixelscale
+        self.nboot = nboot  # number of bootstrap samples
+        self.boot = boot  # whether to bootstrap in the first place
+        self.nrestart = nrestart  # number of generator restarts to perform
+        self.use_low_cp_approx = use_low_cp_approx  # whether to use low closure phase approximation when calculating chi2
+        self.sparco = sparco  # SPARCO object containing geometrical model information
+        self.grid = grid  # whether to do a grid, but this is just checked from whether the input contains lists below
+        self.data = Data(data_dir, data_files)  # create a Data object to contain the OI data
+        self.diagnostics = diagnostics  # whether to print out diagnostic plots for every epoch
+        self.dir0 = name  # directory name under which to store everything
         self.dirorig = os.getcwd()
 
+        # create directory to store results
         if self.dir0 != "":
             try:
                 os.makedirs(self.dir0)
             except FileExistsError:
                 underline("Working in an already existing folder:")
                 print(os.path.join(os.getcwd(), self.dir0))
-            os.chdir(self.dir0)
+            os.chdir(self.dir0)  # TODO: chdir is not the best idea, since it breaks reruns
         else:
             warn("Will put all the outputs in {os.getcwd()}")
             warn("It may overwrite files if they already exist!")
@@ -697,7 +745,7 @@ effect:
             "ps": self.ps,
             "epochs": self.epochs,
             "nrestart": self.nrestart,
-            "useLowCPapprox": self.useLowCPapprox,
+            "use_low_cp_approx": self.use_low_cp_approx,
             "fstar": sparco.fstar,
             "dstar": sparco.dstar,
             "denv": sparco.denv,
@@ -710,16 +758,18 @@ effect:
         }
 
         # checking if grid of reconstructions needed
-        ngrid, niters = 0, 1
+        ngrid, niters = 0, 1  # ngrid is number of gridded parameters, niters = total iterations
         gridpars, gridvals = [], []
+        # __dict__ returns a dictionary of the instance attributes
+        # .items() returns these as key-value tupel pairs in a dictionary view you can run a for loop over
         for x, v in self.__dict__.items():
-            if isinstance(v, list):
-                self.grid = True
+            if isinstance(v, list):  # check if attributes are lists
+                self.grid = True  # if so set grid to True
                 ngrid += 1
-                gridpars.append(x)
+                gridpars.append(x)  # adapt list of grid parameters and values
                 gridvals.append(v)
-                niters *= len(v)
-        # same for SPARCO
+                niters *= len(v)  # adapt the total number of iterations accordingly (it's a grid so you just multiply)
+        # same for SPARCO parameters
         for x, v in sparco.__dict__.items():
             if isinstance(v, list):
                 self.grid = True
@@ -728,53 +778,57 @@ effect:
                 gridvals.append(v)
                 niters *= len(v)
 
-                #        print(self.__dict__[gridpars[0]])
-        # Run a single image recosntruction or a grid
+        # Run a single image reconstruction or a grid
         if self.grid:
             self.niters = niters
             self.ngrid = ngrid
             self.gridpars = gridpars
             self.gridvals = gridvals
             # print(gridvals)
-            self.iterable = itertools.product(*self.gridvals)
+            self.iterable = itertools.product(*self.gridvals)  # make cartesian product by unpacking lists in gridvals
             inform(
                 f"Making an image reconstruction grid ({niters} reconstructions) on {ngrid} parameter(s): {gridpars}"
             )
-            self.runGrid()
+            self.run_grid(reinit_gen=reinit_gen)  # run a grid
         else:
             inform("Running a single image reconstruction")
-            self.dir = "ImageRec"
-            self.SingleImgRec()
+            self.dir = "img_rec"  # set the output directory of the GAN object for this image reconstruction
+            self.single_img_rec(reinit_gen=reinit_gen)
 
-        os.chdir(self.dirorig)
+        os.chdir(self.dirorig)  # TODO: again, change dir is a bad idea
 
-    def runGrid(self):
+    # case in which you have to iterate over a grid
+    def run_grid(self, reinit_gen=False):
         for i, k in zip(self.iterable, np.arange(self.niters)):
             state = ""
-            dir = "ImageRec"
+            dir_name = "img_rec"
+            # iterate over the different points in the grid
             for pars, p in zip(self.gridpars, np.arange(self.ngrid)):
+                # get the value for parameter number p in the current considered grid point i
+                # and store those in the self.params dict
                 self.params[f"{pars}"] = i[p]
-                state += f" {pars}={i[p]}"
-                dir += f"_{pars}={i[p]}"
+                state += f"{pars}={i[p]}"
+                dir_name += f"_{pars}={i[p]}"  # create the appropriate folder name for the current grid point
 
-            self.dir = dir
+            self.dir = dir_name
             try:
-                os.makedirs(dir)
+                os.makedirs(dir_name)
             except FileExistsError:
                 fail(
                     "The following folder already exists: {os.path.join(os.getcwd(), self.dir)}"
                 )
                 fail("Please define another folder by changing the name keyword")
-                fail("in the ImageReconstruction command")
-                sys.exit(0)
+                fail("in the imag_reconstruction command")
+                sys.exit(1)
 
-            inform2(f"Image reconstruction with{state}")
+            inform2(f"Image reconstruction with {state}")
 
-            self.ImgRec()
+            self.img_rec(reinit_gen=reinit_gen)  # do an image reconstruction  for the current grid point
 
-    def SingleImgRec(self):
+    # case in which you have no grid to iterate over
+    def single_img_rec(self, reinit_gen=False):
         inform2("Single image reconstruction started")
-        self.dir = "ImageRec"
+        self.dir = "img_rec"
         try:
             os.makedirs(self.dir)
         except FileExistsError:
@@ -782,37 +836,49 @@ effect:
                 "The following folder already exists: {os.path.join(os.getcwd(), self.dir)}"
             )
             fail("Please define another folder by changing the name keyword")
-            fail("in the ImageReconstruction command")
-            sys.exit(0)
+            fail("in the image_reconstruction command")
+            sys.exit(1)
 
-        self.ImgRec()
+        self.img_rec(reinit_gen=reinit_gen)
 
-    def ImgRec(self):
+    # perform a single image reconstruction
+    def img_rec(self, reinit_gen=False):
         # get parameters
         params = self.params
         mu = params["mu"]
-        # Create data loss
-        data_loss = self.set_dataloss()
+        # create data loss
+        data_loss = self.set_dataloss()  # the dataloss function is what does the whole V2 T3PHI calculation
 
-        outdir = os.path.join(os.getcwd(), self.dir)
+        outdir = os.path.join(os.getcwd(), self.dir)  # add the image output directory subname on top of dir0
 
-        Chi2s, DisLoss = [], []
-        Images = []
-        Vectors = []
-        iteration = range(params["nrestart"])
+        chi2s, dis_loss = [], []  # lists to store loss terms accross epochs (gradient descent steps)
+        imgs = []
+        vects = []
+        num_iterations = range(params["nrestart"])  # number of iterations
         if self.diagnostics:
             print("#restart\tftot\tfdata\tfdiscriminator")
-        for r in iteration:
+        for r in num_iterations:
             # Re init GAN
-            self.gan = self.create_gan(reinit=True)
-            # self.gan.get_layer(index=1).set_weights(self.gen.get_weights())
-            if self.resetOpt == True:
-                # opt = 'optimizers.'+self.opt._name
-                opt = "optimizers." + self.opt._name
+            # 'reinit=True' only re-initializes the generator state. The optimizer in the returned gan is just
+            # the self.opt optimizer (i.e. the one shared by the entire GAN class instance), and thus shared
+            self.gan = self.create_gan(reinit=reinit_gen)
+
+            # by default, the Adam optimizer state is reset in a new optimizer object, this can be changed
+            # by setting reset_opt = False in the argument list of the GAN class __init__
+            if self.reset_opt == True:
+                opt = "optimizers." + self.opt._name  # python command get the optimizer
                 opt = eval(opt)
+               
+                # TODO: this seems like a pretty weird way of doing it, since here we call from_config specifically from
+                # the Adam subclass of the Optimizers class using this stupid eval -> can't we just call from_config
+                # from the parent class Optimizer instead?
                 opt = opt.from_config(self.opt.get_config())
+                
+                # TODO: using this structure self.gan gets compiled twice; once in the self.create_gan() call above,
+                # and once in this statement
+                # note this also assigns the weights to the losses
                 self.gan.compile(
-                    loss=[CrossEntropy, data_loss], optimizer=opt, loss_weights=[mu, 1]
+                    loss=[cross_entropy, data_loss], optimizer=opt, loss_weights=[mu, 1]
                 )
 
             # generating the noise vector for this restart
@@ -820,9 +886,9 @@ effect:
             y_gen = [np.ones(1), np.ones(1)]
 
             # the loop on epochs with one noise vector
-            if self.diagnostics:
-                discloss = []
-                chi2 = []
+            if self.diagnostics:  # keep track of some diagnostics if needed
+                discloss = []  # regularization loss term
+                chi2 = []  # chi2 data loss term
             epochs = range(1, params["epochs"] + 1)
             for e in epochs:
                 # generate  random noise as an input  to  initialize the  generator
@@ -839,16 +905,16 @@ effect:
                 self.save_image_from_noise(
                     noisevector, name=os.path.join(self.dir, f"Image_restart{r}.png")
                 )
-            Chi2s.append(hist[2])
-            DisLoss.append(hist[1])
-            Images.append(img[:, ::-1])
-            Vectors.append(noisevector)
+            chi2s.append(hist[2])
+            dis_loss.append(hist[1])
+            imgs.append(img[:, ::-1])
+            vects.append(noisevector)
 
-        self.saveCube(Images, [Chi2s, DisLoss])
-        self.saveImages(Images, [Chi2s, DisLoss])
-        self.plotLossEvol(Chi2s, DisLoss)
+        self.save_cube(imgs, [chi2s, dis_loss])
+        self.save_images(imgs, [chi2s, dis_loss])
+        self.plot_loss_evol(chi2s, dis_loss)
 
-    def saveImages(self, image, losses):
+    def save_images(self, image, losses):
         # first find the median
         medianImage = np.median(image, axis=0)
         medianImage /= np.sum(medianImage)
@@ -954,7 +1020,7 @@ effect:
 
         hdul.writeto(os.path.join(self.dir, name), overwrite=True)
 
-    def plotLossEvol(self, Chi2, DisLoss):
+    def plot_loss_evol(self, Chi2, DisLoss):
         fig, ax = plt.subplots()
         plt.plot(Chi2, label="f_data")
         plt.plot(DisLoss, label="mu * f_discriminator")
@@ -963,11 +1029,11 @@ effect:
         plt.xlabel("#restart")
         plt.ylabel("Losses")
         plt.yscale("log")
-        plt.tight_layout
+        plt.tight_layout()
         plt.savefig(f"{self.dir}/lossevol.png", dpi=250)
         plt.close()
 
-    def saveCube(self, cube, losses):
+    def save_cube(self, cube, losses):
         Params = self.params
         mu = Params["mu"]
         npix = self.npix
@@ -1158,22 +1224,23 @@ effect:
         plt.xlabel("#epochs")
         plt.ylabel("Losses")
         plt.yscale("log")
-        plt.tight_layout
+        plt.tight_layout()
         plt.savefig(f"{self.dir}/lossevol_restart{r}.png", dpi=250)
         plt.close()
-
-    def createGAN(self):
-        # Loading networks
-        dis = self.dis
-        gen = self.gen
-        dis.trainable = False
-        noise_input = layers.Input(shape=(100,))
-        x = gen(noise_input)
-        gan_output = dis(x)
-        gan = Model(inputs=noise_input, outputs=[gan_output, x])
-        losses = [CrossEntropy, self.data_loss]
-        mu = self.params["mu"]
-        gan.compile(loss=losses, optimizer=self.opt, loss_weights=[mu, 1])
+    
+    # TODO: REDUNDANT?
+    # def createGAN(self):
+    #     # Loading networks
+    #     dis = self.dis
+    #     gen = self.gen
+    #     dis.trainable = False
+    #     noise_input = layers.Input(shape=(100,))
+    #     x = gen(noise_input)
+    #     gan_output = dis(x)
+    #     gan = Model(inputs=noise_input, outputs=[gan_output, x])
+    #     losses = [cross_entropy, self.data_loss]
+    #     mu = self.params["mu"]
+    #     gan.compile(loss=losses, optimizer=self.opt, loss_weights=[mu, 1])
 
     def set_dataloss(self):
         data = self.data
@@ -1201,7 +1268,7 @@ effect:
         ysec = params["ysec"] * MAS2RAD
         ps = params["ps"]
         wave0 = params["wave0"]
-        useLowCPapprox = params["useLowCPapprox"]
+        use_low_cp_approx = params["use_low_cp_approx"]
         nV2 = len(V2)
         nCP = len(CP)
         npix = self.npix
@@ -1422,7 +1489,7 @@ effect:
             CPimage += tf.math.angle(compTotalCompVis(ftImages, u2, v2, waveCP))
             CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
             CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (K.pow(CPe, 2) * nCP)
-            if useLowCPapprox:
+            if use_low_cp_approx:
                 CPchi2Terms = K.pow(CP - CPimage, 2) / (K.pow(CPe, 2) * nCP)
 
             CPloss = K.sum(CPchi2Terms, axis=1)
@@ -1571,23 +1638,27 @@ class SPARCO:
         self.xsec = xsec
         self.ysec = ysec
 
+# NOTE: Question to self: are the training images normalized first? How
+# are the images already pre-processed by Jacques and Rik?
 
-class inputImages:
+# class to describe input images used for training
+# in such a way so keras kan augment them
+class InputImages:
     """
     a class to get format the images the way keras can augment them
     """
-
+    # in general the loading functions
     def __init__(
         self,
-        dir,
-        file,
-        imagesize=128,
-        loadfromCube=True,
+        dir,  # direcory which to search
+        file,  # filename of cube of files
+        imagesize=128,  # image pixel size
+        loadfromCube=True,  # load image from the cube
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
         featurewise_std_normalization=False,  # divide inputs by std of the dataset
         samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
+        zca_whitening=False,  # apply ZCA whitening (zero phase component analysis)
         zca_epsilon=1e-06,  # epsilon for ZCA whitening
         rotation_range=180,  # randomly rotate images in the range (degrees, 0 to 180)
         # randomly shift images horizontally (fraction of total width)
@@ -1595,14 +1666,14 @@ class inputImages:
         # randomly shift images vertically (fraction of total height)
         height_shift_range=0,
         shear_range=0.0,  # set range for random shear
-        zoom_range=[1.8, 2.3],  # set range for random zoom
+        zoom_range=[0.9, 1.1],  # set range for random zoom factor
         channel_shift_range=0.0,  # set range for random channel shifts
         # set mode for filling points outside the input boundaries
         fill_mode="nearest",
         cval=-1.0,  # value used for fill_mode = "constant"
         horizontal_flip=True,  # randomly flip images
         vertical_flip=True,  # randomly flip images
-        # set rescaling factor (applied before any other transformation)
+        # set rescaling factor which the images are multiplied by (applied after any other transformation)
         rescale=None,
         # set function that will be applied on each input
         preprocessing_function=None,
@@ -1612,6 +1683,8 @@ class inputImages:
         validation_split=0.0,
     ):
         self.npix = imagesize
+        # expand to full filepath
+        # NOTE: naming is confusing w.r.t. class __init__ function
         self.dir = os.path.join(os.path.expandvars(dir), file)
         self.loadfromCube = loadfromCube
         self.featurewise_center = featurewise_center
@@ -1637,8 +1710,10 @@ class inputImages:
 
         self.load()
 
+    # general function to load in the training images
     def load(self):
-        self.dataGen = ImageDataGenerator(
+        # initialize ImageDataGenerator with all the properties passed along to the __init__ function
+        self.data_gen = ImageDataGenerator(
             featurewise_center=self.featurewise_center,
             samplewise_center=self.samplewise_center,
             featurewise_std_normalization=self.featurewise_std_normalization,
@@ -1660,13 +1735,14 @@ class inputImages:
             data_format=self.data_format,
             validation_split=self.validation_split,
         )
-        if self.loadfromCube:
-            self.images = self.load_data_fromCube()
+        if self.loadfromCube:  # if loading from a cube call correct function
+            self.images = self.load_data_from_cube()  # initialize the images property (used at beginning of train())
         else:
-            self.images = self.load_data()
+            self.images = self.load_data()  # otherwise call other function to initialize image property
         inform(f"Input images loaded successfully with shape {self.images.shape}")
 
-    def load_data_fromCube(self):
+    # function to load in data from a .fits cube of images
+    def load_data_from_cube(self):
         """
         load_data_fromCube
 
@@ -1676,30 +1752,39 @@ class inputImages:
         returns:
             images: a numpy array containing the image information and dimensions (number of images *imagesize*imagesize*1 )
         """
-        cube = fits.getdata(self.dir, ext=0)
+        cube = fits.getdata(self.dir, ext=0)  # get data from primary header (where the images are stored in this case)
 
-        images = []
-        for i in np.arange(len(cube)):
-            img0 = Image.fromarray(cube[i])
-            img = img0.resize((self.npix, self.npix), Image.BILINEAR)
-            img /= np.max(img)
-            # img = img[:,:,np.newaxis]
-            images.append(img)
+        images = []  # list of images
+        for i in np.arange(len(cube)):  # iterate over the different images
+            img0 = PIL.Image.fromarray(cube[i])  # put the images in a PIL image object
+            # resize the image using bilinear interpolation to the size requirements of the network if needed
+            img = img0.resize((self.npix, self.npix), PIL.Image.BILINEAR)
+            img /= np.max(img)  # normalize the image by the maximum flux
+            images.append(img)  # append to the list of images
 
-        newcube = np.array(images)
+        # put the images back into a 4D numpy array (dim 1 = sample from set, dim 2, 3 =
+        # image spatial dimensions, dimension 4 = number of channels, in this case 1 so just add an axis)
+        # also remap the images to lie between -1 and 1 (the same output range as the generator produces due to its
+        # final tanh activation).
+
+        # NOTE: inherently assumes data_format = 'channels_last' -> might be safer to set this by default instead of
+        # leaving it to the __init__ function otherwise the user settings in ~/.keras/keras.json might override this
+        # (see the documentation of Keras' ImageDataGenerator).
+        newcube = np.array(images)  
         newcube = (newcube[:, :, :, np.newaxis] - 0.5) * 2
 
         return newcube
 
+    # same as load_data_from_cube except you should use wildcards for the 'file' keyword in the __init__ method
+    # because it instead uses glob to find all the files
     def load_data(self):
         dirs = glob.glob(self.dir)
         images = []
         for i in np.arange(len(dirs)):
             image = fits.getdata(dirs[i], ext=0)
-            img = Image.fromarray(image)
-            img = img.resize((self.npix, self.npix), Image.BILINEAR)
+            img = PIL.Image.fromarray(image)
+            img = img.resize((self.npix, self.npix), PIL.Image.BILINEAR)
             img /= np.max(img)
-            # img = img[:,:,np.newaxis]
             images.append(img)
         newcube = np.array(images)
         newcube = (newcube[:, :, :, np.newaxis] - 0.5) * 2
@@ -1709,6 +1794,6 @@ class inputImages:
 
 if "__main__" == __name__:
     test = GAN()
-    dir = "./"
+    dir_name = "./"
     file = "Test"
-    imgs = inputImages(dir, file)
+    imgs = InputImages(dir_name, file)

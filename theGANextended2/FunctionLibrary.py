@@ -140,7 +140,7 @@ def load_data_fromCube(dir,imagesize):
     for i in range(1,len(cube)):
         if i == 41:
             plt.figure()
-            plt.imshow(np.squeeze(cube[i]),interpolation=None,cmap='hot')
+            plt.imshow(np.squeeze(cube[i]),interpolation=None,cmap='inferno')
             plt.axis('off')
             plt.tight_layout()
             plt.savefig('example loadedImage.png')
@@ -176,7 +176,7 @@ def plot_generated_images(epoch, generator,NoiseLength,image_Size, examples=36, 
     plt.figure(figsize=figsize)
     for i in range(generated_images.shape[0]):
         plt.subplot(dim[0], dim[1], i+1)
-        plt.imshow(generated_images[i],interpolation=None,cmap='hot',vmin=-1,vmax=1)
+        plt.imshow(generated_images[i],interpolation=None,cmap='inferno',vmin=-1,vmax=1)
         plt.axis('off')
     plt.tight_layout()
     plt.savefig('cgan_generated_image %d.png' %epoch)
@@ -299,7 +299,7 @@ def classicalGANtraining(gen,discr,optim,dir,image_size,NoiseLength,epochs=1, ba
                 # Get a random set of  real images
                 image_batch = batches.next()
                 #plt.figure()
-                #mapable=plt.imshow((np.squeeze(image_batch[1])+1)/2,interpolation=None,cmap='hot',vmin = 0,vmax = 1)
+                #mapable=plt.imshow((np.squeeze(image_batch[1])+1)/2,interpolation=None,cmap='inferno',vmin = 0,vmax = 1)
                 #plt.colorbar(mapable)
                 #plt.tight_layout()
                 #plt.savefig('example loadedImage %d.png'%e)
@@ -915,7 +915,7 @@ def plot_generated_images2(epoch, generator,theOneNoiseVector,image_Size,pixelSi
     generated_images = generated_images.reshape(100,image_Size,image_Size)
 
     plt.figure()
-    mapable = plt.imshow((generated_images[0]+1)/2,origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot',vmin= np.min((generated_images[0]+1)/2),vmax =np.max((generated_images[0]+1)/2),interpolation=None)
+    mapable = plt.imshow((generated_images[0]+1)/2,origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno',vmin= np.min((generated_images[0]+1)/2),vmax =np.max((generated_images[0]+1)/2),interpolation=None)
     np.save('cgan_generated_image %d.png' %epoch,(generated_images[0]+1)/2)
     ax = plt.gca()
     ax.invert_xaxis()
@@ -1105,7 +1105,7 @@ effect:
 def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
     # plots the mean image,
     plt.figure()
-    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot',vmin= 0.,vmax =1.)
+    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno',vmin= 0.,vmax =1.)
     ax = plt.gca()
     ax.invert_xaxis()
     plt.xlabel(r'$\Delta \alpha (mas)$')
@@ -1118,7 +1118,7 @@ def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
 
     #plots the variance image
     plt.figure()
-    mapable = plt.imshow(np.sqrt(variance),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot')
+    mapable = plt.imshow(np.sqrt(variance),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno')
     ax = plt.gca()
     ax.invert_xaxis()
     plt.xlabel(r'$\Delta \alpha (mas)$')
@@ -1128,7 +1128,7 @@ def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
 
     #plot the mean image with a 5 sigma significance contour.
     plt.figure()
-    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot',vmin= 0.,vmax =1.)
+    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno',vmin= 0.,vmax =1.)
     plt.contour(mean/np.sqrt(variance), [5.], colors='b', origin='lower', extent=[-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2])
     ax = plt.gca()
     ax.invert_xaxis()
@@ -1140,7 +1140,7 @@ def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
 
     #plot the mean image with a 3 sigma significance contour.
     plt.figure()
-    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot',vmin= 0.,vmax =1.)
+    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno',vmin= 0.,vmax =1.)
     plt.contour(mean/np.sqrt(variance), [3.], colors='b', origin='lower', extent=[-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2])
     ax = plt.gca()
     ax.invert_xaxis()
@@ -1152,7 +1152,7 @@ def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
 
     #plot the mean image with a 5 and 3 sigma significance contour.
     plt.figure()
-    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot',vmin= 0.,vmax =1.)
+    mapable = plt.imshow(mean/np.max(mean),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno',vmin= 0.,vmax =1.)
     plt.contour(mean/np.sqrt(variance), [3.,5.],linewidths = 0.9,linestyles =['dashed','solid'], colors='b', origin='lower', extent=[-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2])
     ax = plt.gca()
     ax.invert_xaxis()
@@ -1165,7 +1165,7 @@ def plotMeanAndSTD(mean,variance,image_Size,pixelSize,saveDir,plotVar = False):
 
     #plots the corresponding mean over standard deviation map
     plt.figure()
-    mapable = plt.imshow(mean/np.sqrt(variance),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='hot')
+    mapable = plt.imshow(mean/np.sqrt(variance),origin = 'lower',extent = [-image_Size*pixelSize/2,image_Size*pixelSize/2,-image_Size*pixelSize/2,image_Size*pixelSize/2],cmap='inferno')
     ax = plt.gca()
     ax.invert_xaxis()
     plt.xlabel(r'$\Delta \alpha (mas)$')

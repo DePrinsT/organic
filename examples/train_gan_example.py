@@ -13,6 +13,6 @@ if __name__ == "__main__":
 
     dir = '/Users/jacques/Work/Organic/'
     file = 'processedcube03.fits'
-    imgs = org.inputImages(dir, file)
+    imgs = org.InputImages(dir, file)
 
     test.train(imgs, nepochs=2, plotEpochs=2)
