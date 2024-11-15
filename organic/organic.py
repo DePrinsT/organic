@@ -90,7 +90,7 @@ def cross_entropy(y_true, y_pred):
 # adam_beta1 = The exponential decay rate for the 1st moment estimates in ADAM (no parameter for 2nd moment estimates
 # yet)
 # reset_opt = whether or not to reset the optimizer when performing restart iterations while doing image reconstruction
-# set to true by default
+# set to true by default (NOTE: False gives bullshit results!!)
 # amsgrad = whether or not to use the amsgrad version of the Adam optimizer (this is generally more efficient and
 # provides better convergence).
 # gen_init = copy of the initial generator state (only created if reading in a GAN from file)
@@ -332,9 +332,7 @@ class GAN:
     # used for actually training the generator (while the )
     def create_gan(self, train_disc=False, train_gen=True, reinit=True):
         if reinit:
-            # TODO: CHECK IF THIS ACTUALLY WORKS, SINCE I THINK PYTHON OBJECTS ARE PASSED BY REFERENCE
-            # (though it seems to work). While the generator state gets reset, the optimizer doesn't
-            # gen = self.gen_init  # if we are reinitializing during image reconstruction -> use the generator copy net
+            # code below makes a deep copy of the model!!!
             gen_init_copy = tf.keras.models.clone_model(self.gen_init)  # doesn't set the weights yet
             gen_init_copy.set_weights(self.gen_init.get_weights())  # call to get and set the weights
             gen = gen_init_copy
@@ -540,8 +538,8 @@ effect:
         if binary:
             plt.plot(xb, yb, "g+")
         plt.text(0.9 * d, 0.9 * d, chi2, c="white")
-        plt.xlabel(r"$\Delta\alpha$ (mas)")
-        plt.ylabel(r"$\Delta\delta$ (mas)")
+        plt.xlabel(r"$\Delta\mathrm{E}$ (mas)")
+        plt.ylabel(r"$\Delta\mathrm{N}$ (mas)")
         plt.tight_layout()
         plt.savefig(name, dpi=250)
         plt.close()
@@ -550,7 +548,7 @@ effect:
 
     # create and save an image from an input noise vector
     def save_image_from_noise(self, noise, name="image.png"):
-        img = self.get_image(noise)
+        img = self.get_image(noise)  # get an image from the noise vector (why do this if it was already done)
         self.plot_image(img[:, ::-1], name=name)
 
     # create a generator image from a completely random input noise vector as well
@@ -852,14 +850,14 @@ effect:
         outdir = os.path.join(os.getcwd(), self.dir)  # add the image output directory subname on top of dir0
 
         chi2s, dis_loss = [], []  # lists to store loss terms accross epochs (gradient descent steps)
-        imgs = []
-        vects = []
+        imgs = []  # to store different images accross epochs
+        vects = []  # to store different noise vectors
         num_iterations = range(params["nrestart"])  # number of iterations
         if self.diagnostics:
             print("#restart\tftot\tfdata\tfdiscriminator")
         for r in num_iterations:
             # Re init GAN
-            # 'reinit=True' only re-initializes the generator state. The optimizer in the returned gan is just
+            # 'reinit=True' only re-initializes the generator state. The optimizer in the returned gan is then just
             # the self.opt optimizer (i.e. the one shared by the entire GAN class instance), and thus shared
             self.gan = self.create_gan(reinit=reinit_gen)
 
@@ -877,42 +875,50 @@ effect:
                 # TODO: using this structure self.gan gets compiled twice; once in the self.create_gan() call above,
                 # and once in this statement
                 # note this also assigns the weights to the losses
+                # NOTE: The cross entropy function is passed here to describe the regularization term -log(D), with
+                # D the discriminator output. This is achieved by setting y_true = 1 (in which case the binary
+                # cross entropy term jsut reduces to -log(D)).
                 self.gan.compile(
                     loss=[cross_entropy, data_loss], optimizer=opt, loss_weights=[mu, 1]
                 )
+                # cross_entropy loss is applied to the 1st gan Keras model ouptut -> e.g. the discriminator's value
+                # the data loss one is applied to the second output of the model, which is the generator image ->
+                # this is then just passed onto the set_dataloss function which compares to the actual OIdata
 
             # generating the noise vector for this restart
             noisevector = np.array([np.random.normal(0, 1, 100)])
-            y_gen = [np.ones(1), np.ones(1)]
-
+            # target values, for the discriminator output it makes sense (causes the binary cross entropy term to 
+            # reduce to -log(D)), the data_loss one is just a dummy one since the set_dataloss function doesn't make 
+            # use of it really
+            y_gen = [np.ones(1), np.ones(1)]  
             # the loop on epochs with one noise vector
             if self.diagnostics:  # keep track of some diagnostics if needed
                 discloss = []  # regularization loss term
                 chi2 = []  # chi2 data loss term
             epochs = range(1, params["epochs"] + 1)
             for e in epochs:
-                # generate  random noise as an input  to  initialize the  generator
-                hist = self.gan.train_on_batch(noisevector, y_gen)
+                # perform a training step
+                hist = self.gan.train_on_batch(noisevector, y_gen)  # hist stores the loss terms
 
-                if self.diagnostics:
-                    discloss.append(hist[1])
+                if self.diagnostics:  # add losses to diagnostics if needed
+                    discloss.append(hist[1])  # note the losses are outputs
                     chi2.append(hist[2])
 
-            img = self.get_image(noisevector)
-            img = (img + 1) / 2
+            img = self.get_image(noisevector)  # retrieve the image
+            img = (img + 1) / 2  # renormalize the image to fall in the 0 to 1 range
             if self.diagnostics:
                 self.give_imgrec_diagnostics(hist, chi2, discloss, r, epochs, mu)
                 self.save_image_from_noise(
                     noisevector, name=os.path.join(self.dir, f"Image_restart{r}.png")
-                )
-            chi2s.append(hist[2])
-            dis_loss.append(hist[1])
-            imgs.append(img[:, ::-1])
-            vects.append(noisevector)
+                )  # get an image from the noise vector and save at the correct spot
+            chi2s.append(hist[2])  # data loss (chi2)
+            dis_loss.append(hist[1])  # discriminator loss (multiplied by the weight)
+            imgs.append(img[:, ::-1])  # append the image to the list of images
+            vects.append(noisevector)  # append used noise vector to a list
 
-        self.save_cube(imgs, [chi2s, dis_loss])
-        self.save_images(imgs, [chi2s, dis_loss])
-        self.plot_loss_evol(chi2s, dis_loss)
+        self.save_cube(imgs, [chi2s, dis_loss])  # save to fits cube
+        self.save_images(imgs, [chi2s, dis_loss])  # save the median image and best fits images
+        self.plot_loss_evol(chi2s, dis_loss)  # plot the loss evolution and save the figs
 
     def save_images(self, image, losses):
         # first find the median
@@ -1211,11 +1217,12 @@ effect:
         # y_pred = self.gan.predict(noisevector)[1]
         # self.data_loss([1], y_pred, training = False)
 
+    # function to print and save the plots of the diagnostics
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
         print(r, hist[0], hist[2], mu * hist[1], sep="\t")
-        print(mu)
+        print(mu)  # print the weight of the discriminator loss
         print(type(discloss))
-        print(discloss)
+        print(discloss)  # print the discriminator loss
         fig, ax = plt.subplots()
         plt.plot(epochs, chi2, label="f_data")
         plt.plot(epochs, mu * np.array(discloss), label="mu * f_discriminator")
@@ -1461,9 +1468,13 @@ effect:
             )
             return VcomplTotal
 
+        # function to compute the data loss function (i.e. by comparing to the OI data)
+        # notice that y_true is not used, it's just a dummy value that Keras expects you to have
+        # note that everything must be done using tensorflow functions in this case, otherwise you lose the
+        # speed and parallelization advantage
         def data_loss(y_true, y_pred, training=True):
             # img = y_pred.numpy()[0,:,:,0]
-            y_pred = tf.squeeze(y_pred, axis=3)
+            y_pred = tf.squeeze(y_pred, axis=3)  # remove batch dimension (it's of size 1 anyway) using squeeze
             y_pred = (y_pred + 1) / 2
             y_pred = tf.cast((y_pred), tf.complex128)
             y_pred = tf.signal.ifftshift(y_pred, axes=(1, 2))
@@ -1471,7 +1482,7 @@ effect:
             ftImages = tf.signal.fftshift(ftImages, axes=(1, 2))
 
             coordsMax = [[[[0, int(npix / 2), int(npix / 2)]]]]
-            ftImages = ftImages / tf.cast(
+            ftImages = ftImages / tf.cast(  
                 tf.math.abs(tf.gather_nd(ftImages, coordsMax)), tf.complex128
             )
             VcomplForV2 = compTotalCompVis(ftImages, u, v, waveV2)
