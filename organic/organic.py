@@ -343,10 +343,10 @@ class GAN:
         gan_input = layers.Input(shape=(self.noiselength,))  # instanciate the input noise vector layer
         # NOTE: creating a GAN model like below keeps track of the underlying layers/sub-models and the associated
         # weight. I.e. setting gen.trainable also affects the trainability of those weights in the gan object.
-        x = gen(gan_input)  # pass the input to the generator and calculate its output
-        gan_output = self.dis(x)  # pass generator output as input to the discriminator to calculate the GAN output
+        gen_output = gen(gan_input)  # pass the input to the generator and calculate its output
+        gan_output = self.dis(gen_output)  # pass generator output as input to the discriminator to calculate the GAN output
         # create the final model by specifying inputs and outputs
-        gan = Model(inputs=gan_input, outputs=[gan_output, x])
+        gan = Model(inputs=gan_input, outputs=[gan_output, gen_output])
         # NOTE: models do need to be recompiled if the trainability of inner layers has been changed!
         gan.compile(
             loss="binary_crossentropy", optimizer=self.opt, metrics=["accuracy"]
@@ -512,12 +512,12 @@ effect:
         img = self.gan.predict(noise_input)[1]  # select second GAN model output, i.e. the generator image
         # select batch position and channel (both 0, since only 1 channel
         # and only one noise vector passed through).
-        img = np.array(img)[0, :, :, 0]
+        img = np.array(img)[0, :, :, 0],  # notice we also make it a numpy array
 
         return img
 
-    # plot an image
-    def plot_image(self, img, name="image.png", chi2=""):
+    # plot an image, chi2_label is the chi2 label string to be added to the image
+    def plot_image(self, img, name="image.png", chi2_label=""):
         binary = False
         star = False
         d = self.params["ps"] * self.npix / 2.0
@@ -537,7 +537,7 @@ effect:
             ax.add_artist(ell)
         if binary:
             plt.plot(xb, yb, "g+")
-        plt.text(0.9 * d, 0.9 * d, chi2, c="white")
+        plt.text(0.9 * d, 0.9 * d, chi2_label, c="white")
         plt.xlabel(r"$\Delta\mathrm{E}$ (mas)")
         plt.ylabel(r"$\Delta\mathrm{N}$ (mas)")
         plt.tight_layout()
@@ -849,7 +849,7 @@ effect:
 
         outdir = os.path.join(os.getcwd(), self.dir)  # add the image output directory subname on top of dir0
 
-        chi2s, dis_loss = [], []  # lists to store loss terms accross epochs (gradient descent steps)
+        chi2_restarts, dis_loss_restarts = [], []  # lists to store loss terms across restarts
         imgs = []  # to store different images accross epochs
         vects = []  # to store different noise vectors
         num_iterations = range(params["nrestart"])  # number of iterations
@@ -892,84 +892,98 @@ effect:
             # use of it really
             y_gen = [np.ones(1), np.ones(1)]  
             # the loop on epochs with one noise vector
-            if self.diagnostics:  # keep track of some diagnostics if needed
-                discloss = []  # regularization loss term
-                chi2 = []  # chi2 data loss term
+            if self.diagnostics:  # keep track of diagnostics accross epochs if needed
+                dis_loss_epochs = []  # regularization loss term
+                chi2_epochs = []  # chi2 data loss term
+            # iterate over epochs
             epochs = range(1, params["epochs"] + 1)
             for e in epochs:
                 # perform a training step
                 hist = self.gan.train_on_batch(noisevector, y_gen)  # hist stores the loss terms
+                # NOTE: the regulatory term is already multiplied with the appropriate weight in this case (Keras
+                # multiplies loss by the specified weights accordingly before returning them)
 
                 if self.diagnostics:  # add losses to diagnostics if needed
-                    discloss.append(hist[1])  # note the losses are outputs
-                    chi2.append(hist[2])
+                    dis_loss_epochs.append(hist[1])  # note the losses are outputs
+                    chi2_epochs.append(hist[2])
 
             img = self.get_image(noisevector)  # retrieve the image
             img = (img + 1) / 2  # renormalize the image to fall in the 0 to 1 range
             if self.diagnostics:
-                self.give_imgrec_diagnostics(hist, chi2, discloss, r, epochs, mu)
+                self.give_imgrec_diagnostics(hist, chi2_epochs, dis_loss_epochs, r, epochs, mu)
                 self.save_image_from_noise(
                     noisevector, name=os.path.join(self.dir, f"Image_restart{r}.png")
                 )  # get an image from the noise vector and save at the correct spot
-            chi2s.append(hist[2])  # data loss (chi2)
-            dis_loss.append(hist[1])  # discriminator loss (multiplied by the weight)
+            chi2_restarts.append(hist[2])  # data loss (chi2)
+            dis_loss_restarts.append(hist[1])  # discriminator loss (multiplied by the weight)
             imgs.append(img[:, ::-1])  # append the image to the list of images
             vects.append(noisevector)  # append used noise vector to a list
 
-        self.save_cube(imgs, [chi2s, dis_loss])  # save to fits cube
-        self.save_images(imgs, [chi2s, dis_loss])  # save the median image and best fits images
-        self.plot_loss_evol(chi2s, dis_loss)  # plot the loss evolution and save the figs
+        self.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
+        # save the median image and best fits images, both into plots and into fits files
+        self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
+        self.plot_loss_evol(chi2_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
 
+    # function to save median and best image fits
     def save_images(self, image, losses):
         # first find the median
-        medianImage = np.median(image, axis=0)
-        medianImage /= np.sum(medianImage)
-        median = np.reshape(medianImage[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
+        median_img = np.median(image, axis=0)  # get the median image
+        median_img /= np.sum(median_img)  # normalize the median image by its own total intensity
+        # some reshaping going on, ::-1 means the order is reversed along the axis
+        median = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
-        fdata = self.data_loss(1, median).numpy()
-        frgl = self.dis.predict(median)[0, 0]
-        ftot = fdata + self.params["mu"] * frgl
-        # plot image
+        fdata = self.data_loss(1, median).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl = self.dis.predict(median)[0, 0]  # get regulator loss
+        ftot = fdata + self.params["mu"] * frgl  # calc total loss, still need to ,u
+        # plot median image and save it to location
         self.plot_image(
-            medianImage,
+            median_img,
             name=os.path.join(os.getcwd(), self.dir, "MedianImage.png"),
-            chi2=f"chi2={fdata:.1f}",
+            chi2_label=f"chi2={fdata:.1f}",
         )
-        # save image
-        self.imagetofits(
-            medianImage,
+        # save median image in a fits file
+        # TODO: frgl here is not yet multiplied by the weight factor, yet it is when called for best image below
+        self.image_to_fits(
+            median_img,
             ftot,
             fdata,
             frgl,
             name=os.path.join(os.getcwd(), self.dir, "MedianImage.fits"),
         )
 
-        # Same but for best image
+        # Same but for best image (best meaning lowest total loss) out of all restarts
         fdata = np.array(losses[0])
-        frgl = np.array(losses[1])
+        frgl = np.array(losses[1])  # already multiplied by the appropriate weight by Keras itself
+        # NOTE: here you do not need to multiply by mu, since this is already done automatically by Keras when returning
+        # loss terms after a train_on_batch step!
         ftot = fdata + frgl
-        id = np.argmin(ftot)
-        best = image[id]
-        fdatabest = fdata[id]
-        frglbest = frgl[id]
+        idx = np.argmin(ftot)
+        img_best = image[idx]
+        fdata_best = fdata[idx]
+        frgl_best = frgl[idx]
         # plot image
         self.plot_image(
-            best,
+            img_best,
             name=os.path.join(os.getcwd(), self.dir, "BestImage.png"),
-            chi2=f"chi2={fdatabest:.1f}",
+            chi2_label=f"chi2={fdata_best:.1f}",
         )
         # save image
-        self.imagetofits(
-            best,
-            ftot[id],
-            fdatabest,
-            frglbest,
+
+        # TODO: frgl here is already multiplied by the weight factor, yet it is not when called for the median image
+        # above!
+        self.image_to_fits(
+            img_best,
+            ftot[idx],
+            fdata_best,
+            frgl_best,
             name=os.path.join(os.getcwd(), self.dir, "BestImage.fits"),
         )
 
-    def imagetofits(self, image, ftot, fdata, frgl, name="Image.fits"):
-        Params = self.params
-        mu = Params["mu"]
+    # function to save an image to a fits file.
+    # note that frgl here stands for the discriminator output (i.e. not yet multiplied by the weight factor mu)
+    def image_to_fits(self, image, ftot, fdata, frgl, name="Image.fits"):
+        params = self.params
+        mu = params["mu"]
         npix = self.npix
 
         header = fits.Header()
@@ -988,32 +1002,32 @@ effect:
         header["CRPIX2"] = npix / 2
         header["CTYPE1"] = ("milliarcsecond", "RA in mas")
         header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
-        header["CDELT1"] = -1 * Params["ps"]
-        header["CDELT2"] = Params["ps"]
+        header["CDELT1"] = -1 * params["ps"]
+        header["CDELT2"] = params["ps"]
 
-        header["SWAVE0"] = (Params["wave0"], "SPARCO central wavelength in (m)")
+        header["SWAVE0"] = (params["wave0"], "SPARCO central wavelength in (m)")
         header["SPEC0"] = "pow"
-        header["SIND0"] = (Params["denv"], "spectral index of the image")
+        header["SIND0"] = (params["denv"], "spectral index of the image")
 
         header["SNMODS"] = (2, "number of SPARCO parameteric models")
 
         header["SMOD1"] = ("UD", "model for the primary")
-        header["SFLU1"] = (Params["fstar"], "SPARCO flux ratio of primary")
+        header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")
         header["SPEC1"] = "pow"
         header["SDEX1"] = (0, "dRA Position of primary")
         header["SDEY1"] = (0, "dDEC position of primary")
-        header["SIND1"] = (Params["dstar"], "Spectral index of primary")
-        header["SUD1"] = (Params["UDstar"], "UD diameter of primary")
+        header["SIND1"] = (params["dstar"], "Spectral index of primary")
+        header["SUD1"] = (params["UDstar"], "UD diameter of primary")
 
         header["SMOD2"] = "star"
-        header["SFLU2"] = (Params["fsec"], "SPARCO flux ratio of secondary")
+        header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")
         header["SPEC2"] = "pow"
-        header["SDEX2"] = (Params["xsec"], "dRA Position of secondary")
-        header["SDEY2"] = (Params["ysec"], "dDEC position of secondary")
-        header["SIND2"] = (Params["dsec"], "Spectral index of secondary")
+        header["SDEX2"] = (params["xsec"], "dRA Position of secondary")
+        header["SDEY2"] = (params["ysec"], "dDEC position of secondary")
+        header["SIND2"] = (params["dsec"], "Spectral index of secondary")
 
-        header["NEPOCHS"] = Params["epochs"]
-        header["NRSTARTS"] = Params["nrestart"]
+        header["NEPOCHS"] = params["epochs"]
+        header["NRSTARTS"] = params["nrestart"]
 
         header["FTOT"] = ftot
         header["FDATA"] = fdata
@@ -1217,7 +1231,7 @@ effect:
         # y_pred = self.gan.predict(noisevector)[1]
         # self.data_loss([1], y_pred, training = False)
 
-    # function to print and save the plots of the diagnostics
+    # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
         print(r, hist[0], hist[2], mu * hist[1], sep="\t")
         print(mu)  # print the weight of the discriminator loss
