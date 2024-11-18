@@ -441,7 +441,7 @@ effect:
                     # Pre train discriminator on fake and real data before starting the gan.
                     discriminator.trainable = True  # TODO: don't models need to recompile if their trainability is changed?
                     discriminator.train_on_batch(x_batch, y_pred)  # Run a single gradient descent step for the batch
-                    # TODO: why is the evaluation of the metrics done after a gradient descent step instead of before?
+                    # NOTE: the evaluation of the metrics done after a gradient descent step instead of before?
                     # While it doesn't make that much difference probably it doesn't make sense.
                 # evaluate the discriminator loss and metrics in test mode for the 'real' test images
                 dis_real_eval = discriminator.evaluate(
@@ -452,7 +452,7 @@ effect:
                     generated_images, y_pred[nbatch:], verbose=0
                 )
                 # evaluations for the cost evolution of the discriminator
-                # TODO: why the normalisation over batch count?
+                # TODO: why the normalisation over batch count, I'd suspect this to be done automatically?
                 dis_fake_loss_ep += dis_fake_eval[0] / batch_count
                 dis_real_loss_ep += dis_real_eval[0] / batch_count
                 # How many 'fake' generator images were correctly flagged as such (i.e. sensitivity to fakes)
@@ -513,6 +513,7 @@ effect:
         # select batch position and channel (both 0, since only 1 channel
         # and only one noise vector passed through).
         img = np.array(img)[0, :, :, 0],  # notice we also make it a numpy array
+        img = img[0]  # extract from tuple with one value
 
         return img
 
@@ -549,7 +550,7 @@ effect:
     # create and save an image from an input noise vector
     def save_image_from_noise(self, noise, name="image.png"):
         img = self.get_image(noise)  # get an image from the noise vector (why do this if it was already done)
-        self.plot_image(img[:, ::-1], name=name)
+        self.plot_image(img[:, ::-1], name=name)  # ::-1 reverses the direction of the axis
 
     # create a generator image from a completely random input noise vector as well
     # NOTE: the size of the input is hardcoded here
@@ -729,7 +730,7 @@ effect:
             except FileExistsError:
                 underline("Working in an already existing folder:")
                 print(os.path.join(os.getcwd(), self.dir0))
-            os.chdir(self.dir0)  # TODO: chdir is not the best idea, since it breaks reruns
+            os.chdir(self.dir0)  # TODO: chdir is never a good idea -> change code so we don't use chdir,
         else:
             warn("Will put all the outputs in {os.getcwd()}")
             warn("It may overwrite files if they already exist!")
@@ -845,7 +846,7 @@ effect:
         params = self.params
         mu = params["mu"]
         # create data loss
-        data_loss = self.set_dataloss()  # the dataloss function is what does the whole V2 T3PHI calculation
+        data_loss_function = self.set_dataloss()  # the dataloss function is what does the whole V2 T3PHI calculation
 
         outdir = os.path.join(os.getcwd(), self.dir)  # add the image output directory subname on top of dir0
 
@@ -873,13 +874,13 @@ effect:
                 opt = opt.from_config(self.opt.get_config())
                 
                 # TODO: using this structure self.gan gets compiled twice; once in the self.create_gan() call above,
-                # and once in this statement
+                # and once in this statement, maybe rewrite so we don't need to recompile so often
                 # note this also assigns the weights to the losses
                 # NOTE: The cross entropy function is passed here to describe the regularization term -log(D), with
                 # D the discriminator output. This is achieved by setting y_true = 1 (in which case the binary
                 # cross entropy term jsut reduces to -log(D)).
                 self.gan.compile(
-                    loss=[cross_entropy, data_loss], optimizer=opt, loss_weights=[mu, 1]
+                    loss=[cross_entropy, data_loss_function], optimizer=opt, loss_weights=[mu, 1]
                 )
                 # cross_entropy loss is applied to the 1st gan Keras model ouptut -> e.g. the discriminator's value
                 # the data loss one is applied to the second output of the model, which is the generator image ->
@@ -908,6 +909,7 @@ effect:
                     chi2_epochs.append(hist[2])
 
             img = self.get_image(noisevector)  # retrieve the image
+            print(img)
             img = (img + 1) / 2  # renormalize the image to fall in the 0 to 1 range
             if self.diagnostics:
                 self.give_imgrec_diagnostics(hist, chi2_epochs, dis_loss_epochs, r, epochs, mu)
@@ -933,8 +935,8 @@ effect:
         median = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
         fdata = self.data_loss(1, median).numpy()  # get data loss the 1 is just a dummy value, it's not used
-        frgl = self.dis.predict(median)[0, 0]  # get regulator loss
-        ftot = fdata + self.params["mu"] * frgl  # calc total loss, still need to ,u
+        frgl = self.dis.predict(median)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
+        ftot = fdata + self.params["mu"] * frgl  # calc total loss
         # plot median image and save it to location
         self.plot_image(
             median_img,
@@ -942,7 +944,6 @@ effect:
             chi2_label=f"chi2={fdata:.1f}",
         )
         # save median image in a fits file
-        # TODO: frgl here is not yet multiplied by the weight factor, yet it is when called for best image below
         self.image_to_fits(
             median_img,
             ftot,
@@ -953,14 +954,13 @@ effect:
 
         # Same but for best image (best meaning lowest total loss) out of all restarts
         fdata = np.array(losses[0])
-        frgl = np.array(losses[1])  # already multiplied by the appropriate weight by Keras itself
-        # NOTE: here you do not need to multiply by mu, since this is already done automatically by Keras when returning
-        # loss terms after a train_on_batch step!
-        ftot = fdata + frgl
-        idx = np.argmin(ftot)
-        img_best = image[idx]
-        fdata_best = fdata[idx]
-        frgl_best = frgl[idx]
+        # Keras already multiplies the weight in its returned loss terms so we undo that here
+        frgl = np.array(losses[1]) / self.params["mu"]
+        ftot = fdata + self.params["mu"] * frgl
+        idx_best = np.argmin(ftot)  # best image index in the cube
+        img_best = image[idx_best]
+        fdata_best = fdata[idx_best]
+        frgl_best = frgl[idx_best]
         # plot image
         self.plot_image(
             img_best,
@@ -969,11 +969,9 @@ effect:
         )
         # save image
 
-        # TODO: frgl here is already multiplied by the weight factor, yet it is not when called for the median image
-        # above!
         self.image_to_fits(
             img_best,
-            ftot[idx],
+            ftot[idx_best],
             fdata_best,
             frgl_best,
             name=os.path.join(os.getcwd(), self.dir, "BestImage.fits"),
@@ -983,7 +981,7 @@ effect:
     # note that frgl here stands for the discriminator output (i.e. not yet multiplied by the weight factor mu)
     def image_to_fits(self, image, ftot, fdata, frgl, name="Image.fits"):
         params = self.params
-        mu = params["mu"]
+        mu = params["mu"]  # regularization weight
         npix = self.npix
 
         header = fits.Header()
@@ -1029,9 +1027,10 @@ effect:
         header["NEPOCHS"] = params["epochs"]
         header["NRSTARTS"] = params["nrestart"]
 
-        header["FTOT"] = ftot
-        header["FDATA"] = fdata
-        header["FRGL"] = frgl
+        header["FTOT"] = ftot  # total loss (i.e. data loss + weigth-multiplied regularization)
+        header["FDATA"] = fdata  # data loss (i.e. chi2)
+        header["FRGL"] = frgl  # regularization term (not multiplied by the weight)
+        header["MU"] = mu  # regularization weight
 
         # Make the headers
         prihdu = fits.PrimaryHDU(image, header=header)
@@ -1054,8 +1053,8 @@ effect:
         plt.close()
 
     def save_cube(self, cube, losses):
-        Params = self.params
-        mu = Params["mu"]
+        params = self.params
+        mu = params["mu"]
         npix = self.npix
 
         header = fits.Header()
@@ -1066,7 +1065,7 @@ effect:
         header["NAXIS"] = 3
         header["NAXIS1"] = npix
         header["NAXIS2"] = npix
-        header["NAXIS3"] = Params["nrestart"]
+        header["NAXIS3"] = params["nrestart"]
 
         header["EXTEND"] = "T"
         header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")
@@ -1075,35 +1074,35 @@ effect:
         header["CRPIX2"] = npix / 2
         header["CTYPE1"] = ("milliarcsecond", "RA in mas")
         header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
-        header["CDELT1"] = -1 * Params["ps"]
-        header["CDELT2"] = Params["ps"]
+        header["CDELT1"] = -1 * params["ps"]
+        header["CDELT2"] = params["ps"]
 
         header["CDELT3"] = 1.0
         header["CTYPE3"] = "Nrestart"
 
-        header["SWAVE0"] = (Params["wave0"], "SPARCO central wavelength in (m)")
+        header["SWAVE0"] = (params["wave0"], "SPARCO central wavelength in (m)")
         header["SPEC0"] = "pow"
-        header["SIND0"] = (Params["denv"], "spectral index of the image")
+        header["SIND0"] = (params["denv"], "spectral index of the image")
 
         header["SNMODS"] = (2, "number of SPARCO parameteric models")
 
         header["SMOD1"] = ("UD", "model for the primary")
-        header["SFLU1"] = (Params["fstar"], "SPARCO flux ratio of primary")
+        header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")
         header["SPEC1"] = "pow"
         header["SDEX1"] = (0, "dRA Position of primary")
         header["SDEY1"] = (0, "dDEC position of primary")
-        header["SIND1"] = (Params["dstar"], "Spectral index of primary")
-        header["SUD1"] = (Params["UDstar"], "UD diameter of primary")
+        header["SIND1"] = (params["dstar"], "Spectral index of primary")
+        header["SUD1"] = (params["UDstar"], "UD diameter of primary")
 
         header["SMOD2"] = "star"
-        header["SFLU2"] = (Params["fsec"], "SPARCO flux ratio of secondary")
+        header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")
         header["SPEC2"] = "pow"
-        header["SDEX2"] = (Params["xsec"], "dRA Position of secondary")
-        header["SDEY2"] = (Params["ysec"], "dDEC position of secondary")
-        header["SIND2"] = (Params["dsec"], "Spectral index of secondary")
+        header["SDEX2"] = (params["xsec"], "dRA Position of secondary")
+        header["SDEY2"] = (params["ysec"], "dDEC position of secondary")
+        header["SIND2"] = (params["dsec"], "Spectral index of secondary")
 
-        header["NEPOCHS"] = Params["epochs"]
-        header["NRSTARTS"] = Params["nrestart"]
+        header["NEPOCHS"] = params["epochs"]
+        header["NRSTARTS"] = params["nrestart"]
 
         # define columns for the losses
         fdata = np.array(losses[0])
@@ -1115,10 +1114,10 @@ effect:
         cols = fits.ColDefs([colftot, colfdata, colfrgl])
 
         headermetrics = fits.Header()
-        headermetrics["TTYPE1"] = "FTOT"
-        headermetrics["TTYPE2"] = "FDATA"
-        headermetrics["TTYPE3"] = "FRGL"
-        headermetrics["MU"] = mu
+        headermetrics["TTYPE1"] = "FTOT"  # total loss (i.e. data loss + weigth-multiplied regularization)
+        headermetrics["TTYPE2"] = "FDATA"  # data loss (i.e. chi2)
+        headermetrics["TTYPE3"] = "FRGL"  # regularization term (not multiplied by the weight)
+        headermetrics["MU"] = mu  # regularization weight
 
         # Make the headers
         prihdu = fits.PrimaryHDU(cube, header=header)
@@ -1129,107 +1128,107 @@ effect:
         hdul = fits.HDUList([prihdu, sechdu])
 
         hdul.writeto(os.path.join(self.dir, "Cube.fits"), overwrite=True)
+    # #TODO: this function doesn't seem to be used anywhere -> is it even necessary or is it obsolete?
+    # def saveCubeOIMAGE(self, cube, losses):
+    #     # First copy the data file to the right directory
+    #     datafile = os.path.join(os.getcwd(), "OIData.fits")
+    #     newfile = os.path.join(os.getcwd(), self.dir, "Output_data.fits")
+    #     shutil.copyfile(datafile, newfile)
 
-    def saveCubeOIMAGE(self, cube, losses):
-        # First copy the data file to the right directory
-        datafile = os.path.join(os.getcwd(), "OIData.fits")
-        newfile = os.path.join(os.getcwd(), self.dir, "Output_data.fits")
-        shutil.copyfile(datafile, newfile)
+    #     # open it and modify it
+    #     hdul = fits.open(newfile)
+    #     # copy the data
 
-        # open it and modify it
-        hdul = fits.open(newfile)
-        # copy the data
+    #     params = self.params
+    #     mu = params["mu"]
+    #     npix = self.npix
 
-        Params = self.params
-        mu = Params["mu"]
-        npix = self.npix
+    #     header = fits.Header()
 
-        header = fits.Header()
+    #     header["SIMPLE"] = "T"
+    #     header["BITPIX"] = -64
 
-        header["SIMPLE"] = "T"
-        header["BITPIX"] = -64
+    #     header["NAXIS"] = 3
+    #     header["NAXIS1"] = npix
+    #     header["NAXIS2"] = npix
+    #     header["NAXIS3"] = params["nrestart"]
 
-        header["NAXIS"] = 3
-        header["NAXIS1"] = npix
-        header["NAXIS2"] = npix
-        header["NAXIS3"] = Params["nrestart"]
+    #     header["EXTEND"] = "T"
+    #     header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")
+    #     header["CRVAL2"] = (0.0, "Coordinate system value at reference pixel")
+    #     header["CRPIX1"] = npix / 2
+    #     header["CRPIX2"] = npix / 2
+    #     header["CTYPE1"] = ("milliarcsecond", "RA in mas")
+    #     header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
+    #     header["CDELT1"] = -1 * params["ps"]
+    #     header["CDELT2"] = params["ps"]
 
-        header["EXTEND"] = "T"
-        header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")
-        header["CRVAL2"] = (0.0, "Coordinate system value at reference pixel")
-        header["CRPIX1"] = npix / 2
-        header["CRPIX2"] = npix / 2
-        header["CTYPE1"] = ("milliarcsecond", "RA in mas")
-        header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
-        header["CDELT1"] = -1 * Params["ps"]
-        header["CDELT2"] = Params["ps"]
+    #     header["CDELT3"] = 1.0
+    #     header["CTYPE3"] = "Nrestart"
 
-        header["CDELT3"] = 1.0
-        header["CTYPE3"] = "Nrestart"
+    #     header["SWAVE0"] = self.wave0
+    #     header["SPEC0"] = "pow"
+    #     header["SNMODS"] = 2
+    #     header["SMOD1"] = "UD"
+    #     header["SFLU1"] = params["fstar"]
+    #     header["SPEC1"] = "pow"
+    #     header["SDEX1"] = 0
+    #     header["SDEY1"] = 0
 
-        header["SWAVE0"] = self.wave0
-        header["SPEC0"] = "pow"
-        header["SNMODS"] = 2
-        header["SMOD1"] = "UD"
-        header["SFLU1"] = Params["fstar"]
-        header["SPEC1"] = "pow"
-        header["SDEX1"] = 0
-        header["SDEY1"] = 0
+    #     header["SMOD2"] = "star"
+    #     header["SFLU2"] = params["fsec"]
+    #     header["SPEC2"] = "pow"
+    #     header["SDEX2"] = params["xsec"]
+    #     header["SDEY2"] = params["ysec"]
 
-        header["SMOD2"] = "star"
-        header["SFLU2"] = Params["fsec"]
-        header["SPEC2"] = "pow"
-        header["SDEX2"] = Params["xsec"]
-        header["SDEY2"] = Params["ysec"]
+    #     header["SDEX1"] = (self.x, "x coordinate of the point source")
+    #     header["y"] = (self.y, "coordinate of the point source")
+    #     header["UDf"] = self.UDflux, "flux contribution of the uniform disk"
+    #     header["UDd"] = (self.UDdiameter, "diameter of the point source")
+    #     header["pf"] = (self.PointFlux, "flux contribution of the point source")
+    #     header["denv"] = (self.denv, "spectral index of the environment")
+    #     header["dsec"] = (self.dsec, "spectral index of the point source")
 
-        header["SDEX1"] = (self.x, "x coordinate of the point source")
-        header["y"] = (self.y, "coordinate of the point source")
-        header["UDf"] = self.UDflux, "flux contribution of the uniform disk"
-        header["UDd"] = (self.UDdiameter, "diameter of the point source")
-        header["pf"] = (self.PointFlux, "flux contribution of the point source")
-        header["denv"] = (self.denv, "spectral index of the environment")
-        header["dsec"] = (self.dsec, "spectral index of the point source")
+    #     # define columns for the losses
+    #     fdata = np.array(losses[0])
+    #     frgl = np.array(losses[1])
+    #     ftot = fdata + mu * frgl
+    #     colftot = fits.Column(name="ftot", array=ftot)
+    #     colfdata = fits.Column(name="fdata", array=fdata)
+    #     colfrgl = fits.Column(name="fdiscriminator", array=frgl)
+    #     cols = fits.ColDefs([colftot, colfdata, colfrgl])
 
-        # define columns for the losses
-        fdata = np.array(losses[0])
-        frgl = np.array(losses[1])
-        ftot = fdata + mu * frgl
-        colftot = fits.Column(name="ftot", array=ftot)
-        colfdata = fits.Column(name="fdata", array=fdata)
-        colfrgl = fits.Column(name="fdiscriminator", array=frgl)
-        cols = fits.ColDefs([colftot, colfdata, colfrgl])
+    #     # define columns for input
+    #     headerinput = fits.Header()
+    #     headerinput["TARGET"] = self.data.target
+    #     headerinput["WAVE_MIN"] = 1
+    #     headerinput["WAVE_MAX"] = 1
+    #     headerinput["USE_VIS"] = "False"
+    #     headerinput["USE_VIS2"] = "True"
+    #     headerinput["USE_T3"] = "True"
+    #     headerinput["INIT_IMG"] = "NA"
+    #     headerinput["MAXITER"] = self.nrestart
+    #     headerinput["RGL_NAME"] = self.dispath
+    #     headerinput["AUTO_WGT"] = "False"
+    #     headerinput["RGL_WGT"] = mu
+    #     headerinput["RGL PRIO"] = ""
+    #     headerinput["FLUX"] = 1
+    #     headerinput["FLUXERR"] = 0
+    #     headerinput["HDUPREFX"] = "ORANIC_CUBE"
 
-        # define columns for input
-        headerinput = fits.Header()
-        headerinput["TARGET"] = self.data.target
-        headerinput["WAVE_MIN"] = 1
-        headerinput["WAVE_MAX"] = 1
-        headerinput["USE_VIS"] = "False"
-        headerinput["USE_VIS2"] = "True"
-        headerinput["USE_T3"] = "True"
-        headerinput["INIT_IMG"] = "NA"
-        headerinput["MAXITER"] = self.nrestart
-        headerinput["RGL_NAME"] = self.dispath
-        headerinput["AUTO_WGT"] = "False"
-        headerinput["RGL_WGT"] = mu
-        headerinput["RGL PRIO"] = ""
-        headerinput["FLUX"] = 1
-        headerinput["FLUXERR"] = 0
-        headerinput["HDUPREFX"] = "ORANIC_CUBE"
+    #     # Make the headers
+    #     prihdu = fits.PrimaryHDU(cube, header=header, name="")
+    #     sechdu = fits.BinTableHDU.from_columns(cols, name="METRICS")
+    #     inputhdu = fits.BinTableHDU.from_columns(
+    #         header=headerinput, name="IMAGE-OI INPUT PARAM"
+    #     )
 
-        # Make the headers
-        prihdu = fits.PrimaryHDU(cube, header=header, name="")
-        sechdu = fits.BinTableHDU.from_columns(cols, name="METRICS")
-        inputhdu = fits.BinTableHDU.from_columns(
-            header=headerinput, name="IMAGE-OI INPUT PARAM"
-        )
+    #     hdul = fits.HDUList([prihdu, sechdu])
 
-        hdul = fits.HDUList([prihdu, sechdu])
+    #     hdul.writeto(newfile, overwrite=True)
 
-        hdul.writeto(newfile, overwrite=True)
-
-        # y_pred = self.gan.predict(noisevector)[1]
-        # self.data_loss([1], y_pred, training = False)
+    #     # y_pred = self.gan.predict(noisevector)[1]
+    #     # self.data_loss([1], y_pred, training = False)
 
     # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
@@ -1248,20 +1247,7 @@ effect:
         plt.tight_layout()
         plt.savefig(f"{self.dir}/lossevol_restart{r}.png", dpi=250)
         plt.close()
-    
-    # TODO: REDUNDANT?
-    # def createGAN(self):
-    #     # Loading networks
-    #     dis = self.dis
-    #     gen = self.gen
-    #     dis.trainable = False
-    #     noise_input = layers.Input(shape=(100,))
-    #     x = gen(noise_input)
-    #     gan_output = dis(x)
-    #     gan = Model(inputs=noise_input, outputs=[gan_output, x])
-    #     losses = [cross_entropy, self.data_loss]
-    #     mu = self.params["mu"]
-    #     gan.compile(loss=losses, optimizer=self.opt, loss_weights=[mu, 1])
+
 
     def set_dataloss(self):
         data = self.data

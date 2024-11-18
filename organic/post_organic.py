@@ -546,6 +546,7 @@ def main(sys_argv):
     #Cube0.radial_profiles(R=100,set=2)
     #Cube0.Set(0)
 
+# if used as a script
 if __name__ == '__main__':
     print(sys.argv)
     main(sys.argv)
