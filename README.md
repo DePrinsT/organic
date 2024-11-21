@@ -7,7 +7,8 @@
 
 **O**bject **R**econstruction with **G**enerative **A**dversarial **N**etworks from **I**nterferometri**C** data.
 You can find the associated paper [here](https://ui.adsabs.harvard.edu/abs/2020SPIE11446E..1UC/abstract). Originally
-developed by [Jacques Kluska](https://www.linkedin.com/in/jacques-kluska/) and [Rik Claes](https://www.linkedin.com/in/rik-claes-70a6b71a3/?originalSubdomain=be)
+developed by [Jacques Kluska](https://www.linkedin.com/in/jacques-kluska/) and [Rik Claes](https://www.linkedin.com/in/rik-claes-70a6b71a3/?originalSubdomain=be),
+currently developed and maintained by [Toon De Prins](https://deprinst.github.io/).
 
 # Purpose
 
@@ -41,7 +42,7 @@ thegan = org.GAN(dis=dis, gen=gen, Adam_lr=0.0001, Adam_beta_1=0.91, amsgrad=Tru
 `Adam_lr` is the learning rate.
 `Adam_beta_1` is the exponential decay of the first moment estimates.
 `amsgrad` is whether to apply AMSGrad variant of Adam.
-More informatino on the Adam optimizer can be found [here](https://keras.io/api/optimizers/adam/)
+More information on the Adam optimizer can be found [here](https://keras.io/api/optimizers/adam/)
 
 2. Set the SPARCO parameters
 SPARCO is an approach allowing to model the star(s) as a geometrical model and image the environment only.

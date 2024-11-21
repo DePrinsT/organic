@@ -1,3 +1,8 @@
+"""
+A module to reconstruct images from optical interferometry data using Generative Adversarial Networks. This is the
+core module of ORGANIC.
+"""
+
 # Organic FunctionLibrary
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -900,7 +905,7 @@ effect:
             epochs = range(1, params["epochs"] + 1)
             for e in epochs:
                 # perform a training step
-                hist = self.gan.train_on_batch(noisevector, y_gen)  # hist stores the loss terms
+                hist = self.gan.train_on_batch(noisevector, y_gen)  # hist gives us the loss terms
                 # NOTE: the regulatory term is already multiplied with the appropriate weight in this case (Keras
                 # multiplies loss by the specified weights accordingly before returning them)
 
@@ -986,46 +991,49 @@ effect:
 
         header = fits.Header()
 
-        header["SIMPLE"] = "T"
-        header["BITPIX"] = -64
+        header["SIMPLE"] = "T"  # whether conforms to FITS standard
+        header["BITPIX"] = -64  # how many bits per pixel value in primary
 
-        header["NAXIS"] = 2
-        header["NAXIS1"] = npix
+        header["NAXIS"] = 2  # how many axes in primary
+        header["NAXIS1"] = npix  # number of values per dimension
         header["NAXIS2"] = npix
-
-        header["EXTEND"] = "T"
-        header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")
+        # note that if you pass a tuple the second element is interpreted as the comment
+        header["EXTEND"] = "T"  # whether extensions (extra extensions on top of `PRIMARY` are allowed)
+        header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")  # coordinate calue at reference pixel
         header["CRVAL2"] = (0.0, "Coordinate system value at reference pixel")
-        header["CRPIX1"] = npix / 2
+        header["CRPIX1"] = npix / 2  # reference pixel
         header["CRPIX2"] = npix / 2
         header["CTYPE1"] = ("milliarcsecond", "RA in mas")
         header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
+        # increment per pixel along the axis direction (note negative here because the positive x-axis points towards 
+        # the left in interferometry)
         header["CDELT1"] = -1 * params["ps"]
         header["CDELT2"] = params["ps"]
 
-        header["SWAVE0"] = (params["wave0"], "SPARCO central wavelength in (m)")
-        header["SPEC0"] = "pow"
-        header["SIND0"] = (params["denv"], "spectral index of the image")
+        # additional fields with prefix `S` for the SPARCO parameters
+        header["SWAVE0"] = (params["wave0"], "SPARCO central wavelength in (m)")  # central wavelength
+        header["SPEC0"] = "pow"  # type of spectrum used for the environment (reconstructed image), i.e. power law
+        header["SIND0"] = (params["denv"], "spectral index of the image")  # spectral index for the image
 
-        header["SNMODS"] = (2, "number of SPARCO parameteric models")
+        header["SNMODS"] = (2, "number of SPARCO parameteric models")  # number of components in SPARCO model
 
-        header["SMOD1"] = ("UD", "model for the primary")
-        header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")
-        header["SPEC1"] = "pow"
-        header["SDEX1"] = (0, "dRA Position of primary")
-        header["SDEY1"] = (0, "dDEC position of primary")
-        header["SIND1"] = (params["dstar"], "Spectral index of primary")
-        header["SUD1"] = (params["UDstar"], "UD diameter of primary")
+        header["SMOD1"] = ("UD", "model for the primary")  # model for the primary, `UD` stands for a uniform disk model
+        header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")  # flux ratio contribution of primary
+        header["SPEC1"] = "pow"  # spectrum type used for primary, i.e. power law
+        header["SDEX1"] = (0, "dRA Position of primary")  # X position of primary
+        header["SDEY1"] = (0, "dDEC position of primary")  # Y position of primary
+        header["SIND1"] = (params["dstar"], "Spectral index of primary")  # spectral index of primary
+        header["SUD1"] = (params["UDstar"], "UD diameter of primary")  # uniform diameter of primary
 
-        header["SMOD2"] = "star"
-        header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")
-        header["SPEC2"] = "pow"
-        header["SDEX2"] = (params["xsec"], "dRA Position of secondary")
+        header["SMOD2"] = "star"  # model for secondary, `star` just a point source
+        header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")  # flux ratio of secondary
+        header["SPEC2"] = "pow"  # type of spectrum for secondary, i.e. power law
+        header["SDEX2"] = (params["xsec"], "dRA Position of secondary")  # position of secondary
         header["SDEY2"] = (params["ysec"], "dDEC position of secondary")
-        header["SIND2"] = (params["dsec"], "Spectral index of secondary")
+        header["SIND2"] = (params["dsec"], "Spectral index of secondary")  # spectral index of secondary
 
-        header["NEPOCHS"] = params["epochs"]
-        header["NRSTARTS"] = params["nrestart"]
+        header["NEPOCHS"] = params["epochs"]  # number of epochs per restart
+        header["NRSTARTS"] = params["nrestart"]  # number of restarts
 
         header["FTOT"] = ftot  # total loss (i.e. data loss + weigth-multiplied regularization)
         header["FDATA"] = fdata  # data loss (i.e. chi2)
@@ -1033,25 +1041,27 @@ effect:
         header["MU"] = mu  # regularization weight
 
         # Make the headers
-        prihdu = fits.PrimaryHDU(image, header=header)
+        prim_hdu = fits.PrimaryHDU(image, header=header)  # primary HDU
+        hdul = fits.HDUList([prim_hdu])  # primary HDU is the only one to be added
+        hdul.writeto(os.path.join(self.dir, name), overwrite=True)  # write to file
 
-        hdul = fits.HDUList([prihdu])
 
-        hdul.writeto(os.path.join(self.dir, name), overwrite=True)
-
-    def plot_loss_evol(self, Chi2, DisLoss):
+    # function to plot the loss evolution accross restarts
+    def plot_loss_evol(self, chi2, dis_loss):
         fig, ax = plt.subplots()
-        plt.plot(Chi2, label="f_data")
-        plt.plot(DisLoss, label="mu * f_discriminator")
-        plt.plot(np.array(Chi2) + np.array(DisLoss), label="f_tot")
+        plt.plot(chi2, label="f_data")
+        plt.plot(dis_loss, label="mu * f_discriminator")
+        plt.plot(np.array(chi2) + np.array(dis_loss), label="f_tot")
         plt.legend()
         plt.xlabel("#restart")
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout()
-        plt.savefig(f"{self.dir}/lossevol.png", dpi=250)
+        plt.savefig(os.path.join(self.dir, "lossevol.png"), dpi=250)
         plt.close()
 
+    # saves cube of images and their diagnostics accross restarts in FITS file
+    # NOTE: the regularization loss that needs to be passed along here needs to not multiplied yet
     def save_cube(self, cube, losses):
         params = self.params
         mu = params["mu"]
@@ -1074,11 +1084,11 @@ effect:
         header["CRPIX2"] = npix / 2
         header["CTYPE1"] = ("milliarcsecond", "RA in mas")
         header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
-        header["CDELT1"] = -1 * params["ps"]
+        header["CDELT1"] = -1 * params["ps"]  # reversed because of East-West axis direction convention
         header["CDELT2"] = params["ps"]
 
         header["CDELT3"] = 1.0
-        header["CTYPE3"] = "Nrestart"
+        header["CTYPE3"] = ("Nrestart", "Number of generator restarts")
 
         header["SWAVE0"] = (params["wave0"], "SPARCO central wavelength in (m)")
         header["SPEC0"] = "pow"
@@ -1119,15 +1129,15 @@ effect:
         headermetrics["TTYPE3"] = "FRGL"  # regularization term (not multiplied by the weight)
         headermetrics["MU"] = mu  # regularization weight
 
-        # Make the headers
-        prihdu = fits.PrimaryHDU(cube, header=header)
-        sechdu = fits.BinTableHDU.from_columns(
+        # Make the primary and secondary HDU's
+        prim_hdu = fits.PrimaryHDU(cube, header=header)
+        sec_hdu = fits.BinTableHDU.from_columns(
             cols, header=headermetrics, name="METRICS"
         )
 
-        hdul = fits.HDUList([prihdu, sechdu])
+        hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
+        hdul.writeto(os.path.join(self.dir, "Cube.fits"), overwrite=True)  # write to file
 
-        hdul.writeto(os.path.join(self.dir, "Cube.fits"), overwrite=True)
     # #TODO: this function doesn't seem to be used anywhere -> is it even necessary or is it obsolete?
     # def saveCubeOIMAGE(self, cube, losses):
     #     # First copy the data file to the right directory
@@ -1232,7 +1242,7 @@ effect:
 
     # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
-        print(r, hist[0], hist[2], mu * hist[1], sep="\t")
+        print(r, hist[0], hist[2], mu * hist[1], sep="\t")  # print loss terms at the final epoch of the restart
         print(mu)  # print the weight of the discriminator loss
         print(type(discloss))
         print(discloss)  # print the discriminator loss
@@ -1245,13 +1255,20 @@ effect:
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout()
-        plt.savefig(f"{self.dir}/lossevol_restart{r}.png", dpi=250)
+        plt.savefig(os.path.join(self.dir, f"lossevol_restart{r}.png"), dpi=250)
         plt.close()
 
-
+    # !! Master function to calculate the data loss !!
+    # TODO: current iteration of bootstrap makes no sense, since it resamples data each time the function is evaluated,
+    # i.e. each epoch, while it should be called each restart iteration instead
+    # TODO: adapt to always use phasors instead of just the raw closure phase values
+    # TODO: really don't like the structure of this function, lots of concerning scope things going on, nested functions
+    # the function itself returns the function. However, it works so maybe not touch too much for now
     def set_dataloss(self):
-        data = self.data
+        data = self.data  # retrieve data object
 
+        # if bootstrapping, resample the data
+        # TODO: THE IMPLEMENTATION HERE IS WRONG
         if self.boot:
             V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = (
                 data.get_bootstrap()
@@ -1263,33 +1280,36 @@ effect:
 
         params = self.params
 
-        MAS2RAD = np.pi * 0.001 / (3600 * 180)
+        MAS2RAD = np.pi * 0.001 / (3600 * 180)  # conversion of milli-arcseconds to rad
 
         fstar = params["fstar"]
         fsec = params["fsec"]
-        UD = params["UDstar"] * MAS2RAD
+        UD = params["UDstar"] * MAS2RAD  # put uniform diameter in radian
         dstar = params["dstar"]
         denv = params["denv"]
         dsec = params["dsec"]
-        xsec = params["xsec"] * MAS2RAD
+        xsec = params["xsec"] * MAS2RAD  # put positions in radian
         ysec = params["ysec"] * MAS2RAD
         ps = params["ps"]
         wave0 = params["wave0"]
         use_low_cp_approx = params["use_low_cp_approx"]
-        nV2 = len(V2)
-        nCP = len(CP)
-        npix = self.npix
-        spacialFreqPerPixel = (3600 / (0.001 * npix * ps)) * (180 / np.pi)
+        nV2 = len(V2)  # number of V2 points
+        nCP = len(CP)  # number of closure phase points
+        npix = self.npix  # number of pixels
+        spatial_freq_per_pixel = 1 / (npix * ps * MAS2RAD)  # size per pixel in FFT frequency space
 
-        assert nV2 > 0
+        assert nV2 > 0  # throw an error if there's less than one datapoint
 
-        def offcenterPointFT(x, y, u, v):
+        # function to calculate an offcenter transformation term to be applied to a fourier transform's result
+        def off_center_point_ft(x, y, u, v):
             u = tf.constant(u, dtype=tf.complex128)
             v = tf.constant(v, dtype=tf.complex128)
             return tf.math.exp(-2 * np.pi * 1j * (x * u + y * v))
 
-        # preforms a binlinear interpolation on grid at continious pixel coordinates ufunc,vfunc
-        def bilinearInterp(grid, ufunc, vfunc):
+        # performs a binlinear interpolation on grid at continuous pixel coordinates ufunc, vfunc
+        # TODO: there has to be an inbuilt function for this no? This manual implementation seems very verbose,
+        # but it could be that there's just no good support at the moment.
+        def bilinear_interp(grid, ufunc, vfunc):
             ubelow = np.floor(ufunc).astype(int)
             vbelow = np.floor(vfunc).astype(int)
             uabove = ubelow + 1
@@ -1297,36 +1317,38 @@ effect:
             coords = tf.constant(
                 [[[0, ubelow[i], vbelow[i]] for i in range(len(ufunc))]]
             )
-            interpValues = (
+            # calculate interpolated values
+            interp_values = (
                 tf.gather_nd(grid, coords) * (uabove - ufunc) * (vabove - vfunc)
             )
             coords1 = tf.constant(
                 [[[0, uabove[i], vabove[i]] for i in range(len(ufunc))]]
             )
-            interpValues += (
+            interp_values += (
                 tf.gather_nd(grid, coords1) * (ufunc - ubelow) * (vfunc - vbelow)
             )
             coords2 = tf.constant(
                 [[[0, uabove[i], vbelow[i]] for i in range(len(ufunc))]]
             )
-            interpValues += (
+            interp_values += (
                 tf.gather_nd(grid, coords2) * (ufunc - ubelow) * (vabove - vfunc)
             )
             coords3 = tf.constant(
                 [[[0, ubelow[i], vabove[i]] for i in range(len(ufunc))]]
             )
-            interpValues += (
+            interp_values += (
                 tf.gather_nd(grid, coords3) * (uabove - ufunc) * (vfunc - vbelow)
             )
-            return interpValues
+            return interp_values
 
-        # plots a comperison between observations and observables of the reconstruction,aswell as the uv coverage
+        # plots a comperison between observations and observables of the reconstruction,as well as the uv coverage
+        # TODO: currently not used at all
         def plotObservablesComparison(
             V2generated, V2observed, V2err, CPgenerated, CPobserved, CPerr
         ):
             # v2 with residual comparison, no colors indicating wavelength
             fig, ax = plt.subplots(figsize=(3.5, 6))
-            absB = np.sqrt(u**2 + v**2) / (10**6)
+            absB = np.sqrt(u**2 + v**2) / (10**6)  # baseline length in megaLambda
             plt.scatter(
                 absB,
                 V2generated[0],
@@ -1354,15 +1376,6 @@ effect:
             plt.ylabel(r"$V^2$")
             plt.legend()
 
-            # plt.setp(ax1.get_xticklabels(), visible=False)
-            # plt.subplot(gs[1], sharex=ax1)
-            # plt.scatter(absB,((V2observed-V2generated[0].numpy())/(V2err)),s=30,marker='.',c = 'b',alpha=0.6,edgecolors ='k',linewidth=0.1)
-            # plt.ylabel(r'residuals',fontsize =12)
-            # plt.xlabel(r'$\mid B\mid (M\lambda)$')
-            # plt.tight_layout()
-            # if bootstrapDir == None:
-            #    plt.savefig(os.path.join(os.getcwd(),'V2comparisonNoColor.png'))
-            # else:
             plt.savefig(os.path.join(os.getcwd(), "V2comparisonNoColor.png"), dpi=250)
             plt.close()
 
@@ -1397,8 +1410,6 @@ effect:
 
             # cp with residual comparison without color indicating wavelength
             fig, ax = plt.subplots(figsize=(3.5, 6))
-            # gs = gridspec.GridSpec(2, 1, height_ratios=[6, 3])
-            # ax1=plt.subplot(gs[0]) # sharex=True)
             maxB = np.maximum(
                 np.maximum(np.sqrt(u1**2 + v1**2), np.sqrt(u2**2 + v2**2)),
                 np.sqrt(u3**2 + v3**2),
@@ -1429,31 +1440,25 @@ effect:
             plt.errorbar(maxB, CPobserved, CPerr, ls="none", elinewidth=0.2, c="r")
             plt.legend()
             plt.ylabel(r"closure phase(radian)", fontsize=12)
-
-            # plt.setp(ax1.get_xticklabels(), visible=False)
-            # plt.subplot(gs[1], sharex=ax1)
-            # plt.scatter(maxB,((CPobserved-CPgenerated[0].numpy())/(CPerr)),s=30,marker='.',c = 'b',cmap ='rainbow',alpha=0.6,edgecolors =colors.to_rgba('k', 0.1), linewidth=0.3)
-            # color = colors.to_rgba(np.real(wavelCP.numpy())[], alpha=None) #color = clb.to_rgba(waveV2[])
-            # c[0].set_color(color)
-
             plt.xlabel(r"max($\mid B\mid)(M\lambda)$", fontsize=12)
-            # plt.ylabel(r'residuals',fontsize =12)
+
             plt.tight_layout()
             plt.savefig(os.path.join(os.getcwd(), "cpComparisonNoColor.png"), dpi=250)
 
             plt.close()
 
+        # function to calculate full visibility if passed an FT image
         def compTotalCompVis(ftImages, ufunc, vfunc, wavelfunc):
             # to compute the radial coordinate in the uv plane so compute the ft of the primary, which is a uniform disk, so the ft is....
             radii = np.pi * UD * np.sqrt(ufunc**2 + vfunc**2)
             ftPrimary = tf.constant(2 * sp.jv(1, radii) / (radii), dtype=tf.complex128)
             # see extra function
-            ftSecondary = offcenterPointFT(xsec, ysec, ufunc, vfunc)
-            # get the total visibility amplitudes
-            VcomplDisk = bilinearInterp(
+            ftSecondary = off_center_point_ft(xsec, ysec, ufunc, vfunc)
+            # get the total visibility amplitudes using bilinear interpolation
+            VcomplDisk = bilinear_interp(
                 ftImages,
-                (vfunc / spacialFreqPerPixel) + int(npix / 2),
-                (ufunc / spacialFreqPerPixel) + int(npix / 2),
+                (vfunc / spatial_freq_per_pixel) + int(npix / 2),
+                (ufunc / spatial_freq_per_pixel) + int(npix / 2),
             )
             # equation 4 in sparco paper:
             VcomplTotal = fstar * ftPrimary * K.pow(wavelfunc / wave0, dstar)
@@ -1468,7 +1473,7 @@ effect:
             )
             return VcomplTotal
 
-        # function to compute the data loss function (i.e. by comparing to the OI data)
+        # core function to actually compute the data loss function (i.e. by comparing to the OI data)
         # notice that y_true is not used, it's just a dummy value that Keras expects you to have
         # note that everything must be done using tensorflow functions in this case, otherwise you lose the
         # speed and parallelization advantage
@@ -1498,7 +1503,9 @@ effect:
 
             CPimage = tf.math.angle(compTotalCompVis(ftImages, u1, v1, waveCP))
             CPimage += tf.math.angle(compTotalCompVis(ftImages, u2, v2, waveCP))
-            CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
+            # note it's minus for the third baseline's complex angle since it's defined as the line AC instead of CA
+            # in an ABC triangle (often used convention in interferometry)
+            CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP)) 
             CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (K.pow(CPe, 2) * nCP)
             if use_low_cp_approx:
                 CPchi2Terms = K.pow(CP - CPimage, 2) / (K.pow(CPe, 2) * nCP)
@@ -1509,7 +1516,7 @@ effect:
 
             if training:
                 # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
-                return tf.cast(lossValue, tf.float32)
+                return tf.cast(lossValue, tf.float32)  # cast to 
 
             else:
                 # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
@@ -1519,6 +1526,10 @@ effect:
         return data_loss
 
 
+# class to read in and store squared visibility and closure phase information
+# TODO: note that this class has no filtering capability at all, this of course needs to be adapted a little
+# for e.g. MATISSE data -> probably have to port the OIData implemenation of DISTROI at some point, which will
+# support data filtering
 class Data:
     def __init__(self, dir, file):
         self.dir = dir
@@ -1571,6 +1582,8 @@ class Data:
         print(data.target)
         self.target = data.target[0].target[0]
 
+
+    # returns a tuple of V2 and closure phase data
     def get_data(self):
         return (
             self.V2,
@@ -1589,11 +1602,12 @@ class Data:
             self.v3,
         )
 
+    # function to do the same as get_data, but you get a bootstrap sample from the data instead
     def get_bootstrap(self):
-        V2selection = np.random.randint(0, self.nV2, self.nV2)
-        newV2, newV2err = self.V2[V2selection], self.V2err[V2selection]
-        CPselection = np.random.randint(0, self.nCP, self.nCP)
-        newCP, newCPerr = self.CP[CPselection], self.CPerr[CPselection]
+        V2selection = np.random.randint(0, self.nV2, self.nV2)  # sample random indices for V2
+        newV2, newV2err = self.V2[V2selection], self.V2err[V2selection]  # get bootstrap sample
+        CPselection = np.random.randint(0, self.nCP, self.nCP)  # sample random indices for closure phase
+        newCP, newCPerr = self.CP[CPselection], self.CPerr[CPselection]  # get bootstrap sample
         newu, newu1, newu2, newu3 = (
             self.u[V2selection],
             self.u1[CPselection],
@@ -1625,7 +1639,8 @@ class Data:
             newv3,
         )
 
-
+# class defining geometric components in the SPARCO paradigm, notice this is only adapted towards
+# binary stars with a single resolvable primary and a point-source-like secondary at the moment
 class SPARCO:
     def __init__(
         self,
@@ -1639,18 +1654,19 @@ class SPARCO:
         xsec=0.0,
         ysec=0.0,
     ):
-        self.wave0 = wave0
-        self.fstar = fstar
-        self.dstar = dstar
-        self.denv = denv
-        self.UDstar = UDstar
-        self.fsec = fsec
-        self.dsec = dsec
-        self.xsec = xsec
+        self.wave0 = wave0  # central wavelength at which flux ratio's are defined
+        self.fstar = fstar  # primary flux contrib
+        self.dstar = dstar  # spectral index of primary
+        self.denv = denv  # spectral index of reconstructed environment
+        self.UDstar = UDstar  # uniform diameter of primary in mas
+        self.fsec = fsec  # flux contrib of secondary
+        self.dsec = dsec  # spectral index of secondary
+        self.xsec = xsec  # position of the secondary (primary is at 0 always)
         self.ysec = ysec
 
 # NOTE: Question to self: are the training images normalized first? How
-# are the images already pre-processed by Jacques and Rik?
+# are the images already pre-processed by Jacques and Rik? 
+# Answer: they're always remapped to the -1 to 1 range (the same range that the generator produces)
 
 # class to describe input images used for training
 # in such a way so keras kan augment them
