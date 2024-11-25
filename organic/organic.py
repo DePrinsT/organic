@@ -28,6 +28,7 @@ from matplotlib.patches import Ellipse
 import sys
 import shutil
 import glob
+import copy
 
 # mpl.use("Agg")  # not needed?
 
@@ -538,14 +539,14 @@ effect:
         fig, ax = plt.subplots()
         plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="inferno")  # note that the x axis is flipped here
         if star:
-            ell = Ellipse((0, 0), ud, ud, 0, color="white", fc="white", fill=True)
-            plt.plot(0, 0, "wx")
-            ax.add_artist(ell)
+            # ell = Ellipse((0, 0), ud, ud, 0, color="white", fc="white", fill=True)
+            # ax.add_artist(ell)
+            plt.plot(0, 0, color="gold", marker="*")
         if binary:
-            plt.plot(xb, yb, "g+")
+            plt.plot(xb, yb, color="white", marker="x")
         plt.text(0.9 * d, 0.9 * d, chi2_label, c="white")
-        plt.xlabel(r"$\Delta\mathrm{E}$ (mas)")
-        plt.ylabel(r"$\Delta\mathrm{N}$ (mas)")
+        plt.xlabel(r"$\Delta \alpha$ (mas)")
+        plt.ylabel(r"$\Delta \delta$ (mas)")
         plt.tight_layout()
         plt.savefig(name, dpi=250)
         plt.close()
@@ -555,7 +556,8 @@ effect:
     # create and save an image from an input noise vector
     def save_image_from_noise(self, noise, name="image.png"):
         img = self.get_image(noise)  # get an image from the noise vector (why do this if it was already done)
-        self.plot_image(img[:, ::-1], name=name)  # ::-1 reverses the direction of the axis
+        # NOTE: ::-1 reverses the direction of the axis
+        self.plot_image(img[:, ::-1], name=name)
 
     # create a generator image from a completely random input noise vector as well
     # NOTE: the size of the input is hardcoded here
@@ -569,7 +571,7 @@ effect:
         return img
 
     # create and save a generator image from a completely random input noise vector as well
-    def save_random_image(self, name="randomimage.png"):
+    def save_random_image(self, name="random_image.png"):
         img = self.get_random_image()
         fig, ax = plt.subplots()
         plt.imshow(img)
@@ -612,7 +614,7 @@ effect:
         plt.legend()
         plt.ylabel("Loss")
         plt.xlabel("Epoch")
-        plt.savefig(save_dir + "LossEvolution.png", dpi=250)
+        plt.savefig(save_dir + "loss_evolution.png", dpi=250)
         plt.close()
 
         fig, ax = plt.subplots()
@@ -622,7 +624,7 @@ effect:
         plt.legend()
         plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
-        plt.savefig(save_dir + "AccuracyEvolution.png", dpi=250)
+        plt.savefig(save_dir + "accuracy_evolution.png", dpi=250)
         plt.close()
 
 
@@ -860,7 +862,7 @@ effect:
         vects = []  # to store different noise vectors
         num_iterations = range(params["nrestart"])  # number of iterations
         if self.diagnostics:
-            print("#restart\tftot\tfdata\tfdiscriminator")
+            print("#restart\tftot\tfdata\tfrgl")
         for r in num_iterations:
             # Re init GAN
             # 'reinit=True' only re-initializes the generator state. The optimizer in the returned gan is then just
@@ -914,12 +916,14 @@ effect:
                     chi2_epochs.append(hist[2])
 
             img = self.get_image(noisevector)  # retrieve the image
-            print(img)
-            img = (img + 1) / 2  # renormalize the image to fall in the 0 to 1 range
+            img = (img + 1) / 2  # remap the image to fall in the 0 to 1 range
+            # normalize the image by the total image flux (should be more stable for variance
+            # estimation).
+            img = img / np.sum(img)
             if self.diagnostics:
                 self.give_imgrec_diagnostics(hist, chi2_epochs, dis_loss_epochs, r, epochs, mu)
                 self.save_image_from_noise(
-                    noisevector, name=os.path.join(self.dir, f"Image_restart{r}.png")
+                    noisevector, name=os.path.join(self.dir, f"image_restart{r}.png")
                 )  # get an image from the noise vector and save at the correct spot
             chi2_restarts.append(hist[2])  # data loss (chi2)
             dis_loss_restarts.append(hist[1])  # discriminator loss (multiplied by the weight)
@@ -933,10 +937,15 @@ effect:
 
     # function to save median and best image fits
     def save_images(self, image, losses):
+        image_cube = copy.deepcopy(image)
+
+        #TODO: rewrite the median function to be more robust against 
         # first find the median
-        median_img = np.median(image, axis=0)  # get the median image
+        median_img = np.median(image, axis=0)  # get the median image (NOTE: the images are normalized before)
         median_img /= np.sum(median_img)  # normalize the median image by its own total intensity
         # some reshaping going on, ::-1 means the order is reversed along the axis
+        # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and 
+        # data_loss() function expect).
         median = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
         fdata = self.data_loss(1, median).numpy()  # get data loss the 1 is just a dummy value, it's not used
@@ -945,7 +954,7 @@ effect:
         # plot median image and save it to location
         self.plot_image(
             median_img,
-            name=os.path.join(os.getcwd(), self.dir, "MedianImage.png"),
+            name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
             chi2_label=f"chi2={fdata:.1f}",
         )
         # save median image in a fits file
@@ -954,7 +963,7 @@ effect:
             ftot,
             fdata,
             frgl,
-            name=os.path.join(os.getcwd(), self.dir, "MedianImage.fits"),
+            name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
         )
 
         # Same but for best image (best meaning lowest total loss) out of all restarts
@@ -969,7 +978,7 @@ effect:
         # plot image
         self.plot_image(
             img_best,
-            name=os.path.join(os.getcwd(), self.dir, "BestImage.png"),
+            name=os.path.join(os.getcwd(), self.dir, "best_image.png"),
             chi2_label=f"chi2={fdata_best:.1f}",
         )
         # save image
@@ -979,12 +988,12 @@ effect:
             ftot[idx_best],
             fdata_best,
             frgl_best,
-            name=os.path.join(os.getcwd(), self.dir, "BestImage.fits"),
+            name=os.path.join(os.getcwd(), self.dir, "best_image.fits"),
         )
 
     # function to save an image to a fits file.
     # note that frgl here stands for the discriminator output (i.e. not yet multiplied by the weight factor mu)
-    def image_to_fits(self, image, ftot, fdata, frgl, name="Image.fits"):
+    def image_to_fits(self, image, ftot, fdata, frgl, name="image.fits"):
         params = self.params
         mu = params["mu"]  # regularization weight
         npix = self.npix
@@ -1061,13 +1070,13 @@ effect:
         plt.close()
 
     # saves cube of images and their diagnostics accross restarts in FITS file
-    # NOTE: the regularization loss that needs to be passed along here needs to not multiplied yet
+    # NOTE: the regularization loss that needs to be passed along here needs to not be multiplied by mu yet
     def save_cube(self, cube, losses):
         params = self.params
         mu = params["mu"]
         npix = self.npix
 
-        header = fits.Header()
+        header = fits.Header()  # header for the primary
 
         header["SIMPLE"] = "T"
         header["BITPIX"] = -64
@@ -1113,6 +1122,7 @@ effect:
 
         header["NEPOCHS"] = params["epochs"]
         header["NRSTARTS"] = params["nrestart"]
+        header["MU"] = mu
 
         # define columns for the losses
         fdata = np.array(losses[0])
@@ -1120,10 +1130,10 @@ effect:
         ftot = fdata + mu * frgl
         colftot = fits.Column(name="ftot", array=ftot, format="E")
         colfdata = fits.Column(name="fdata", array=fdata, format="E")
-        colfrgl = fits.Column(name="fdiscriminator", array=frgl, format="E")
+        colfrgl = fits.Column(name="frgl", array=frgl, format="E")
         cols = fits.ColDefs([colftot, colfdata, colfrgl])
 
-        headermetrics = fits.Header()
+        headermetrics = fits.Header()  # create header for the metrics extension
         headermetrics["TTYPE1"] = "FTOT"  # total loss (i.e. data loss + weigth-multiplied regularization)
         headermetrics["TTYPE2"] = "FDATA"  # data loss (i.e. chi2)
         headermetrics["TTYPE3"] = "FRGL"  # regularization term (not multiplied by the weight)
@@ -1136,7 +1146,7 @@ effect:
         )
 
         hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
-        hdul.writeto(os.path.join(self.dir, "Cube.fits"), overwrite=True)  # write to file
+        hdul.writeto(os.path.join(self.dir, "cube.fits"), overwrite=True)  # write to file
 
     # #TODO: this function doesn't seem to be used anywhere -> is it even necessary or is it obsolete?
     # def saveCubeOIMAGE(self, cube, losses):
@@ -1376,7 +1386,7 @@ effect:
             plt.ylabel(r"$V^2$")
             plt.legend()
 
-            plt.savefig(os.path.join(os.getcwd(), "V2comparisonNoColor.png"), dpi=250)
+            plt.savefig(os.path.join(os.getcwd(), "v2_comparison_no_color.png"), dpi=250)
             plt.close()
 
             # plots the uv coverage
@@ -1405,7 +1415,7 @@ effect:
             plt.ylabel(r"$ v (M\lambda)$")
             plt.gca().set_aspect("equal", adjustable="box")
 
-            plt.savefig(os.path.join(os.getcwd(), "uvCoverage.png"), dpi=250)
+            plt.savefig(os.path.join(os.getcwd(), "uv_coverage.png"), dpi=250)
             plt.close()
 
             # cp with residual comparison without color indicating wavelength
@@ -1443,7 +1453,7 @@ effect:
             plt.xlabel(r"max($\mid B\mid)(M\lambda)$", fontsize=12)
 
             plt.tight_layout()
-            plt.savefig(os.path.join(os.getcwd(), "cpComparisonNoColor.png"), dpi=250)
+            plt.savefig(os.path.join(os.getcwd(), "cp_comparison_no_color.png"), dpi=250)
 
             plt.close()
 
@@ -1480,7 +1490,7 @@ effect:
         def data_loss(y_true, y_pred, training=True):
             # img = y_pred.numpy()[0,:,:,0]
             y_pred = tf.squeeze(y_pred, axis=3)  # remove batch dimension (it's of size 1 anyway) using squeeze
-            y_pred = (y_pred + 1) / 2
+            y_pred = (y_pred + 1) / 2  # NOTE: remaps the image into the 0 to 1 interval to get positive pixel fluxes
             y_pred = tf.cast((y_pred), tf.complex128)
             y_pred = tf.signal.ifftshift(y_pred, axes=(1, 2))
             ftImages = tf.signal.fft2d(y_pred)  # is complex!!
