@@ -131,6 +131,7 @@ class Cube:
         pca = PCA(n_components = self.npca, random_state=128)  # create a PCA object
         pca = pca.fit(cube)  # fit to cube of images to define the PCA transform
         print(f"Explained variance ratio over principal components: {pca.explained_variance_ratio_}")
+        print(f"Total explained variance ratio over chosen #components: {sum(pca.explained_variance_ratio_)}")
         cube_pca = pca.transform(cube)  # actually apply it to get dimensionality reduction
         self.pca = cube_pca  # add the pca-projected images to the object properties
 
@@ -556,10 +557,11 @@ def main(sys_argv):
     dirdata = arg[0]
     file = f'{dirdata}/cube.fits'
     
-    Cube0 = Cube(arg[0], npca = 10, nkmeans=3)
+    Cube0 = Cube(arg[0], npca = 15, nkmeans=3)
     Cube0.give_best()  # give the best images
     Cube0.write_median_images(add_stars=True)  # write median images per cluster group to fits files
-    Cube0.get_radial_profiles(R=75, set=0)
+
+    # Cube0.get_radial_profiles(R=75, set=0)
 
     # Cube0.get_chi2(dirdata, file)
     #Cube0.radial_profiles(R=100,set=0)
