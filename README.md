@@ -146,11 +146,11 @@ If you face any issues when installing or using ORGANIC, report them at the proj
 
 - [Jacques Kluska](https://www.linkedin.com/in/jacques-kluska/)
 - [Rik Claes](https://www.linkedin.com/in/rik-claes-70a6b71a3/?originalSubdomain=be)
-- [Toon De Prins](https://deprinst.github.io/)
+- [Toon De Prins](https://deprinst.github.io/) (current lead developer)
 
-**Current maintainers**
+**Contributors**
 
-- [Toon De Prins](https://deprinst.github.io/)
+- [Akke Corporaal](https://www.linkedin.com/in/akke-corporaal-19148413b/)
 
 # License
 
