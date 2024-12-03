@@ -84,12 +84,13 @@ class Data:
 class Cube:
     # initialization function, notes it does a bunch of calculations as well
     # note the number of PCA components and Kmeans cluster groups to divide the data into
-    def __init__(self, dir, file = 'cube.fits', npca=3, nkmeans=3, nbest=6):
+    def __init__(self, dir, file = 'cube.fits', npca=3, nkmeans=3, nbest=6, show_plots=False):
         self.dir = dir  # directory in which to find cube
         self.file = file  # filename of cube file
         self.nkmeans = nkmeans  # number of K means groups to subdivide output into
         self.npca = npca  # number of PCA components to use
         self.nbest = nbest  # number of best images to single out
+        self.show_plots = show_plots  # whether or not to show plots
         self.read()  # read in the Cube.fits file output by organic
         self.do_pca()  # perform PCA analysis
         self.do_kmeans()  # do K means clustering
@@ -116,10 +117,12 @@ class Cube:
         self.cube = cube  # cube of images
 
         # Read in the metrics columns associated to each image.
+        self.mu = hdul[0].header['MU']  # set regularization term weight
         metrics = hdul[1].data
         self.fdata = metrics['fdata']
         self.ftot = metrics['ftot']
         self.frgl = metrics['frgl']
+
         # call function to set up coordinates
         self.set_coord()
 
@@ -214,8 +217,9 @@ class Cube:
                 ax.set_ylabel(r'$\Delta \delta$ (mas)')
         plt.tight_layout()
         plt.savefig(os.path.join(self.dir,f'best_{nbest}_images.png'), dpi=250)
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
     # function to add the kmeans metrics to the attributes of the class; currently not really used anywhere
     def set_kmeans_metrics(self):
@@ -223,16 +227,20 @@ class Cube:
         nk = self.nkmeans
         fdata = self.fdata
         frgl = self.frgl
+        ftot = self.ftot
 
-        fdatacluster, frglcluster = [], []  # lists to contain median loss terms over the clusters
+        fdatacluster, frglcluster, ftotcluster = [], [], []  # lists to contain median loss terms over the clusters
         # iterate over cluster labels
         for i in np.arange(nk):
             fdatak = fdata[clusters==i]  # retrieve fdata at all positions where the cluster label = the relevant one
             frglk = frgl[clusters==i]  # same for regularization
+            ftotk = ftot[clusters==i]
             fdatacluster.append(np.median(fdatak))
             frglcluster.append(np.median(frglk))
-        self.kmeanfdata = fdatacluster  # add to appropriate properties
+            ftotcluster.append(np.median(ftotk))
+        self.kmeanfdata = fdatacluster  # add median loss terms per cluster group to appropriate properties
         self.keamnfrgl = frglcluster
+        self.kmeanftot = ftotcluster
 
 
     # function to plot the clustering results
@@ -243,32 +251,35 @@ class Cube:
         centroids = self.centers
         # label the clusters with a text label
         for centre, k in zip(centroids,np.arange(self.nkmeans)):
-            plt.text(centre[0], centre[1], s=f"{k}", size='large')
+            plt.text(centre[0], centre[1], s=f"{k}", size='large', backgroundcolor='lightgray', alpha=0.6)
         plt.ylabel('Principal component 2')
         plt.xlabel('Principal component 1')
         plt.tight_layout()
         plt.savefig(os.path.join(self.dir,'pca_sets.png'), dpi=250)
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
         # actually scatterplot the loss terms
         fig, ax = plt.subplots()
         plt.scatter(self.fdata, self.frgl, c=self.kmeans)
         for fd, fr, k in zip(self.kmeanfdata, self.keamnfrgl, np.arange(self.nkmeans)):
-            plt.text(fd, fr, s=f"{k}", size='large')  # plot text label at mean loss positions
+            plt.text(fd, fr, s=f"{k}", size='large', backgroundcolor='lightgray', alpha=0.6)  # plot text label at mean loss positions
         plt.ylabel('frgl')
         plt.xlabel('fdata')
         plt.tight_layout()
         plt.savefig(os.path.join(self.dir,'pca_metrics.png'), dpi=250)
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
     # TODO: this one seems outdated, don't think it's used a lot
     def plot_pca(self):
         fig, ax = plt.subplots()
         plt.scatter(self.pca[:,0], self.pca[:,1])
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
     # function to group images properly per kmeans cluster and add corresponding instance attributes
     def group_images(self):
@@ -307,8 +318,9 @@ class Cube:
             ax.set_ylabel(r'$\Delta \delta$ (mas)')
         plt.tight_layout()
         plt.savefig(os.path.join(self.dir,'median_image_across_sets.png'), dpi=250)
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
     # function to write median images per kmeans cluster to fits files
     def write_median_images(self, add_stars=False):
@@ -339,7 +351,7 @@ class Cube:
         #plt.imshow(Gauss)
         #plt.scatter(nx/2.,nx/2.)
         #plt.show()
-        #plt.close()
+        #
 
         Gauss /= np.sum(Gauss)
         image += f*Gauss
@@ -397,7 +409,7 @@ class Cube:
             #plt.scatter(u, v, marker='+')
             #plt.scatter(-u, -v, marker='+')
             #plt.show()
-            #plt.close()
+            #
 
             FourierRe = sc.interpolate.interp2d(ftx0, fty0, ftimg.real, bounds_error=True, kind='cubic')
             FourierIm = sc.interpolate.interp2d(ftx0, fty0, ftimg.imag, bounds_error=True, kind='cubic')
@@ -408,7 +420,7 @@ class Cube:
             #fig,ax = plt.subplots()
             #plt.imshow(np.abs(ftimg))
             #plt.show()
-            #plt.close()
+            #
 #            print( f'u shape is {u.shape} and v shape is {v.shape}' )
             Vis, Phi = self.give_vis(u, v, waveV2, FourierRe, FourierIm)
 
@@ -420,7 +432,7 @@ class Cube:
             #plt.scatter(np.sqrt(u**2, v**2), np.power(Vis,2) )
             #plt.scatter(np.sqrt(u**2, v**2), V2)
             #plt.show()
-            #plt.close()
+            #
 
     # Function to calculate the visibility
     # NOTE: currently not used in a meaningfull way
@@ -468,8 +480,9 @@ class Cube:
                 if i < number-1:
                     ax.imshow(images[i,::-1,:], cmap='inferno')
         plt.tight_layout()
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
     # function to add image pixel coordinates and values to the Cube object
     def set_coord(self):
@@ -539,35 +552,95 @@ class Cube:
         ax.plot(self.radii, self.rms, label = 'azim. std.', color='red')
         plt.yscale('log')
         plt.legend()
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
 
         fig, ax = plt.subplots()
         ax.plot(self.radii, self.profile/self.noises, label = 'SNR-noise', color='blue')
         ax.plot(self.radii, self.profile/self.rms, label = 'SNR-std.', color='red')
         #plt.ylim(0,5)
         plt.legend()
-        plt.show()
-        plt.close()
+        if self.show_plots:
+            plt.show()
+            
+
+    # # function to filter out the worst PCA groups in terms of mean total loss
+    # # and recalculating a filtered median and cube for that
+    # def filter_pca_cluster(self, ncluster=1):
+    #     """
+    #     Method to filter the worst (in terms of total loss) `ncluster` clusters in PCA-projected space.
+    #     :param GAN gan: The Organic GAN object which was used to generate the images. 
+    #     """
+    #     # load in required data
+    #     img_cube = self.cube  # cube of all images
+    #     kmeanftot = self.kmeanftot  # median ftot over cluster groups
+    #     cluster_ids = self.kmeans  # ID numbers of kmeans clusters      
+
+    #     # identify `ncluster` worst clusters based on median ftot 
+    #     idx_ftot_sorted = np.argsort(kmeanftot)  # indices to sort by ftot value
+    #     bad_cluster_ids = idx_ftot_sorted[-ncluster:]  # cluster ID numbers of bad clusters
+
+    #     # filter bad clusters from the cube
+    #     img_cube_filtered = []  # array to contain images with chosen cluster groups filtered out
+    #     ftot_filtered = []  # arrays to contain loss terms for filtered images
+    #     fdata_filtered = []
+    #     frgl_filtered = []
+    #     for i in range(np.shape(img_cube)[0]):
+    #         if cluster_ids[i] not in bad_cluster_ids:
+    #             img_cube_filtered.append(img_cube[i, :, :])  # add to filtered images
+    #             ftot_filtered.append(self.ftot[i])
+    #             fdata_filtered.append(self.fdata[i])
+    #             frgl_filtered.append(self.frgl[i])
+    #     img_cube_filtered = np.array(img_cube_filtered)  # cast to numpy array
+    #     ftot_filtered = np.array(ftot_filtered)
+    #     fdata_filtered = np.array(fdata_filtered)
+    #     frgl_filtered = np.array(frgl_filtered)
+
+    #     median_img_filtered = np.median(img_cube_filtered, axis=0)  # calculate median
+    #     median_img_filtered = median_img_filtered / np.sum(median_img_filtered)
+
+    #     # plot and save filtered median image
+    #     d = self.d
+    #     fig, ax= plt.subplots(1, 1)
+    #     ax.imshow(median_img_filtered[::-1, :], extent = (d, -d, -d, d), cmap='inferno')
+    #     if self.show_plots:
+    #         plt.show()
+            
+
+    #     # calculate the loss terms for the median filtered image
+
+    #     # # plot median image and save it to location
+    #     # gan.plot_image(
+    #     #     median_img_filtered,
+    #     #     name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
+    #     #     chi2_label=f"chi2={fdata:.1f}",
+    #     # )
+    #     # # save median image in a fits file
+    #     # gan.image_to_fits(
+    #     #     median_img_filtered,
+    #     #     ftot,
+    #     #     fdata,
+    #     #     frgl,
+    #     #     name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
+    #     # )
+    #     # # Save filtered cube of images
+    #     # gan.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
+
 
 # main function to execute
 def main(sys_argv):
     arg = sys_argv[1:]
-
-    dirdata = arg[0]
-    file = f'{dirdata}/cube.fits'
     
-    Cube0 = Cube(arg[0], npca = 15, nkmeans=3)
-    Cube0.give_best()  # give the best images
-    Cube0.write_median_images(add_stars=True)  # write median images per cluster group to fits files
+    cube = Cube(arg[0], npca = 15, nkmeans=2, show_plots=True)
+    cube.give_best()  # give the best images
+    cube.write_median_images(add_stars=True)  # write median images per cluster group to fits files
+    cube.filter_pca_cluster(ncluster=1)
 
-    # Cube0.get_radial_profiles(R=75, set=0)
+    print(f"Median data losses: {cube.kmeanfdata}")
+    print(f"Median regularization loss: {cube.keamnfrgl}")
+    print(f"Median total loss under regularization weight {cube.mu}: {cube.kmeanftot}")
 
-    # Cube0.get_chi2(dirdata, file)
-    #Cube0.radial_profiles(R=100,set=0)
-    #Cube0.radial_profiles(R=100,set=1)
-    #Cube0.radial_profiles(R=100,set=2)
-    #Cube0.Set(0)
 
 # if used as a script
 if __name__ == '__main__':

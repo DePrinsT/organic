@@ -30,6 +30,9 @@ import shutil
 import glob
 import copy
 
+# set seeds
+# tf.random.set_seed(seed=128)  # set global random seed
+
 # mpl.use("Agg")  # not needed?
 
 # some colors for printing warnings, etc
@@ -946,10 +949,10 @@ effect:
         # some reshaping going on, ::-1 means the order is reversed along the axis
         # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and 
         # data_loss() function expect).
-        median = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
+        median_remap = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
-        fdata = self.data_loss(1, median).numpy()  # get data loss the 1 is just a dummy value, it's not used
-        frgl = self.dis.predict(median)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
+        fdata = self.data_loss(1, median_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl = self.dis.predict(median_remap)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
         ftot = fdata + self.params["mu"] * frgl  # calc total loss
         # plot median image and save it to location
         self.plot_image(
@@ -975,14 +978,13 @@ effect:
         img_best = image[idx_best]
         fdata_best = fdata[idx_best]
         frgl_best = frgl[idx_best]
-        # plot image
+        # plot best image
         self.plot_image(
             img_best,
             name=os.path.join(os.getcwd(), self.dir, "best_image.png"),
             chi2_label=f"chi2={fdata_best:.1f}",
         )
-        # save image
-
+        # save best image to fits file
         self.image_to_fits(
             img_best,
             ftot[idx_best],
@@ -1148,107 +1150,83 @@ effect:
         hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
         hdul.writeto(os.path.join(self.dir, "cube.fits"), overwrite=True)  # write to file
 
-    # #TODO: this function doesn't seem to be used anywhere -> is it even necessary or is it obsolete?
-    # def saveCubeOIMAGE(self, cube, losses):
-    #     # First copy the data file to the right directory
-    #     datafile = os.path.join(os.getcwd(), "OIData.fits")
-    #     newfile = os.path.join(os.getcwd(), self.dir, "Output_data.fits")
-    #     shutil.copyfile(datafile, newfile)
+    # function to filter out the worst PCA groups in terms of mean total loss
+    # and recalculating a filtered median and cube for that
+    def filter_pca_cluster(self, cube, ncluster=1):
+        """
+        Method to filter the worst (in terms of total loss) `ncluster` clusters in PCA-projected space.
+        :param Cube cube: The post_organic Cube object containing the generated images. 
+        """
+        # load in required data
+        img_cube = cube.cube  # cube of all images
+        kmeanftot = cube.kmeanftot  # median ftot over cluster groups
+        cluster_ids = cube.kmeans  # ID numbers of kmeans clusters
 
-    #     # open it and modify it
-    #     hdul = fits.open(newfile)
-    #     # copy the data
+        # identify `ncluster` worst clusters based on median ftot 
+        idx_ftot_sorted = np.argsort(kmeanftot)  # indices to sort by ftot value
+        bad_cluster_ids = idx_ftot_sorted[-ncluster:]  # cluster ID numbers of bad clusters
 
-    #     params = self.params
-    #     mu = params["mu"]
-    #     npix = self.npix
+        # filter bad clusters from the cube
+        img_cube_filtered = []  # array to contain images with chosen cluster groups filtered out
+        ftot_filtered = []  # arrays to contain loss terms for filtered images
+        fdata_filtered = []
+        frgl_filtered = []
+        for i in range(np.shape(img_cube)[0]):
+            if cluster_ids[i] not in bad_cluster_ids:
+                img_cube_filtered.append(img_cube[i, :, :])  # add to filtered images
+                ftot_filtered.append(cube.ftot[i])
+                fdata_filtered.append(cube.fdata[i])
+                frgl_filtered.append(cube.frgl[i])
+        img_cube_filtered = np.array(img_cube_filtered)  # cast to numpy array
+        ftot_filtered = np.array(ftot_filtered)
+        fdata_filtered = np.array(fdata_filtered)
+        frgl_filtered = np.array(frgl_filtered)
 
-    #     header = fits.Header()
+        # calculate median image after filtering
+        median_img_filtered = np.median(img_cube_filtered, axis=0)
+        median_img_filtered = median_img_filtered / np.sum(median_img_filtered)
 
-    #     header["SIMPLE"] = "T"
-    #     header["BITPIX"] = -64
+        # get the associated loss terms
+        # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and 
+        # data_loss() function expect).
+        median_filtered_remap = np.reshape(median_img_filtered[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
+        fdata = self.data_loss(1, median_filtered_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl = self.dis.predict(median_filtered_remap)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
+        ftot = fdata + self.params["mu"] * frgl  # calc total loss
+        # plot median image and save it to location
+        self.plot_image(
+            median_img_filtered,
+            name=os.path.join(os.getcwd(), self.dir, "median_image_filtered.png"),
+            chi2_label=f"chi2={fdata:.1f}",
+        )
+        # save median image in a fits file
+        self.image_to_fits(
+            median_img_filtered,
+            ftot,
+            fdata,
+            frgl,
+            name=os.path.join(os.getcwd(), self.dir, "median_image_filtered.fits"),
+        )
 
-    #     header["NAXIS"] = 3
-    #     header["NAXIS1"] = npix
-    #     header["NAXIS2"] = npix
-    #     header["NAXIS3"] = params["nrestart"]
+        # calculate the loss terms for the median filtered image
 
-    #     header["EXTEND"] = "T"
-    #     header["CRVAL1"] = (0.0, "Coordinate system value at reference pixel")
-    #     header["CRVAL2"] = (0.0, "Coordinate system value at reference pixel")
-    #     header["CRPIX1"] = npix / 2
-    #     header["CRPIX2"] = npix / 2
-    #     header["CTYPE1"] = ("milliarcsecond", "RA in mas")
-    #     header["CTYPE2"] = ("milliarcsecond", "DEC in mas")
-    #     header["CDELT1"] = -1 * params["ps"]
-    #     header["CDELT2"] = params["ps"]
+        # # plot median image and save it to location
+        # self.plot_image(
+        #     median_img_filtered,
+        #     name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
+        #     chi2_label=f"chi2={fdata:.1f}",
+        # )
+        # # save median image in a fits file
+        # self.image_to_fits(
+        #     median_img_filtered,
+        #     ftot,
+        #     fdata,
+        #     frgl,
+        #     name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
+        # )
+        # # Save filtered cube of images
+        # gan.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
 
-    #     header["CDELT3"] = 1.0
-    #     header["CTYPE3"] = "Nrestart"
-
-    #     header["SWAVE0"] = self.wave0
-    #     header["SPEC0"] = "pow"
-    #     header["SNMODS"] = 2
-    #     header["SMOD1"] = "UD"
-    #     header["SFLU1"] = params["fstar"]
-    #     header["SPEC1"] = "pow"
-    #     header["SDEX1"] = 0
-    #     header["SDEY1"] = 0
-
-    #     header["SMOD2"] = "star"
-    #     header["SFLU2"] = params["fsec"]
-    #     header["SPEC2"] = "pow"
-    #     header["SDEX2"] = params["xsec"]
-    #     header["SDEY2"] = params["ysec"]
-
-    #     header["SDEX1"] = (self.x, "x coordinate of the point source")
-    #     header["y"] = (self.y, "coordinate of the point source")
-    #     header["UDf"] = self.UDflux, "flux contribution of the uniform disk"
-    #     header["UDd"] = (self.UDdiameter, "diameter of the point source")
-    #     header["pf"] = (self.PointFlux, "flux contribution of the point source")
-    #     header["denv"] = (self.denv, "spectral index of the environment")
-    #     header["dsec"] = (self.dsec, "spectral index of the point source")
-
-    #     # define columns for the losses
-    #     fdata = np.array(losses[0])
-    #     frgl = np.array(losses[1])
-    #     ftot = fdata + mu * frgl
-    #     colftot = fits.Column(name="ftot", array=ftot)
-    #     colfdata = fits.Column(name="fdata", array=fdata)
-    #     colfrgl = fits.Column(name="fdiscriminator", array=frgl)
-    #     cols = fits.ColDefs([colftot, colfdata, colfrgl])
-
-    #     # define columns for input
-    #     headerinput = fits.Header()
-    #     headerinput["TARGET"] = self.data.target
-    #     headerinput["WAVE_MIN"] = 1
-    #     headerinput["WAVE_MAX"] = 1
-    #     headerinput["USE_VIS"] = "False"
-    #     headerinput["USE_VIS2"] = "True"
-    #     headerinput["USE_T3"] = "True"
-    #     headerinput["INIT_IMG"] = "NA"
-    #     headerinput["MAXITER"] = self.nrestart
-    #     headerinput["RGL_NAME"] = self.dispath
-    #     headerinput["AUTO_WGT"] = "False"
-    #     headerinput["RGL_WGT"] = mu
-    #     headerinput["RGL PRIO"] = ""
-    #     headerinput["FLUX"] = 1
-    #     headerinput["FLUXERR"] = 0
-    #     headerinput["HDUPREFX"] = "ORANIC_CUBE"
-
-    #     # Make the headers
-    #     prihdu = fits.PrimaryHDU(cube, header=header, name="")
-    #     sechdu = fits.BinTableHDU.from_columns(cols, name="METRICS")
-    #     inputhdu = fits.BinTableHDU.from_columns(
-    #         header=headerinput, name="IMAGE-OI INPUT PARAM"
-    #     )
-
-    #     hdul = fits.HDUList([prihdu, sechdu])
-
-    #     hdul.writeto(newfile, overwrite=True)
-
-    #     # y_pred = self.gan.predict(noisevector)[1]
-    #     # self.data_loss([1], y_pred, training = False)
 
     # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
