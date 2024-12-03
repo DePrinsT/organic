@@ -740,13 +740,9 @@ effect:
             except FileExistsError:
                 underline("Working in an already existing folder:")
                 print(os.path.join(os.getcwd(), self.dir0))
-            os.chdir(self.dir0)  # TODO: chdir is never a good idea -> change code so we don't use chdir,
         else:
             warn("Will put all the outputs in {os.getcwd()}")
             warn("It may overwrite files if they already exist!")
-
-        # copy the data file to the directory
-        # shutil.copyfile(os.path.join(data_dir, data_files), os.path.join(os.getcwd(), 'OIData.fits'))
 
         # Creating dictionary with image recsontruction parameters
         self.params = {
@@ -804,7 +800,6 @@ effect:
             self.dir = "img_rec"  # set the output directory of the GAN object for this image reconstruction
             self.single_img_rec(reinit_gen=reinit_gen)
 
-        os.chdir(self.dirorig)  # TODO: again, change dir is a bad idea
 
     # case in which you have to iterate over a grid
     def run_grid(self, reinit_gen=False):
@@ -821,10 +816,10 @@ effect:
 
             self.dir = dir_name
             try:
-                os.makedirs(dir_name)
+                os.makedirs(os.path.join(self.dir0, self.dir))
             except FileExistsError:
                 fail(
-                    "The following folder already exists: {os.path.join(os.getcwd(), self.dir)}"
+                    "The following folder already exists: {self.dir0, self.dir)}"
                 )
                 fail("Please define another folder by changing the name keyword")
                 fail("in the imag_reconstruction command")
@@ -839,10 +834,10 @@ effect:
         inform2("Single image reconstruction started")
         self.dir = "img_rec"
         try:
-            os.makedirs(self.dir)
+            os.makedirs(os.path.join(self.dir0, self.dir))
         except FileExistsError:
             fail(
-                "The following folder already exists: {os.path.join(os.getcwd(), self.dir)}"
+                "The following folder already exists: {self.dir0, self.dir)}"
             )
             fail("Please define another folder by changing the name keyword")
             fail("in the image_reconstruction command")
@@ -857,8 +852,6 @@ effect:
         mu = params["mu"]
         # create data loss
         data_loss_function = self.set_dataloss()  # the dataloss function is what does the whole V2 T3PHI calculation
-
-        outdir = os.path.join(os.getcwd(), self.dir)  # add the image output directory subname on top of dir0
 
         chi2_restarts, dis_loss_restarts = [], []  # lists to store loss terms across restarts
         imgs = []  # to store different images accross epochs
@@ -926,14 +919,14 @@ effect:
             if self.diagnostics:
                 self.give_imgrec_diagnostics(hist, chi2_epochs, dis_loss_epochs, r, epochs, mu)
                 self.save_image_from_noise(
-                    noisevector, name=os.path.join(self.dir, f"image_restart{r}.png")
+                    noisevector, name=os.path.join(self.dir0, self.dir, f"image_restart{r}.png")
                 )  # get an image from the noise vector and save at the correct spot
             chi2_restarts.append(hist[2])  # data loss (chi2)
             dis_loss_restarts.append(hist[1])  # discriminator loss (multiplied by the weight)
             imgs.append(img[:, ::-1])  # append the image to the list of images
             vects.append(noisevector)  # append used noise vector to a list
 
-        self.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
+        self.save_cube(imgs, [chi2_restarts, dis_loss_restarts], name="cube.fits")  # save images accross restarts to fits cube
         # save the median image and best fits images, both into plots and into fits files
         self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
         self.plot_loss_evol(chi2_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
@@ -957,7 +950,7 @@ effect:
         # plot median image and save it to location
         self.plot_image(
             median_img,
-            name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
+            name=os.path.join(self.dir0, self.dir, "median_image.png"),
             chi2_label=f"chi2={fdata:.1f}",
         )
         # save median image in a fits file
@@ -966,7 +959,7 @@ effect:
             ftot,
             fdata,
             frgl,
-            name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
+            name=os.path.join(self.dir0, self.dir, "median_image.fits"),
         )
 
         # Same but for best image (best meaning lowest total loss) out of all restarts
@@ -981,7 +974,7 @@ effect:
         # plot best image
         self.plot_image(
             img_best,
-            name=os.path.join(os.getcwd(), self.dir, "best_image.png"),
+            name=os.path.join(self.dir0, self.dir, "best_image.png"),
             chi2_label=f"chi2={fdata_best:.1f}",
         )
         # save best image to fits file
@@ -990,7 +983,7 @@ effect:
             ftot[idx_best],
             fdata_best,
             frgl_best,
-            name=os.path.join(os.getcwd(), self.dir, "best_image.fits"),
+            name=os.path.join(self.dir0, self.dir, "best_image.fits"),
         )
 
     # function to save an image to a fits file.
@@ -1054,7 +1047,7 @@ effect:
         # Make the headers
         prim_hdu = fits.PrimaryHDU(image, header=header)  # primary HDU
         hdul = fits.HDUList([prim_hdu])  # primary HDU is the only one to be added
-        hdul.writeto(os.path.join(self.dir, name), overwrite=True)  # write to file
+        hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
 
 
     # function to plot the loss evolution accross restarts
@@ -1068,12 +1061,12 @@ effect:
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir, "lossevol.png"), dpi=250)
+        plt.savefig(os.path.join(self.dir0, self.dir, "lossevol.png"), dpi=250)
         plt.close()
 
     # saves cube of images and their diagnostics accross restarts in FITS file
     # NOTE: the regularization loss that needs to be passed along here needs to not be multiplied by mu yet
-    def save_cube(self, cube, losses):
+    def save_cube(self, cube, losses, name="cube.fits"):
         params = self.params
         mu = params["mu"]
         npix = self.npix
@@ -1148,7 +1141,7 @@ effect:
         )
 
         hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
-        hdul.writeto(os.path.join(self.dir, "cube.fits"), overwrite=True)  # write to file
+        hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
 
     # function to filter out the worst PCA groups in terms of mean total loss
     # and recalculating a filtered median and cube for that
@@ -1177,6 +1170,8 @@ effect:
                 ftot_filtered.append(cube.ftot[i])
                 fdata_filtered.append(cube.fdata[i])
                 frgl_filtered.append(cube.frgl[i])
+            else:
+                print(f"Bad image; ID: {i}")
         img_cube_filtered = np.array(img_cube_filtered)  # cast to numpy array
         ftot_filtered = np.array(ftot_filtered)
         fdata_filtered = np.array(fdata_filtered)
@@ -1190,43 +1185,27 @@ effect:
         # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and 
         # data_loss() function expect).
         median_filtered_remap = np.reshape(median_img_filtered[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
-        fdata = self.data_loss(1, median_filtered_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
-        frgl = self.dis.predict(median_filtered_remap)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
-        ftot = fdata + self.params["mu"] * frgl  # calc total loss
+        fdata_median_filtered = self.data_loss(1, median_filtered_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl_median_filtered = self.dis.predict(median_filtered_remap)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
+        ftot_median_filtered = fdata_median_filtered + self.params["mu"] * frgl_median_filtered  # calc total loss
+
         # plot median image and save it to location
         self.plot_image(
             median_img_filtered,
-            name=os.path.join(os.getcwd(), self.dir, "median_image_filtered.png"),
-            chi2_label=f"chi2={fdata:.1f}",
+            name=os.path.join(self.dir0, self.dir, "median_image_filtered.png"),
+            chi2_label=f"chi2={fdata_median_filtered:.1f}",
         )
         # save median image in a fits file
         self.image_to_fits(
             median_img_filtered,
-            ftot,
-            fdata,
-            frgl,
-            name=os.path.join(os.getcwd(), self.dir, "median_image_filtered.fits"),
+            ftot_median_filtered,
+            fdata_median_filtered,
+            frgl_median_filtered,
+            name=os.path.join(self.dir0, self.dir, "median_image_filtered.fits"),
         )
 
-        # calculate the loss terms for the median filtered image
-
-        # # plot median image and save it to location
-        # self.plot_image(
-        #     median_img_filtered,
-        #     name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
-        #     chi2_label=f"chi2={fdata:.1f}",
-        # )
-        # # save median image in a fits file
-        # self.image_to_fits(
-        #     median_img_filtered,
-        #     ftot,
-        #     fdata,
-        #     frgl,
-        #     name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
-        # )
-        # # Save filtered cube of images
-        # gan.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
-
+        # Save filtered cube of images
+        self.save_cube(img_cube_filtered, [fdata_filtered, frgl_filtered], name="cube_filtered.fits")
 
     # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
@@ -1243,7 +1222,7 @@ effect:
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir, f"lossevol_restart{r}.png"), dpi=250)
+        plt.savefig(os.path.join(self.dir0, self.dir, f"lossevol_restart{r}.png"), dpi=250)
         plt.close()
 
     # !! Master function to calculate the data loss !!
