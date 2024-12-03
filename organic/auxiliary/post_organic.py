@@ -84,7 +84,7 @@ class Data:
 class Cube:
     # initialization function, notes it does a bunch of calculations as well
     # note the number of PCA components and Kmeans cluster groups to divide the data into
-    def __init__(self, dir, file = 'cube.fits', npca=3, nkmeans=3, nbest=6, show_plots=False):
+    def __init__(self, dir, file = 'cube.fits', npca=3, nkmeans=3, nbest=6, show_plots=True):
         self.dir = dir  # directory in which to find cube
         self.file = file  # filename of cube file
         self.nkmeans = nkmeans  # number of K means groups to subdivide output into
@@ -563,69 +563,6 @@ class Cube:
         plt.legend()
         if self.show_plots:
             plt.show()
-            
-
-    # # function to filter out the worst PCA groups in terms of mean total loss
-    # # and recalculating a filtered median and cube for that
-    # def filter_pca_cluster(self, ncluster=1):
-    #     """
-    #     Method to filter the worst (in terms of total loss) `ncluster` clusters in PCA-projected space.
-    #     :param GAN gan: The Organic GAN object which was used to generate the images. 
-    #     """
-    #     # load in required data
-    #     img_cube = self.cube  # cube of all images
-    #     kmeanftot = self.kmeanftot  # median ftot over cluster groups
-    #     cluster_ids = self.kmeans  # ID numbers of kmeans clusters      
-
-    #     # identify `ncluster` worst clusters based on median ftot 
-    #     idx_ftot_sorted = np.argsort(kmeanftot)  # indices to sort by ftot value
-    #     bad_cluster_ids = idx_ftot_sorted[-ncluster:]  # cluster ID numbers of bad clusters
-
-    #     # filter bad clusters from the cube
-    #     img_cube_filtered = []  # array to contain images with chosen cluster groups filtered out
-    #     ftot_filtered = []  # arrays to contain loss terms for filtered images
-    #     fdata_filtered = []
-    #     frgl_filtered = []
-    #     for i in range(np.shape(img_cube)[0]):
-    #         if cluster_ids[i] not in bad_cluster_ids:
-    #             img_cube_filtered.append(img_cube[i, :, :])  # add to filtered images
-    #             ftot_filtered.append(self.ftot[i])
-    #             fdata_filtered.append(self.fdata[i])
-    #             frgl_filtered.append(self.frgl[i])
-    #     img_cube_filtered = np.array(img_cube_filtered)  # cast to numpy array
-    #     ftot_filtered = np.array(ftot_filtered)
-    #     fdata_filtered = np.array(fdata_filtered)
-    #     frgl_filtered = np.array(frgl_filtered)
-
-    #     median_img_filtered = np.median(img_cube_filtered, axis=0)  # calculate median
-    #     median_img_filtered = median_img_filtered / np.sum(median_img_filtered)
-
-    #     # plot and save filtered median image
-    #     d = self.d
-    #     fig, ax= plt.subplots(1, 1)
-    #     ax.imshow(median_img_filtered[::-1, :], extent = (d, -d, -d, d), cmap='inferno')
-    #     if self.show_plots:
-    #         plt.show()
-            
-
-    #     # calculate the loss terms for the median filtered image
-
-    #     # # plot median image and save it to location
-    #     # gan.plot_image(
-    #     #     median_img_filtered,
-    #     #     name=os.path.join(os.getcwd(), self.dir, "median_image.png"),
-    #     #     chi2_label=f"chi2={fdata:.1f}",
-    #     # )
-    #     # # save median image in a fits file
-    #     # gan.image_to_fits(
-    #     #     median_img_filtered,
-    #     #     ftot,
-    #     #     fdata,
-    #     #     frgl,
-    #     #     name=os.path.join(os.getcwd(), self.dir, "median_image.fits"),
-    #     # )
-    #     # # Save filtered cube of images
-    #     # gan.save_cube(imgs, [chi2_restarts, dis_loss_restarts])  # save images accross restarts to fits cube
 
 
 # main function to execute
@@ -635,7 +572,6 @@ def main(sys_argv):
     cube = Cube(arg[0], npca = 15, nkmeans=2, show_plots=True)
     cube.give_best()  # give the best images
     cube.write_median_images(add_stars=True)  # write median images per cluster group to fits files
-    cube.filter_pca_cluster(ncluster=1)
 
     print(f"Median data losses: {cube.kmeanfdata}")
     print(f"Median regularization loss: {cube.keamnfrgl}")
