@@ -1,12 +1,13 @@
 # requirements file with hard dependencies so ReadTheDocs can generate the documentation properly
-astropy==4.0.2
-matplotlib==3.3.2
-numpy==1.19.5
-scikit-learn==0.24.2
-scipy==1.4.1
-tensorflow==2.4.0
-pip==21.3.1  # specify version of pip so editable local install will work properly  
-sphinx==4.4.0  # sphinx only for developing documentation
+astropy==6.0.1
+matplotlib==3.9.3
+numpy==1.23.5
+scikit-learn==1.5.2
+scipy==1.13.1
+tensorflow==2.12.0
+# following CUDA packages only if using GPU
+# following sphinx packages only for building documentation
+sphinx==4.4.0  
 sphinx-rtd-theme==1.1.0  # this version is required for proper HTML margins
 renku-sphinx-theme==0.4.0  # theme based of of ReadTheDocs theme
 sphinxcontrib-applehelp==1.0.2  # <<< control versions sphinx addons to make sure ReadTheDocs can build docs properly

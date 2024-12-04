@@ -16,7 +16,7 @@ maintainers = [
 description = 'A package for image reconstuction from optical interferometry data using GANs.'
 readme = "README.md"
 license = {file = "LICENSE"} 
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
@@ -25,12 +25,12 @@ classifiers = [
 ]
 
 dependencies = [
-  "astropy==4.0.2",
-  "matplotlib==3.3.2",
-  "numpy==1.19.2",
-  "scikit-learn==0.24.2",
-  "scipy==1.4.1",
-  "tensorflow==2.2.0",
+  "astropy",
+  "matplotlib",
+  "numpy",
+  "scikit-learn",
+  "scipy",
+  "tensorflow",
 ]
 
 [project.urls]

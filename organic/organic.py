@@ -102,6 +102,7 @@ def cross_entropy(y_true, y_pred):
 # set to true by default (NOTE: False gives bullshit results!!)
 # amsgrad = whether or not to use the amsgrad version of the Adam optimizer (this is generally more efficient and
 # provides better convergence).
+# tf_verbose = whether or not to let tensorflow be verbose in its debug warnings
 # gen_init = copy of the initial generator state (only created if reading in a GAN from file)
 # also contains self.params -> to store image recosntruction parameters, including both settings like pixelscale and
 # the SPARCO parameters. 
@@ -122,7 +123,11 @@ class GAN:
         adam_beta1=0.91,
         reset_opt=True,
         amsgrad=True,
+        tf_verbose=False,
     ):
+        # suppress tensorflow warnings if needed
+        if not tf_verbose:
+            os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
         self.reset_opt = reset_opt
         self.adam_lr = adam_lr
         self.adam_beta1 = adam_beta1
@@ -868,7 +873,7 @@ effect:
             # by default, the Adam optimizer state is reset in a new optimizer object, this can be changed
             # by setting reset_opt = False in the argument list of the GAN class __init__
             if self.reset_opt == True:
-                opt = "optimizers." + self.opt._name  # python command get the optimizer
+                opt = "optimizers." + self.opt.name  # python command get the optimizer
                 opt = eval(opt)
                
                 # TODO: this seems like a pretty weird way of doing it, since here we call from_config specifically from
@@ -1209,10 +1214,10 @@ effect:
 
     # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
-        print(r, hist[0], hist[2], mu * hist[1], sep="\t")  # print loss terms at the final epoch of the restart
-        print(mu)  # print the weight of the discriminator loss
-        print(type(discloss))
-        print(discloss)  # print the discriminator loss
+        # print(r, hist[0], hist[2], mu * hist[1], sep="\t")  # print loss terms at the final epoch of the restart
+        # print(mu)  # print the weight of the discriminator loss
+        # print(type(discloss))
+        # print(discloss)  # print the discriminator loss
         fig, ax = plt.subplots()
         plt.plot(epochs, chi2, label="f_data")
         plt.plot(epochs, mu * np.array(discloss), label="mu * f_discriminator")
@@ -1546,7 +1551,6 @@ class Data:
         self.v1 = v1
         self.v2 = v2
         self.v3 = v3
-        print(data.target)
         self.target = data.target[0].target[0]
 
 
