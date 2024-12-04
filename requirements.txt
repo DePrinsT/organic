@@ -7,12 +7,13 @@ scipy==1.13.1
 tensorflow==2.12.0
 # following CUDA packages only if using GPU
 # following sphinx packages only for building documentation
-sphinx==4.4.0  
-sphinx-rtd-theme==1.1.0  # this version is required for proper HTML margins
-renku-sphinx-theme==0.4.0  # theme based of of ReadTheDocs theme
-sphinxcontrib-applehelp==1.0.2  # <<< control versions sphinx addons to make sure ReadTheDocs can build docs properly
-sphinxcontrib-devhelp==1.0.2
-sphinxcontrib-htmlhelp==2.0.0
+sphinx==5.3.0
+sphinx-rtd-theme==1.1.0
+renku-sphinx-theme==0.4.0
+sphinxcontrib-applehelp==2.0.0
+sphinxcontrib-devhelp==2.0.0
+sphinxcontrib-htmlhelp==2.1.0
+sphinxcontrib-jquery==4.1
 sphinxcontrib-jsmath==1.0.1
-sphinxcontrib-qthelp==1.0.3
-sphinxcontrib-serializinghtml==1.1.5  # >>>
+sphinxcontrib-qthelp==2.0.0
+sphinxcontrib-serializinghtml==2.0.0
