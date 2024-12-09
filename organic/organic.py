@@ -18,26 +18,39 @@ from astropy.io import fits
 import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import itertools
 import organic.auxiliary.ReadOIFITS as oi
-import tensorflow.keras.backend as K
+import tensorflow.keras.backend as kbackend
 import scipy.special as sp
 import matplotlib.colors as colors
-from matplotlib.patches import Ellipse
 import sys
-import shutil
 import glob
-import copy
-
-# set seeds
-# tf.random.set_seed(seed=128)  # set global random seed
-
-# mpl.use("Agg")  # not needed?
 
 
 # some colors for printing warnings, etc
-class bcolors:
+class Bcolors:
+    """
+    A class to represent ANSI escape sequences for terminal text formatting.
+
+    Attributes
+    ----------
+    HEADER : str
+        ANSI escape sequence for magenta colored text.
+    OKBLUE : str
+        ANSI escape sequence for blue colored text.
+    OKGREEN : str
+        ANSI escape sequence for green colored text.
+    WARNING : str
+        ANSI escape sequence for yellow colored text.
+    FAIL : str
+        ANSI escape sequence for red colored text.
+    ENDC : str
+        ANSI escape sequence to reset text formatting.
+    BOLD : str
+        ANSI escape sequence for bold text.
+    UNDERLINE : str
+        ANSI escape sequence for underlined text.
+    """
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"
@@ -50,34 +63,104 @@ class bcolors:
 
 # Some fancy message writing functions
 def header(msg):
-    print(bcolors.HEADER + msg + bcolors.ENDC)
+    """
+    Prints a message in a header format with specific colors.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be printed.
+    """
+    print(Bcolors.HEADER + msg + Bcolors.ENDC)
 
 
 def bold(msg):
-    print(bcolors.BOLD + msg + bcolors.ENDC)
+    """
+    Print a message in bold text.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be printed in bold.
+    """
+    print(Bcolors.BOLD + msg + Bcolors.ENDC)
 
 
 def underline(msg):
-    print(bcolors.UNDERLINE + msg + bcolors.ENDC)
+    """
+    Print a message with an underline.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be printed with an underline.
+    """
+    print(Bcolors.UNDERLINE + msg + Bcolors.ENDC)
 
 
 def inform(msg):
-    print(bcolors.OKBLUE + msg + bcolors.ENDC)
+    """
+    Prints a message in blue color.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be printed.
+    """
+    print(Bcolors.OKBLUE + msg + Bcolors.ENDC)
 
 
 def inform2(msg):
-    print(bcolors.OKGREEN + msg + bcolors.ENDC)
+    """
+    Prints a message in green color.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be printed.
+    """
+    print(Bcolors.OKGREEN + msg + Bcolors.ENDC)
 
 
 def warn(msg):
-    print(bcolors.WARNING + msg + bcolors.ENDC)
+    """
+    Prints a warning message in a specific format.
+
+    Parameters
+    ----------
+    msg : str
+        The warning message to be printed.
+    """
+    print(Bcolors.WARNING + msg + Bcolors.ENDC)
 
 
 def fail(msg):
-    print(bcolors.FAIL + msg + bcolors.ENDC)
+    """
+    Print a failure message in a specific format.
+
+    Parameters
+    ----------
+    msg : str
+        The failure message to be printed.
+    """
+    print(Bcolors.FAIL + msg + Bcolors.ENDC)
 
 
 def log(msg, dir):
+    """
+    Append a message to a log file.
+
+    Parameters
+    ----------
+    msg : str
+        The message to be logged.
+    dir : str
+        The directory where the log file is located. The log file will be named "log.txt".
+
+    Returns
+    -------
+    None
+    """
     f = open(dir + "log.txt", "a")
     f.write(msg + "\n")
     f.close()
@@ -87,7 +170,28 @@ def log(msg, dir):
 # DEPRECATED in newer tf versions -> use tf.keras.losses.BinaryCrossentropy
 # Loss class now
 def cross_entropy(y_true, y_pred):
-    return K.binary_crossentropy(y_true, y_pred, from_logits=False)
+    """
+    Computes the binary cross-entropy loss between true labels and predicted labels.
+
+    Parameters
+    ----------
+    y_true : tensor
+        True binary labels.
+    y_pred : tensor
+        Predicted probabilities.
+
+    Returns
+    -------
+    tensor
+        Binary cross-entropy loss.
+
+    Notes
+    -----
+    This function uses the Keras backend to compute the binary cross-entropy loss.
+    The `from_logits` parameter is set to False, indicating that `y_pred` is expected
+    to be probabilities (i.e., values between 0 and 1).
+    """
+    return kbackend.binary_crossentropy(y_true, y_pred, from_logits=False)
 
 
 ## definition of the GAN class
@@ -113,9 +217,31 @@ class GAN:
     """
     The GAN class to train and use it
     The GAN is made from a generator and a discriminator
+
+    Parameters
+    ----------
+    gen : str, optional
+        Path to the generator model file (h5 file).
+    dis : str, optional
+        Path to the discriminator model file (h5 file).
+    npix : int, optional
+        Number of pixels.
+    train_disc : bool, optional
+        Whether or not to train the discriminator.
+    noiselength : int, optional
+        Length of the noise vector at the start of the generator.
+    adam_lr : float, optional
+        Learning rate parameter for the ADAM optimization algorithm.
+    adam_beta1 : float, optional
+        The exponential decay rate for the 1st moment estimates in ADAM.
+    reset_opt : bool, optional
+        Whether or not to reset the optimizer when performing restart iterations.
+    amsgrad : bool, optional
+        Whether or not to use the amsgrad version of the Adam optimizer.
+    tf_verbose : bool, optional
+        Whether or not to let tensorflow be verbose in its debug warnings.
     """
 
-    # initialization of the network
     def __init__(
         self,
         gen="",
@@ -159,6 +285,27 @@ class GAN:
     # beta2 and epsilon have default values here
     @staticmethod
     def get_optimizer(lr, beta1, beta2=0.999, epsilon=1e-7, amsgrad=False):
+        """
+        Get the Adam optimizer.
+
+        Parameters
+        ----------
+        lr : float
+            Learning rate.
+        beta1 : float
+            The exponential decay rate for the 1st moment estimates.
+        beta2 : float, optional
+            The exponential decay rate for the 2nd moment estimates.
+        epsilon : float, optional
+            A small constant for numerical stability.
+        amsgrad : bool, optional
+            Whether to use the AMSGrad variant of Adam.
+
+        Returns
+        -------
+        Adam
+            The Adam optimizer.
+        """
         return Adam(
             learning_rate=lr,
             beta_1=beta1,
@@ -167,10 +314,9 @@ class GAN:
             amsgrad=amsgrad,
         )
 
-    # function to read in the models from their h5 files
     def read_models(self):
         """
-        Loading the dictionnary from the generator and discriminator pathes
+        Loading the dictionary from the generator and discriminator paths.
         """
         inform(f"Loading the generator from {self.genpath}")
         gen = load_model(self.genpath)
@@ -186,8 +332,20 @@ class GAN:
         gen_copy.set_weights(gen.get_weights())  # call to get and set the weights
         self.gen_init = gen_copy  # sets the initial generator to be preserved
 
-    # function to create a compiled GAN generator if paths to a generator and discriminator were not specified
-    def create_generator(self, ReLU=0.25):
+    def create_generator(self, relu=0.25):
+        """
+        Create a compiled GAN generator if paths to a generator and discriminator were not specified.
+
+        Parameters
+        ----------
+        relu : float, optional
+            Leaky ReLU activation parameter.
+
+        Returns
+        -------
+        generator : keras.Sequential
+            Compiled generator model.
+        """
         inform("Creating the generator")
         npix = self.npix  # use GAN-specified number of pixels
         # create the gemerator architecture
@@ -207,7 +365,7 @@ class GAN:
                     kernel_initializer="he_normal",
                     input_shape=(self.noiselength,),  # input shape
                 ),
-                layers.LeakyReLU(alpha=ReLU),  # apply leaky ReLU activation
+                layers.LeakyReLU(alpha=relu),  # apply leaky ReLU activation
                 layers.Reshape((int(npix / 8), int(npix / 8), 256)),  # reshape inputs into cube for convolutions
                 # also has additional options, e.g. for input data format (i.e. channels first or channels last,
                 # the default, in shape)
@@ -228,7 +386,7 @@ class GAN:
                 # during inference it namely uses a moving mean/variance calculated over all the batches it has
                 # seen during training
                 layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=ReLU),
+                layers.LeakyReLU(alpha=relu),
                 layers.Conv2DTranspose(
                     64,  # NOTE: this is no longer dependent on npix -> this will only work properly for npix = 128
                     (4, 4),
@@ -239,7 +397,7 @@ class GAN:
                 ),
                 # output shape = 64 x 64 x 64
                 layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=ReLU),
+                layers.LeakyReLU(alpha=relu),
                 layers.Conv2DTranspose(
                     32,
                     (4, 4),
@@ -250,7 +408,7 @@ class GAN:
                 ),
                 # output shape = 128 x 128 x 32
                 layers.BatchNormalization(),
-                layers.LeakyReLU(alpha=ReLU),
+                layers.LeakyReLU(alpha=relu),
                 layers.Conv2D(
                     1,
                     (2, 2),
@@ -275,9 +433,22 @@ class GAN:
         )
         return generator
 
-    # function to create a compiled discriminator generator if paths to a generator and discriminator were not specified
-    # note the dropout fraction
-    def create_discriminator(self, ReLU=0.25, dropout=0.5):
+    def create_discriminator(self, relu=0.25, dropout=0.5):
+        """
+        Create a compiled discriminator generator if paths to a generator and discriminator were not specified.
+
+        Parameters
+        ----------
+        relu : float, optional
+            Leaky ReLU activation parameter.
+        dropout : float, optional
+            Dropout fraction.
+
+        Returns
+        -------
+        discriminator : keras.Sequential
+            Compiled discriminator model.
+        """
         inform("Creating the discriminator")
         npix = self.npix
         discriminator = keras.Sequential(
@@ -291,7 +462,7 @@ class GAN:
                     kernel_initializer="he_normal",
                 ),
                 # output size 64 x 64 x 32
-                layers.LeakyReLU(ReLU),
+                layers.LeakyReLU(relu),
                 layers.SpatialDropout2D(dropout),
                 layers.Conv2D(
                     npix / 2,
@@ -301,7 +472,7 @@ class GAN:
                     kernel_initializer="he_normal",
                 ),
                 # output size 32 x 32 x 64
-                layers.LeakyReLU(ReLU),
+                layers.LeakyReLU(relu),
                 layers.SpatialDropout2D(dropout),
                 layers.Conv2D(
                     npix,
@@ -311,7 +482,7 @@ class GAN:
                     kernel_initializer="he_normal",
                 ),
                 # output size 16 x 16 x 128
-                layers.LeakyReLU(ReLU),
+                layers.LeakyReLU(relu),
                 layers.SpatialDropout2D(dropout),
                 layers.Flatten(),
                 # gets fed using a dense connection into a single node with a sigmoid activation
@@ -334,21 +505,26 @@ class GAN:
 
         return discriminator
 
-    """
-    create_gan
-
-    parameters:
-        discriminator: a keras sequential model (network) with outputsize = 1 and inputsize = imagesize*imagesize*1
-        generator: a keras sequential model (network) with outputsize = imagesize*imagesize*1 & inputsize = NoiseLength
-    returns:
-        gan: a compiled keras model where the generator is followed by the discriminator and the discriminator is not
-        trainable
-
-    """
-
     # Once the generator and discriminator have been set and compiled -> set the GAN. This will be the object that's
     # used for actually training the generator (while the )
     def create_gan(self, train_disc=False, train_gen=True, reinit=True):
+        """
+        Create the GAN model.
+
+        Parameters
+        ----------
+        train_disc : bool, optional
+            Whether or not to train the discriminator.
+        train_gen : bool, optional
+            Whether or not to train the generator.
+        reinit : bool, optional
+            Whether or not to re-initialize generator state.
+
+        Returns
+        -------
+        gan : keras.Model
+            Compiled GAN model.
+        """
         if reinit:
             # code below makes a deep copy of the model!!!
             gen_init_copy = tf.keras.models.clone_model(self.gen_init)  # doesn't set the weights yet
@@ -374,19 +550,6 @@ class GAN:
         self.gen = gen
         return gan
 
-    """
-    epochs: the number of iterations over a set of image with its size equal to the training dataset
-    batch_size: mini-batch size used for training the gan
-    saveDir: directory where the trained networks will be stored
-    PlotEpochs: the epoch interval at which examples of generated images will be created
-    Use1sidedLabelSmooth: whether ornot to use onsided label smoothing (best true when using binary binary_crossentropy,
-    best false when using MSE (LSGAN))
-effect:
-    Trains the GAN
-    Saves plots with examples of generated images and the loss evolution of the gans components
-    Saves the trained netorks at the requested and final epochs of training
-    """
-
     # function to train the GAN network
     def train(
         self,
@@ -394,11 +557,33 @@ effect:
         save_dir="./saved_models/",  # where to save trained networks
         nepochs=2000,  # number of epochs to run over the training set
         nbatch=50,  # mini-batch size
-        OverTrainDiscr=1,
-        plotEpochs=25,  # epoch interval after which to plot examples of generated images
-        Use1sidedLabelSmooth=False,  # set the value of 'true' images to 0.9 instead of 1 to prevent overconfidence
-        saveEpochs=[],  # additional list of epochs at which to save the model
+        overtrain_discr=1,
+        plot_epochs=25,  # epoch interval after which to plot examples of generated images
+        use_1sided_label_smooth=False,  # set the value of 'true' images to 0.9 instead of 1 to prevent overconfidence
+        save_epochs=[],  # additional list of epochs at which to save the model
     ):
+        """
+        Train the GAN network.
+
+        Parameters
+        ----------
+        input_images : InputImages
+            InputImages object containing the training images.
+        save_dir : str, optional
+            Directory where the trained networks will be stored.
+        nepochs : int, optional
+            Number of epochs to run over the training set.
+        nbatch : int, optional
+            Mini-batch size.
+        overtrain_discr : int, optional
+            Number of times to train the discriminator more than the generator.
+        plot_epochs : int, optional
+            Epoch interval after which to plot examples of generated images.
+        use_1sided_label_smooth : bool, optional
+            Whether or not to use one-sided label smoothing.
+        save_epochs : list, optional
+            Additional list of epochs at which to save the model.
+        """
         self.save_dir = save_dir  # set save directory
 
         self.nbatch = nbatch  # set batch size
@@ -415,7 +600,7 @@ effect:
         # define the labels
         y_real = 1
         batches = datagen.flow(x_train, y=None, batch_size=nbatch)  # creates an iterator to give training batches
-        if Use1sidedLabelSmooth:
+        if use_1sided_label_smooth:
             y_real = 0.9  # re-assign to 0.9 in order to avoid over-confidence
         y_false = np.zeros(nbatch)
         y_true = np.ones(nbatch) * y_real
@@ -444,7 +629,7 @@ effect:
                 # Generate ORGANIC images from noised input
                 generated_images = generator.predict(noise)  # generate 'fake' generator images from noise input
                 # train the discriminator (more than the generator if requested)
-                for i in range(OverTrainDiscr):
+                for i in range(overtrain_discr):
                     # Get a random set of  real images
                     training_image_batch = batches.next()
                     # if the batch created by the generator is too small, resample (TODO: what does this even do? Is it
@@ -509,9 +694,9 @@ effect:
             self.gen = generator
 
             # plot examples of generated images
-            if epoch == 1 or epoch % plotEpochs == 0:
+            if epoch == 1 or epoch % plot_epochs == 0:
                 self.plot_generated_images(epoch)
-            if epoch in saveEpochs:
+            if epoch in save_epochs:
                 self.save_model(str(epoch) + "thEpoch.h5")
 
         self.save_model("finalModel.h5")
@@ -519,9 +704,20 @@ effect:
 
         inform(f"Training succesfully finished.\nResults saved at {self.save_dir}")
 
-    # get random image from the generator
     def get_image(self, noise):
-        gan = self.gan
+        """
+        Get a random image from the generator.
+
+        Parameters
+        ----------
+        noise : array-like
+            Noise vector.
+
+        Returns
+        -------
+        img : numpy.ndarray
+            Generated image.
+        """
         # random input
         noise_input = np.array(noise)
         # NOTE: this works because the generator image output is one of the outputs defined when creating the gan
@@ -534,24 +730,32 @@ effect:
 
         return img
 
-    # plot an image, chi2_label is the chi2 label string to be added to the image
     def plot_image(self, img, name="image.png", chi2_label=""):
+        """
+        Plot an image.
+
+        Parameters
+        ----------
+        img : numpy.ndarray
+            Image to plot.
+        name : str, optional
+            Name of the saved image file.
+        chi2_label : str, optional
+            Chi2 label string to be added to the image.
+        """
         binary = False
-        star = False
+        star_present = False
         d = self.params["ps"] * self.npix / 2.0
         if self.params["fsec"] > 0:
             binary = True
             xb = self.params["xsec"]
             yb = self.params["ysec"]
         if self.params["fstar"] > 0:
-            star = True
-            ud = self.params["UDstar"]
+            star_present = True
 
         fig, ax = plt.subplots()
         plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="inferno")  # note that the x axis is flipped here
-        if star:
-            # ell = Ellipse((0, 0), ud, ud, 0, color="white", fc="white", fill=True)
-            # ax.add_artist(ell)
+        if star_present:
             plt.plot(0, 0, color="gold", marker="*")
         if binary:
             plt.plot(xb, yb, color="white", marker="x")
@@ -564,16 +768,31 @@ effect:
 
         return img
 
-    # create and save an image from an input noise vector
     def save_image_from_noise(self, noise, name="image.png"):
+        """
+        Create and save an image from an input noise vector.
+
+        Parameters
+        ----------
+        noise : array-like
+            Noise vector.
+        name : str, optional
+            Name of the saved image file.
+        """
         img = self.get_image(noise)  # get an image from the noise vector (why do this if it was already done)
         # NOTE: ::-1 reverses the direction of the axis
         self.plot_image(img[:, ::-1], name=name)
 
-    # create a generator image from a completely random input noise vector as well
     # NOTE: the size of the input is hardcoded here
     def get_random_image(self):
-        gan = self.gan
+        """
+        Create a generator image from a completely random input noise vector.
+
+        Returns
+        -------
+        img : numpy.ndarray
+            Generated image.
+        """
         # random input
         input = np.array([np.random.normal(0, 1, 100)])
         img = self.gan.predict(input)[1]
@@ -581,32 +800,37 @@ effect:
 
         return img
 
-    # create and save a generator image from a completely random input noise vector as well
     def save_random_image(self, name="random_image.png"):
+        """
+        Create and save a generator image from a completely random input noise vector.
+
+        Parameters
+        ----------
+        name : str, optional
+            Name of the saved image file.
+        """
         img = self.get_random_image()
         fig, ax = plt.subplots()
         plt.imshow(img)
         plt.savefig(name, dpi=250)
         plt.close()
 
-    # plot for following the GAN's evolution during training
     def plot_gan_evolution(self, dis_fake_loss, dis_real_loss, gen_loss, dis_fake_accuracy, gen_accuracy):
         """
-        plotGanEvolution
+        Plot the GAN's evolution during training.
 
-
-        parameters:
-            epoch: array containing the epochs to be plotted on the x-newaxis
-            discrFakeLoss: cost values for the discriminators response to fake(generated) image data
-            discrRealLoss: cost values for the discriminators response to real(model) image data
-            genLoss: cost values for the generator
-            discrFakeAccuracy: accuracy values for the discriminators response to fake(generated) image data
-            discrRealAccuracy: accuracy values for the discriminators response to real(model) image data
-            genAccuracy: accuracy values for the generator
-
-        effect:
-            Plots the cost and accuracy terms as a function of epoch and stores the resulting plots
-
+        Parameters
+        ----------
+        dis_fake_loss : list
+            Discriminator fake data loss values.
+        dis_real_loss : list
+            Discriminator real data loss values.
+        gen_loss : list
+            Generator loss values.
+        dis_fake_accuracy : list
+            Discriminator fake data accuracy values.
+        gen_accuracy : list
+            Generator accuracy values.
         """
         save_dir = self.save_dir
 
@@ -636,16 +860,14 @@ effect:
         plt.savefig(save_dir + "accuracy_evolution.png", dpi=250)
         plt.close()
 
-    # function to save a trained GAN model to HDF5 files
     def save_model(self, model_name):
         """
-        saveModel
+        Save a trained GAN model to HDF5 files.
 
-        parameters:
-            Modelname: name to be used for storing the networks of this run
-        effect:
-            saves the keras models (neural networks) in their current state
-
+        Parameters
+        ----------
+        model_name : str
+            Name to be used for storing the networks of this run.
         """
         # test if the path exists, if not, creates it
         if not os.path.isdir(self.save_dir):
@@ -664,18 +886,20 @@ effect:
         plot_model(self.dis, to_file="discriminator.png", show_shapes=True)
         print(f"Saved trained model at {model_path_gan}")
 
-    # function to plot a certain amount of example images from noise vectors
     def plot_generated_images(self, epoch, examples=36, dim=(6, 6), figsize=(15, 9)):
         """
-        plot_generated_images
+        Plot examples of generated images.
 
-        parameters:
-            epoch: the epoch at which th plots are made, used for naming the image
-            generator: the generator neural network during the given epochs
-            examples: the number of examples to be displayed in the plot
-        effect:
-            saves images contain a number of random example images created by the generator
-
+        Parameters
+        ----------
+        epoch : int
+            The epoch at which the plots are made, used for naming the image.
+        examples : int, optional
+            The number of examples to be displayed in the plot.
+        dim : tuple, optional
+            Dimensions of the plot grid.
+        figsize : tuple, optional
+            Size of the figure.
         """
         generator = self.gen
         noise = np.random.normal(loc=0, scale=1, size=[examples, self.noiselength])
@@ -702,7 +926,6 @@ effect:
         plt.savefig(f"cgan_generated_image_ep{epoch}.png", dpi=250)
         plt.close()
 
-    # master image reconstruction function
     def image_reconstruction(
         self,
         data_files,
@@ -720,6 +943,40 @@ effect:
         diagnostics=False,
         name="",
     ):
+        """
+        Master image reconstruction function.
+
+        Parameters
+        ----------
+        data_files : list
+            List of data files.
+        sparco : SPARCO
+            SPARCO object containing geometrical model information.
+        data_dir : str, optional
+            Directory containing the data files.
+        mu : float, optional
+            Regularization weight.
+        epochs : int, optional
+            Number of epochs during a single reconstruction.
+        nrestart : int, optional
+            Number of generator restarts to perform.
+        reinit_gen : bool, optional
+            Whether to re-initialize generator state each iteration.
+        boot : bool, optional
+            Whether to bootstrap.
+        nboot : int, optional
+            Number of bootstrap samples.
+        ps : float, optional
+            Pixel scale.
+        use_low_cp_approx : bool, optional
+            Whether to use low closure phase approximation when calculating chi2.
+        grid : bool, optional
+            Whether to do a grid.
+        diagnostics : bool, optional
+            Whether to print out diagnostic plots for every epoch.
+        name : str, optional
+            Directory name under which to store everything.
+        """
         self.mu = mu  # regularization weight
         self.epochs = epochs  # number of epochs (single gradient descent steps) during a single reconsturction
         self.ps = ps  # pixelscale
@@ -784,7 +1041,6 @@ effect:
                 ngrid += 1
                 gridpars.append(x)
                 gridvals.append(v)
-                niters *= len(v)
 
         # Run a single image reconstruction or a grid
         if self.grid:
@@ -803,8 +1059,15 @@ effect:
             self.dir = "img_rec"  # set the output directory of the GAN object for this image reconstruction
             self.single_img_rec(reinit_gen=reinit_gen)
 
-    # case in which you have to iterate over a grid
     def run_grid(self, reinit_gen=False):
+        """
+        Run a grid of image reconstructions.
+
+        Parameters
+        ----------
+        reinit_gen : bool, optional
+            Whether to re-initialize generator state each iteration.
+        """
         for i, k in zip(self.iterable, np.arange(self.niters)):
             state = ""
             dir_name = "img_rec"
@@ -829,8 +1092,15 @@ effect:
 
             self.img_rec(reinit_gen=reinit_gen)  # do an image reconstruction  for the current grid point
 
-    # case in which you have no grid to iterate over
     def single_img_rec(self, reinit_gen=False):
+        """
+        Run a single image reconstruction.
+
+        Parameters
+        ----------
+        reinit_gen : bool, optional
+            Whether to re-initialize generator state each iteration.
+        """
         inform2("Single image reconstruction started")
         self.dir = "img_rec"
         try:
@@ -843,8 +1113,15 @@ effect:
 
         self.img_rec(reinit_gen=reinit_gen)
 
-    # perform a single image reconstruction
     def img_rec(self, reinit_gen=False):
+        """
+        Perform a single image reconstruction.
+
+        Parameters
+        ----------
+        reinit_gen : bool, optional
+            Whether to re-initialize generator state each iteration.
+        """
         # get parameters
         params = self.params
         mu = params["mu"]
@@ -865,7 +1142,7 @@ effect:
 
             # by default, the Adam optimizer state is reset in a new optimizer object, this can be changed
             # by setting reset_opt = False in the argument list of the GAN class __init__
-            if self.reset_opt == True:
+            if self.reset_opt:
                 opt = "optimizers." + self.opt.name  # python command get the optimizer
                 opt = eval(opt)
 
@@ -929,9 +1206,17 @@ effect:
         self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
         self.plot_loss_evol(chi2_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
 
-    # function to save median and best image fits
     def save_images(self, image, losses):
-        image_cube = copy.deepcopy(image)
+        """
+        Save median and best image fits.
+
+        Parameters
+        ----------
+        image : list
+            List of images.
+        losses : list
+            List of loss values.
+        """
 
         # TODO: rewrite the median function to be more robust against
         # first find the median
@@ -984,9 +1269,23 @@ effect:
             name=os.path.join(self.dir0, self.dir, "best_image.fits"),
         )
 
-    # function to save an image to a fits file.
-    # note that frgl here stands for the discriminator output (i.e. not yet multiplied by the weight factor mu)
     def image_to_fits(self, image, ftot, fdata, frgl, name="image.fits"):
+        """
+        Save an image to a FITS file.
+
+        Parameters
+        ----------
+        image : numpy.ndarray
+            Image to save.
+        ftot : float
+            Total loss.
+        fdata : float
+            Data loss.
+        frgl : float
+            Regularization term.
+        name : str, optional
+            Name of the saved FITS file.
+        """
         params = self.params
         mu = params["mu"]  # regularization weight
         npix = self.npix
@@ -1047,8 +1346,17 @@ effect:
         hdul = fits.HDUList([prim_hdu])  # primary HDU is the only one to be added
         hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
 
-    # function to plot the loss evolution accross restarts
     def plot_loss_evol(self, chi2, dis_loss):
+        """
+        Plot the loss evolution across restarts.
+
+        Parameters
+        ----------
+        chi2 : list
+            List of chi2 values.
+        dis_loss : list
+            List of discriminator loss values.
+        """
         fig, ax = plt.subplots()
         plt.plot(chi2, label="f_data")
         plt.plot(dis_loss, label="mu * f_discriminator")
@@ -1061,9 +1369,20 @@ effect:
         plt.savefig(os.path.join(self.dir0, self.dir, "lossevol.png"), dpi=250)
         plt.close()
 
-    # saves cube of images and their diagnostics accross restarts in FITS file
     # NOTE: the regularization loss that needs to be passed along here needs to not be multiplied by mu yet
     def save_cube(self, cube, losses, name="cube.fits"):
+        """
+        Save a cube of images and their diagnostics across restarts in a .fits file.
+
+        Parameters
+        ----------
+        cube : numpy.ndarray
+            Cube of images.
+        losses : list
+            List of loss values.
+        name : str, optional
+            Name of the saved FITS file.
+        """
         params = self.params
         mu = params["mu"]
         npix = self.npix
@@ -1138,12 +1457,16 @@ effect:
         hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
         hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
 
-    # function to filter out the worst PCA groups in terms of mean total loss
-    # and recalculating a filtered median and cube for that
     def filter_pca_cluster(self, cube, ncluster=1):
         """
         Method to filter the worst (in terms of total loss) `ncluster` clusters in PCA-projected space.
-        :param Cube cube: The post_organic Cube object containing the generated images.
+
+        Parameters
+        ----------
+        cube : Cube
+            The post_organic Cube object containing the generated images.
+        ncluster : int, optional
+            Number of clusters to filter.
         """
         # load in required data
         img_cube = cube.cube  # cube of all images
@@ -1206,8 +1529,25 @@ effect:
         # Save filtered cube of images
         self.save_cube(img_cube_filtered, [fdata_filtered, frgl_filtered], name="cube_filtered.fits")
 
-    # function used to print and save the plots of the diagnostics accross epochs for every restart
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
+        """
+        Print and save the plots of the diagnostics across epochs for every restart.
+
+        Parameters
+        ----------
+        hist : list
+            List of loss values.
+        chi2 : list
+            List of chi2 values.
+        discloss : list
+            List of discriminator loss values.
+        r : int
+            Restart index.
+        epochs : list
+            List of epochs.
+        mu : float
+            Regularization weight.
+        """
         # print(r, hist[0], hist[2], mu * hist[1], sep="\t")  # print loss terms at the final epoch of the restart
         # print(mu)  # print the weight of the discriminator loss
         # print(type(discloss))
@@ -1231,6 +1571,14 @@ effect:
     # TODO: really don't like the structure of this function, lots of concerning scope things going on, nested functions
     # the function itself returns the function. However, it works so maybe not touch too much for now
     def set_dataloss(self):
+        """
+        Master function to calculate the data loss.
+
+        Returns
+        -------
+        data_loss : function
+            Data loss function.
+        """
         data = self.data  # retrieve data object
 
         # if bootstrapping, resample the data
@@ -1406,13 +1754,13 @@ effect:
                 (ufunc / spatial_freq_per_pixel) + int(npix / 2),
             )
             # equation 4 in sparco paper:
-            VcomplTotal = fstar * ftPrimary * K.pow(wavelfunc / wave0, dstar)
-            VcomplTotal += fsec * ftSecondary * K.pow(wavelfunc / wave0, dsec)
-            VcomplTotal += (1 - fstar - fsec) * VcomplDisk * K.pow(wavelfunc / wave0, denv)
+            VcomplTotal = fstar * ftPrimary * kbackend.pow(wavelfunc / wave0, dstar)
+            VcomplTotal += fsec * ftSecondary * kbackend.pow(wavelfunc / wave0, dsec)
+            VcomplTotal += (1 - fstar - fsec) * VcomplDisk * kbackend.pow(wavelfunc / wave0, denv)
             VcomplTotal = VcomplTotal / (
-                (fstar * K.pow(wavelfunc / wave0, dstar))
-                + (fsec * K.pow(wavelfunc / wave0, dsec))
-                + ((1 - fstar - fsec) * K.pow(wavelfunc / wave0, denv))
+                (fstar * kbackend.pow(wavelfunc / wave0, dstar))
+                + (fsec * kbackend.pow(wavelfunc / wave0, dsec))
+                + ((1 - fstar - fsec) * kbackend.pow(wavelfunc / wave0, denv))
             )
             return VcomplTotal
 
@@ -1434,22 +1782,24 @@ effect:
             VcomplForV2 = compTotalCompVis(ftImages, u, v, waveV2)
             V2image = tf.math.abs(VcomplForV2) ** 2  # computes squared vis for the generated images
 
-            V2Chi2Terms = K.pow(V2 - V2image, 2) / (K.pow(V2e, 2) * nV2)  # individual terms of chi**2 for V**2
+            V2Chi2Terms = kbackend.pow(V2 - V2image, 2) / (
+                kbackend.pow(V2e, 2) * nV2
+            )  # individual terms of chi**2 for V**2
             # V2Chi2Terms = V2Chi2Terms
-            V2loss = K.sum(V2Chi2Terms, axis=1)
+            V2loss = kbackend.sum(V2Chi2Terms, axis=1)
 
             CPimage = tf.math.angle(compTotalCompVis(ftImages, u1, v1, waveCP))
             CPimage += tf.math.angle(compTotalCompVis(ftImages, u2, v2, waveCP))
             # note it's minus for the third baseline's complex angle since it's defined as the line AC instead of CA
             # in an ABC triangle (often used convention in interferometry)
             CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
-            CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (K.pow(CPe, 2) * nCP)
+            CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (kbackend.pow(CPe, 2) * nCP)
             if use_low_cp_approx:
-                CPchi2Terms = K.pow(CP - CPimage, 2) / (K.pow(CPe, 2) * nCP)
+                CPchi2Terms = kbackend.pow(CP - CPimage, 2) / (kbackend.pow(CPe, 2) * nCP)
 
-            CPloss = K.sum(CPchi2Terms, axis=1)
+            CPloss = kbackend.sum(CPchi2Terms, axis=1)
 
-            lossValue = (K.mean(V2loss) * nV2 + K.mean(CPloss) * nCP) / (nV2 + nCP)
+            lossValue = (kbackend.mean(V2loss) * nV2 + kbackend.mean(CPloss) * nCP) / (nV2 + nCP)
 
             if training:
                 # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
@@ -1463,17 +1813,30 @@ effect:
         return data_loss
 
 
-# class to read in and store squared visibility and closure phase information
 # TODO: note that this class has no filtering capability at all, this of course needs to be adapted a little
 # for e.g. MATISSE data -> probably have to port the OIData implemenation of DISTROI at some point, which will
-# support data filtering
+# support data filtering and just a universal handling of OIFITS data
 class Data:
+    """
+    Class to read in and store squared visibility and closure phase information.
+
+    Parameters
+    ----------
+    dir : str
+        Directory containing the data files.
+    file : str
+        Data file.
+    """
+
     def __init__(self, dir, file):
         self.dir = dir
         self.file = file
         self.read_data()
 
     def read_data(self):
+        """
+        Read the data from the file.
+        """
         data = oi.read(self.dir, self.file)
         dataObj = data.givedataJK()
 
@@ -1514,8 +1877,15 @@ class Data:
         self.v3 = v3
         self.target = data.target[0].target[0]
 
-    # returns a tuple of V2 and closure phase data
     def get_data(self):
+        """
+        Get the squared visibility and closure phase data.
+
+        Returns
+        -------
+        tuple
+            Tuple containing V2, V2err, CP, CPerr, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3.
+        """
         return (
             self.V2,
             self.V2err,
@@ -1533,8 +1903,15 @@ class Data:
             self.v3,
         )
 
-    # function to do the same as get_data, but you get a bootstrap sample from the data instead
     def get_bootstrap(self):
+        """
+        Get a bootstrap sample from the data.
+
+        Returns
+        -------
+        tuple
+            Tuple containing V2, V2err, CP, CPerr, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3.
+        """
         V2selection = np.random.randint(0, self.nV2, self.nV2)  # sample random indices for V2
         newV2, newV2err = self.V2[V2selection], self.V2err[V2selection]  # get bootstrap sample
         CPselection = np.random.randint(0, self.nCP, self.nCP)  # sample random indices for closure phase
@@ -1571,16 +1948,44 @@ class Data:
         )
 
 
-# class defining geometric components in the SPARCO paradigm, notice this is only adapted towards
-# binary stars with a single resolvable primary and a point-source-like secondary at the moment
 class SPARCO:
+    """
+    Class defining geometric components in the SPARCO paradigm.
+
+    Parameters
+    ----------
+    wave0 : float, optional
+        Central wavelength at which flux ratios are defined.
+    fstar : float, optional
+        Primary flux contribution.
+    dstar : float, optional
+        Spectral index of primary.
+    denv : float, optional
+        Spectral index of reconstructed environment.
+    UDstar : float, optional
+        Uniform diameter of primary in mas.
+    fsec : float, optional
+        Flux contribution of secondary.
+    dsec : float, optional
+        Spectral index of secondary.
+    xsec : float, optional
+        Position of the secondary in mas.
+    ysec : float, optional
+        Position of the secondary in mas.
+
+    Notes
+    -----
+    Currently only geared to describing binary stars, with a uniform diameter
+    primary and a point-source secondary.
+    """
+
     def __init__(
         self,
         wave0=1.65e-6,
         fstar=0.6,
         dstar=-4.0,
         denv=0.0,
-        UDstar=0.01,
+        udstar=0.01,
         fsec=0.0,
         dsec=-4,
         xsec=0.0,
@@ -1590,7 +1995,7 @@ class SPARCO:
         self.fstar = fstar  # primary flux contrib
         self.dstar = dstar  # spectral index of primary
         self.denv = denv  # spectral index of reconstructed environment
-        self.UDstar = UDstar  # uniform diameter of primary in mas
+        self.UDstar = udstar  # uniform diameter of primary in mas
         self.fsec = fsec  # flux contrib of secondary
         self.dsec = dsec  # spectral index of secondary
         self.xsec = xsec  # position of the secondary (primary is at 0 always)
@@ -1602,20 +2007,68 @@ class SPARCO:
 # Answer: they're always remapped to the -1 to 1 range (the same range that the generator produces)
 
 
-# class to describe input images used for training
-# in such a way so keras kan augment them
 class InputImages:
     """
-    a class to get format the images the way keras can augment them
+    A class to format the images the way keras can augment them.
+
+    Parameters
+    ----------
+    dir : str
+        Directory which to search.
+    file : str
+        Filename of cube of files.
+    imagesize : int, optional
+        Image pixel size.
+    load_from_cube : bool, optional
+        Load image from the cube.
+    featurewise_center : bool, optional
+        Set input mean to 0 over the dataset.
+    samplewise_center : bool, optional
+        Set each sample mean to 0.
+    featurewise_std_normalization : bool, optional
+        Divide inputs by std of the dataset.
+    samplewise_std_normalization : bool, optional
+        Divide each input by its std.
+    zca_whitening : bool, optional
+        Apply ZCA whitening (zero phase component analysis).
+    zca_epsilon : float, optional
+        Epsilon for ZCA whitening.
+    rotation_range : int, optional
+        Randomly rotate images in the range (degrees, 0 to 180).
+    width_shift_range : float, optional
+        Randomly shift images horizontally (fraction of total width).
+    height_shift_range : float, optional
+        Randomly shift images vertically (fraction of total height).
+    shear_range : float, optional
+        Set range for random shear.
+    zoom_range : list, optional
+        Set range for random zoom factor.
+    channel_shift_range : float, optional
+        Set range for random channel shifts.
+    fill_mode : str, optional
+        Set mode for filling points outside the input boundaries.
+    cval : float, optional
+        Value used for fill_mode = "constant".
+    horizontal_flip : bool, optional
+        Randomly flip images.
+    vertical_flip : bool, optional
+        Randomly flip images.
+    rescale : float, optional
+        Set rescaling factor which the images are multiplied by.
+    preprocessing_function : function, optional
+        Set function that will be applied on each input.
+    data_format : str, optional
+        Image data format, either "channels_first" or "channels_last".
+    validation_split : float, optional
+        Fraction of images reserved for validation.
     """
 
-    # in general the loading functions
     def __init__(
         self,
         dir,  # direcory which to search
         file,  # filename of cube of files
         imagesize=128,  # image pixel size
-        loadfromCube=True,  # load image from the cube
+        load_from_cube=True,  # load image from the cube
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
         featurewise_std_normalization=False,  # divide inputs by std of the dataset
@@ -1648,7 +2101,7 @@ class InputImages:
         # expand to full filepath
         # NOTE: naming is confusing w.r.t. class __init__ function
         self.dir = os.path.join(os.path.expandvars(dir), file)
-        self.loadfromCube = loadfromCube
+        self.loadfromCube = load_from_cube
         self.featurewise_center = featurewise_center
         self.samplewise_center = samplewise_center
         self.featurewise_std_normalization = featurewise_std_normalization
@@ -1674,6 +2127,9 @@ class InputImages:
 
     # general function to load in the training images
     def load(self):
+        """
+        Load the training images.
+        """
         # initialize ImageDataGenerator with all the properties passed along to the __init__ function
         self.data_gen = ImageDataGenerator(
             featurewise_center=self.featurewise_center,
@@ -1703,17 +2159,14 @@ class InputImages:
             self.images = self.load_data()  # otherwise call other function to initialize image property
         inform(f"Input images loaded successfully with shape {self.images.shape}")
 
-    # function to load in data from a .fits cube of images
     def load_data_from_cube(self):
         """
-        load_data_fromCube
+        Load data from a .fits cube of images.
 
-        parameters:
-            dir: a directory where the training images can be found (must contain * to expand and find multiple images)
-            imagesize: the size to which the obtained images will be rescaled (imagesize*imagesize pixels)
-        returns:
-            images: a numpy array containing the image information and dimensions (number of
-            images*imagesize*imagesize*1 )
+        Returns
+        -------
+        numpy.ndarray
+            Array containing the image information and dimensions.
         """
         cube = fits.getdata(self.dir, ext=0)  # get data from primary header (where the images are stored in this case)
 
@@ -1738,9 +2191,15 @@ class InputImages:
 
         return newcube
 
-    # same as load_data_from_cube except you should use wildcards for the 'file' keyword in the __init__ method
-    # because it instead uses glob to find all the files
     def load_data(self):
+        """
+        Load data from individual .fits files.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array containing the image information and dimensions.
+        """
         dirs = glob.glob(self.dir)
         images = []
         for i in np.arange(len(dirs)):

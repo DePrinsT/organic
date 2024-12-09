@@ -7,120 +7,97 @@ from sklearn.cluster import KMeans
 from astropy.io import fits
 import sys
 import matplotlib.pyplot as plt
-import organic.auxiliary.ReadOIFITS as oi
 import numpy as np
 import scipy as sc
 import os
 import copy
 
-
-# Pretty much the same Data class as is used in the organic.py module (bad idea to make post_organic a separate
-# package in the first place if you ask me)
-class Data:
-    def __init__(self, dir, file):
-        self.dir = dir
-        self.file = file
-        self.read_data()
-
-    def read_data(self):
-        data = oi.read(self.dir, self.file)
-        data_obj = data.givedataJK()
-
-        v2_observed, v2_err = data_obj["v2"]
-        nv2 = len(v2_err)
-
-        cp_observed, cp_err = data_obj["cp"]
-        ncp = len(cp_err)
-
-        u, u1, u2, u3 = data_obj["u"]
-        v, v1, v2, v3 = data_obj["v"]
-
-        wave_v2 = data_obj["wave"][0]
-        wave_cp = data_obj["wave"][1]
-
-        v2 = v2_observed  # conversion to tensor
-        v2_err = v2_err  # conversion to tensor
-        cp = cp_observed * np.pi / 180  # conversion to radian & cast to tensor
-        cp_err = cp_err * np.pi / 180  # conversion to radian & cast to tensor
-        wave_v2 = wave_v2  # conversion to tensor
-        wave_cp = wave_cp  # conversion to tensor
-
-        self.nv2 = nv2  # number of v2 points
-        self.ncp = ncp  # number of closure phase points
-        self.v2 = v2  # V2 data
-        self.v2_err = v2_err  # V2 error
-        self.cp = cp  # closure phases
-        self.cp_err = cp_err
-        self.wave_v2 = wave_v2
-        self.wave_cp = wave_cp
-        self.u = u
-        self.u1 = u1
-        self.u2 = u2
-        self.u3 = u3
-        self.v = v
-        self.v1 = v1
-        self.v2 = v2
-        self.v3 = v3
-
-    # function to get data from the object
-    def get_data(self):
-        return (
-            self.v2,
-            self.v2_err,
-            self.cp,
-            self.cp_err,
-            self.wave_v2,
-            self.wave_cp,
-            self.u,
-            self.u1,
-            self.u2,
-            self.u3,
-            self.v,
-            self.v1,
-            self.v2,
-            self.v3,
-        )
-
-    # function like get_data but instead you get a bootstrapped sample
-    def get_bootstrap(self):
-        v2_selection = np.random.randint(0, self.nv2, self.nv2)
-        new_v2, new_v2_err = self.v2[v2_selection], self.v2_err[v2_selection]
-        cp_selection = np.random.randint(0, self.ncp, self.ncp)
-        new_cp, new_cp_err = self.cp[cp_selection], self.cp_err[cp_selection]
-        newu, newu1, newu2, newu3 = (
-            self.u[v2_selection],
-            self.u1[cp_selection],
-            self.u2[cp_selection],
-            self.u3[cp_selection],
-        )
-        newv, newv1, newv2, newv3 = (
-            self.v[v2_selection],
-            self.v1[cp_selection],
-            self.v2[cp_selection],
-            self.v3[cp_selection],
-        )
-        new_wave_v2 = self.wave_v2[v2_selection]
-        new_wave_cp = self.wave_cp[cp_selection]
-        return (
-            new_v2,
-            new_v2_err,
-            new_cp,
-            new_cp_err,
-            new_wave_v2,
-            new_wave_cp,
-            newu,
-            newu1,
-            newu2,
-            newu3,
-            newv,
-            newv1,
-            newv2,
-            newv3,
-        )
+import organic.auxiliary.ReadOIFITS as oi
+from organic.organic import Data
 
 
 # class to represent a cube of images output by ORGANIC
 class Cube:
+    """
+    A class to represent a cube of images output by ORGANIC.
+
+    Parameters
+    ----------
+    dir : str
+        Directory containing the cube file.
+    file : str, optional
+        Cube file name (default is "cube.fits").
+    npca : int, optional
+        Number of PCA components (default is 3).
+    nkmeans : int, optional
+        Number of K-means clusters (default is 3).
+    nbest : int, optional
+        Number of best images to single out (default is 6).
+    show_plots : bool, optional
+        Whether to show plots (default is True).
+
+    Attributes
+    ----------
+    dir : str
+        Directory containing the cube file.
+    file : str
+        Cube file name.
+    nkmeans : int
+        Number of K-means clusters.
+    npca : int
+        Number of PCA components.
+    nbest : int
+        Number of best images to single out.
+    show_plots : bool
+        Whether to show plots.
+    cube : ndarray
+        Cube of images.
+    hdr : Header
+        FITS header.
+    ps : float
+        Pixel scale.
+    n : int
+        Number of pixels.
+    x2, y2 : float
+        Position of the secondary.
+    fs, f2 : float
+        Flux ratios.
+    ud : float
+        Uniform diameter of the primary.
+    denv, dsec : float
+        Spectral indices.
+    mu : float
+        Regularization term weight.
+    fdata, ftot, frgl : ndarray
+        Metrics data.
+    pca : ndarray
+        PCA-projected images.
+    kmeans : ndarray
+        K-means cluster labels.
+    centers : ndarray
+        K-means cluster centers.
+    bestimages : ndarray
+        Best images.
+    bestmetrics : ndarray
+        Metrics of the best images.
+    kmeanfdata, keamnfrgl, kmeanftot : list
+        Median loss terms per cluster group.
+    medians, stds : list
+        Median and standard deviation images per cluster group.
+    counts : list
+        Number of images in each cluster group.
+    groups : list
+        Cube of images per cluster group.
+    d : float
+        Distance spanned by image on each side of axes.
+    x, y, r, angle : ndarray
+        Coordinates and angles.
+    radii : ndarray
+        Radii for radial profiles.
+    profile, noises, rms : ndarray
+        Radial profile data.
+    """
+
     # initialization function, notes it does a bunch of calculations as well
     # note the number of PCA components and Kmeans cluster groups to divide the data into
     def __init__(self, dir, file="cube.fits", npca=3, nkmeans=3, nbest=6, show_plots=True):
@@ -139,6 +116,9 @@ class Cube:
 
     # function to read in an ORGANIC cube of output images, also sets up the coordinates
     def read(self):
+        """
+        Reads the cube file and sets up coordinates.
+        """
         path = os.path.join(self.dir, self.file)
         hdul = fits.open(path)
         cube = hdul[0].data  # retrieve the images data from the Primary extension
@@ -167,6 +147,9 @@ class Cube:
 
     # function to perfrom the PCA decomposition
     def do_pca(self):
+        """
+        Performs PCA decomposition on the cube of images.
+        """
         cube = copy.deepcopy(self.cube)  # do a deepcopy here because reshape does not guarantee making a copy
         shape = cube.shape
         cube = np.reshape(cube, (shape[0], shape[1] * shape[2]))
@@ -179,6 +162,9 @@ class Cube:
 
     # perform Kmeans clustering on the PCA
     def do_kmeans(self):
+        """
+        Performs K-means clustering on the PCA-projected images.
+        """
         pca = self.pca
         kmeans = KMeans(n_clusters=self.nkmeans, n_init=500, random_state=128)  # initialize clustering in PCA space
         clusters = kmeans.fit_predict(pca)  # return cluster labels in PCA space
@@ -190,6 +176,9 @@ class Cube:
     # function to single out the n best images in the cube, store them in the appropriate properties, plot them
     # and write them to a file
     def give_best(self):
+        """
+        Singles out the best images and plots them.
+        """
         fdata = self.fdata
         ftot = self.ftot
         frgl = self.frgl
@@ -212,6 +201,9 @@ class Cube:
 
     # function to write the best images to separate fits files
     def write_best(self):
+        """
+        Writes the best images to separate FITS files.
+        """
         best = self.bestimages  # get best image
         metrics = self.bestmetrics  # get their metrics
         ftot, fdata, frgl = metrics[:, 0], metrics[:, 1], metrics[:, 2]  # get lists of the metrics terms
@@ -230,6 +222,9 @@ class Cube:
 
     # function to plot the n best images
     def plot_best(self):
+        """
+        Plots the best images.
+        """
         best = self.bestimages
         metrics = self.bestmetrics
         ftot, fdata, frgl = metrics[:, 0], metrics[:, 1], metrics[:, 2]
@@ -261,6 +256,9 @@ class Cube:
 
     # function to add the kmeans metrics to the attributes of the class; currently not really used anywhere
     def set_kmeans_metrics(self):
+        """
+        Adds the K-means metrics to the attributes.
+        """
         clusters = self.kmeans
         nk = self.nkmeans
         fdata = self.fdata
@@ -282,6 +280,9 @@ class Cube:
 
     # function to plot the clustering results
     def plot_kmeans(self):
+        """
+        Plots the clustering results.
+        """
         fig, ax = plt.subplots()
         # scatter PCA projection weights, coloured by the associated cluster
         plt.scatter(self.pca[:, 0], self.pca[:, 1], c=self.kmeans)
@@ -312,6 +313,9 @@ class Cube:
 
     # TODO: this one seems outdated, don't think it's used a lot
     def plot_pca(self):
+        """
+        Plots the PCA results.
+        """
         fig, ax = plt.subplots()
         plt.scatter(self.pca[:, 0], self.pca[:, 1])
         if self.show_plots:
@@ -319,6 +323,9 @@ class Cube:
 
     # function to group images properly per kmeans cluster and add corresponding instance attributes
     def group_images(self):
+        """
+        Groups images per K-means cluster.
+        """
         idx = list(self.kmeans)  # get cluster indices for images in cube
         cube = self.cube
         medians, stds = [], []
@@ -342,6 +349,9 @@ class Cube:
 
     # function to plot the median images per clustering group
     def plot_median_images(self):
+        """
+        Plots the median images per clustering group.
+        """
         self.group_images()
         images = np.array(self.medians)
         fig, axs = plt.subplots(ncols=self.nkmeans, sharey=True)
@@ -359,6 +369,14 @@ class Cube:
 
     # function to write median images per kmeans cluster to fits files
     def write_median_images(self, add_stars=False):
+        """
+        Writes median images per K-means cluster to FITS files.
+
+        Parameters
+        ----------
+        add_stars : bool, optional
+            Whether to add stars to the images (default is False).
+        """
         if add_stars:
             self.add_stars()
         images = np.array(self.medians)
@@ -375,6 +393,23 @@ class Cube:
     # NOTE: currently not really used in a meaningful sense
     @staticmethod
     def add_gaussian(image, x, y, f):
+        """
+        Adds a Gaussian to an image.
+
+        Parameters
+        ----------
+        image : ndarray
+            The image to which the Gaussian will be added.
+        x, y : float
+            Coordinates of the Gaussian center.
+        f : float
+            Flux of the Gaussian.
+
+        Returns
+        -------
+        ndarray
+            The image with the added Gaussian.
+        """
         nx, ny = image.shape
         xg = np.linspace(-nx / 2.0 - x, nx / 2.0 - x, nx)
         yg = np.linspace(-ny / 2.0 - y, ny / 2.0 - y, ny)
@@ -397,6 +432,9 @@ class Cube:
     # function to add the stars in the form of Gaussians
     # NOTE: kinda stupid to add these as gaussians in hindsight, not currently used in any meaningful sense
     def add_stars(self):
+        """
+        Adds stars in the form of Gaussians to the median images.
+        """
         images = np.array(self.medians)
         xb = self.x2
         yb = self.y2
@@ -418,6 +456,16 @@ class Cube:
     # function to get the chi2 calculated
     # NOTE: currently not used anywhere
     def get_chi2(self, dir, file):
+        """
+        Calculates the chi-squared value.
+
+        Parameters
+        ----------
+        dir : str
+            Directory containing the data file.
+        file : str
+            Data file name.
+        """
         data = Data(dir, file)
         V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = data.get_data()
         self.data = data
@@ -471,6 +519,23 @@ class Cube:
     # Function to calculate the visibility
     # NOTE: currently not used in a meaningfull way
     def give_vis(self, u, v, wave, FTre, FTim):
+        """
+        Calculates the visibility.
+
+        Parameters
+        ----------
+        u, v : ndarray
+            U and V coordinates.
+        wave : ndarray
+            Wavelengths.
+        FTre, FTim : callable
+            Real and imaginary parts of the Fourier transform.
+
+        Returns
+        -------
+        tuple
+            Absolute value and phase of the visibility.
+        """
         # interpolate in the Fourier plane
         # Vimg = FTre(u, v) + 1j*FTim(u, v)
         # Vimg = [ FTre(ui, vi) + 1j*FTim(ui, vi) for ui, vi in zip(u, v)]
@@ -502,6 +567,14 @@ class Cube:
 
     # NOTE: not used anywhere at the moment
     def plot_set(self, set):
+        """
+        Plots a set of images.
+
+        Parameters
+        ----------
+        set : int
+            Index of the set to plot.
+        """
         images = self.groups[set]
         number = self.counts[set]
 
@@ -518,6 +591,9 @@ class Cube:
 
     # function to add image pixel coordinates and values to the Cube object
     def set_coord(self):
+        """
+        Sets up image pixel coordinates and values.
+        """
         n = self.n
         xr = np.arange(n) + 1
         x = -(xr - self.n / 2) * self.ps
@@ -537,6 +613,16 @@ class Cube:
 
     # function to compute and plot radial profiles of the intensity
     def get_radial_profiles(self, R=20, set=-1):
+        """
+        Computes and plots radial profiles of the intensity.
+
+        Parameters
+        ----------
+        R : int, optional
+            Number of radial bins (default is 20).
+        set : int, optional
+            Index of the set to use (default is -1, which uses the entire cube).
+        """
         if set == -1:
             cube = self.cube
             image = np.median(cube, axis=0)
@@ -552,6 +638,18 @@ class Cube:
         self.plot_radial_profile()
 
     def compute_radial_profile(self, R, image, noise):
+        """
+        Computes the radial profile.
+
+        Parameters
+        ----------
+        R : int
+            Number of radial bins.
+        image : ndarray
+            Image data.
+        noise : ndarray
+            Noise data.
+        """
         # noise /= np.max(image)
         # image /= np.max(image)
         dr = (self.d - self.ps) / R
@@ -575,6 +673,9 @@ class Cube:
         self.rms = np.array(rms)
 
     def plot_radial_profile(self):
+        """
+        Plots the radial profile.
+        """
         fig, ax = plt.subplots()
         ax.plot(self.radii, self.profile, label="profile", color="black")
         ax.plot(self.radii, self.noises, label="noise", color="blue")
@@ -595,6 +696,14 @@ class Cube:
 
 # main function to execute
 def main(sys_argv):
+    """
+    Main function to execute the script.
+
+    Parameters
+    ----------
+    sys_argv : list
+        List of command-line arguments.
+    """
     arg = sys_argv[1:]
 
     cube = Cube(arg[0], npca=15, nkmeans=2, show_plots=True)
