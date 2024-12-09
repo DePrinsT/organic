@@ -13,6 +13,7 @@ import scipy as sc
 import os
 import copy
 
+
 # Pretty much the same Data class as is used in the organic.py module (bad idea to make post_organic a separate
 # package in the first place if you ask me)
 class Data:
@@ -25,22 +26,22 @@ class Data:
         data = oi.read(self.dir, self.file)
         data_obj = data.givedataJK()
 
-        v2_observed, v2_err = data_obj['v2']
+        v2_observed, v2_err = data_obj["v2"]
         nv2 = len(v2_err)
 
-        cp_observed, cp_err = data_obj['cp']
+        cp_observed, cp_err = data_obj["cp"]
         ncp = len(cp_err)
 
-        u, u1, u2, u3 = data_obj['u']
-        v, v1, v2, v3 = data_obj['v']
+        u, u1, u2, u3 = data_obj["u"]
+        v, v1, v2, v3 = data_obj["v"]
 
-        wave_v2 = data_obj['wave'][0]
-        wave_cp = data_obj['wave'][1]
+        wave_v2 = data_obj["wave"][0]
+        wave_cp = data_obj["wave"][1]
 
         v2 = v2_observed  # conversion to tensor
         v2_err = v2_err  # conversion to tensor
-        cp = cp_observed*np.pi/180  # conversion to radian & cast to tensor
-        cp_err = cp_err*np.pi/180  # conversion to radian & cast to tensor
+        cp = cp_observed * np.pi / 180  # conversion to radian & cast to tensor
+        cp_err = cp_err * np.pi / 180  # conversion to radian & cast to tensor
         wave_v2 = wave_v2  # conversion to tensor
         wave_cp = wave_cp  # conversion to tensor
 
@@ -63,28 +64,66 @@ class Data:
 
     # function to get data from the object
     def get_data(self):
-        return (self.v2, self.v2_err, self.cp, self.cp_err, self.wave_v2, self.wave_cp,self.u, self.u1, self.u2,
-                self.u3, self.v, self.v1, self.v2, self.v3)
+        return (
+            self.v2,
+            self.v2_err,
+            self.cp,
+            self.cp_err,
+            self.wave_v2,
+            self.wave_cp,
+            self.u,
+            self.u1,
+            self.u2,
+            self.u3,
+            self.v,
+            self.v1,
+            self.v2,
+            self.v3,
+        )
 
     # function like get_data but instead you get a bootstrapped sample
     def get_bootstrap(self):
-        v2_selection = np.random.randint(0,self.nv2,self.nv2)
+        v2_selection = np.random.randint(0, self.nv2, self.nv2)
         new_v2, new_v2_err = self.v2[v2_selection], self.v2_err[v2_selection]
-        cp_selection = np.random.randint(0,self.ncp,self.ncp)
+        cp_selection = np.random.randint(0, self.ncp, self.ncp)
         new_cp, new_cp_err = self.cp[cp_selection], self.cp_err[cp_selection]
-        newu, newu1, newu2, newu3 = self.u[v2_selection], self.u1[cp_selection], self.u2[cp_selection], self.u3[cp_selection]
-        newv, newv1, newv2, newv3 = self.v[v2_selection], self.v1[cp_selection], self.v2[cp_selection], self.v3[cp_selection]
+        newu, newu1, newu2, newu3 = (
+            self.u[v2_selection],
+            self.u1[cp_selection],
+            self.u2[cp_selection],
+            self.u3[cp_selection],
+        )
+        newv, newv1, newv2, newv3 = (
+            self.v[v2_selection],
+            self.v1[cp_selection],
+            self.v2[cp_selection],
+            self.v3[cp_selection],
+        )
         new_wave_v2 = self.wave_v2[v2_selection]
         new_wave_cp = self.wave_cp[cp_selection]
-        return (new_v2, new_v2_err, new_cp, new_cp_err, new_wave_v2, new_wave_cp, newu, newu1, newu2, newu3, newv,
-                newv1, newv2, newv3)
+        return (
+            new_v2,
+            new_v2_err,
+            new_cp,
+            new_cp_err,
+            new_wave_v2,
+            new_wave_cp,
+            newu,
+            newu1,
+            newu2,
+            newu3,
+            newv,
+            newv1,
+            newv2,
+            newv3,
+        )
 
 
 # class to represent a cube of images output by ORGANIC
 class Cube:
     # initialization function, notes it does a bunch of calculations as well
     # note the number of PCA components and Kmeans cluster groups to divide the data into
-    def __init__(self, dir, file = 'cube.fits', npca=3, nkmeans=3, nbest=6, show_plots=True):
+    def __init__(self, dir, file="cube.fits", npca=3, nkmeans=3, nbest=6, show_plots=True):
         self.dir = dir  # directory in which to find cube
         self.file = file  # filename of cube file
         self.nkmeans = nkmeans  # number of K means groups to subdivide output into
@@ -103,25 +142,25 @@ class Cube:
         path = os.path.join(self.dir, self.file)
         hdul = fits.open(path)
         cube = hdul[0].data  # retrieve the images data from the Primary extension
-        self.hdr = hdul[0].header  # retrieve the header from the primary extension 
-        self.ps = hdul[0].header['CDELT2']  # retrieve the size of the pixelscale from the header
-        self.n = hdul[0].header['NAXIS2']  # retrieve the amount of pixels from the header
+        self.hdr = hdul[0].header  # retrieve the header from the primary extension
+        self.ps = hdul[0].header["CDELT2"]  # retrieve the size of the pixelscale from the header
+        self.n = hdul[0].header["NAXIS2"]  # retrieve the amount of pixels from the header
 
-        self.x2 = hdul[0].header['SDEX2']  # position of the secondary
-        self.y2 = hdul[0].header['SDEY2']
-        self.fs = hdul[0].header['SFLU1']  # flux ratio of the primary star
-        self.f2 = hdul[0].header['SFLU2']  # flux ratio of the secondary
-        self.ud = hdul[0].header['SUD1']  # uniform diameter of the primary
-        self.denv = hdul[0].header['SIND0']  # spectral index of the environment
-        self.dsec = hdul[0].header['SIND2']  # spectral index of the secondary
+        self.x2 = hdul[0].header["SDEX2"]  # position of the secondary
+        self.y2 = hdul[0].header["SDEY2"]
+        self.fs = hdul[0].header["SFLU1"]  # flux ratio of the primary star
+        self.f2 = hdul[0].header["SFLU2"]  # flux ratio of the secondary
+        self.ud = hdul[0].header["SUD1"]  # uniform diameter of the primary
+        self.denv = hdul[0].header["SIND0"]  # spectral index of the environment
+        self.dsec = hdul[0].header["SIND2"]  # spectral index of the secondary
         self.cube = cube  # cube of images
 
         # Read in the metrics columns associated to each image.
-        self.mu = hdul[0].header['MU']  # set regularization term weight
+        self.mu = hdul[0].header["MU"]  # set regularization term weight
         metrics = hdul[1].data
-        self.fdata = metrics['fdata']
-        self.ftot = metrics['ftot']
-        self.frgl = metrics['frgl']
+        self.fdata = metrics["fdata"]
+        self.ftot = metrics["ftot"]
+        self.frgl = metrics["frgl"]
 
         # call function to set up coordinates
         self.set_coord()
@@ -130,8 +169,8 @@ class Cube:
     def do_pca(self):
         cube = copy.deepcopy(self.cube)  # do a deepcopy here because reshape does not guarantee making a copy
         shape = cube.shape
-        cube = np.reshape(cube, (shape[0], shape[1]*shape[2]))
-        pca = PCA(n_components = self.npca, random_state=128)  # create a PCA object
+        cube = np.reshape(cube, (shape[0], shape[1] * shape[2]))
+        pca = PCA(n_components=self.npca, random_state=128)  # create a PCA object
         pca = pca.fit(cube)  # fit to cube of images to define the PCA transform
         print(f"Explained variance ratio over principal components: {pca.explained_variance_ratio_}")
         print(f"Total explained variance ratio over chosen #components: {sum(pca.explained_variance_ratio_)}")
@@ -159,13 +198,13 @@ class Cube:
 
         idx = ftot.argsort()  # get indices which would sort the ftot loss array
 
-        zebest, zemetrics = [], []  # arrays to store in the best 
+        zebest, zemetrics = [], []  # arrays to store in the best
         for i in np.arange(nbest):
             idx_nbest = np.where(idx == i)[0]  # index for the nth best image
             zebest.extend(cube[idx_nbest, :, :])  # get nth best image
             zemetrics.append(np.array([ftot[idx_nbest][0], fdata[idx_nbest][0], frgl[idx_nbest][0]]))  # get its metrics
 
-        self.bestimages = np.array(zebest)  # store best images and metrics in the appropriate attributes 
+        self.bestimages = np.array(zebest)  # store best images and metrics in the appropriate attributes
         self.bestmetrics = np.array(zemetrics)
 
         self.plot_best()  # plot the n best images
@@ -175,29 +214,29 @@ class Cube:
     def write_best(self):
         best = self.bestimages  # get best image
         metrics = self.bestmetrics  # get their metrics
-        ftot, fdata, frgl = metrics[:,0], metrics[:,1], metrics[:,2]  # get lists of the metrics terms
+        ftot, fdata, frgl = metrics[:, 0], metrics[:, 1], metrics[:, 2]  # get lists of the metrics terms
         nbest = self.nbest
         for i in np.arange(self.nbest):
             hdr = self.hdr  # take the header from the primary cube header
-            hdr['NBEST'] = i+1
-            hdr['CDELT1'] = hdr['CDELT1']
-            hdr['FTOT'] = ftot[i]
-            hdr['FDATA'] = fdata[i]
-            hdr['FRGL'] = frgl[i]
-            img = best[i,:,:]
-            hdu = fits.PrimaryHDU(img, header = hdr)
+            hdr["NBEST"] = i + 1
+            hdr["CDELT1"] = hdr["CDELT1"]
+            hdr["FTOT"] = ftot[i]
+            hdr["FDATA"] = fdata[i]
+            hdr["FRGL"] = frgl[i]
+            img = best[i, :, :]
+            hdu = fits.PrimaryHDU(img, header=hdr)
             hdul = fits.HDUList([hdu])
-            hdul.writeto(os.path.join(self.dir, f'best_image{i+1}.fits'), overwrite=True)
+            hdul.writeto(os.path.join(self.dir, f"best_image{i+1}.fits"), overwrite=True)
 
     # function to plot the n best images
     def plot_best(self):
         best = self.bestimages
         metrics = self.bestmetrics
-        ftot, fdata, frgl = metrics[:,0], metrics[:,1], metrics[:,2]
+        ftot, fdata, frgl = metrics[:, 0], metrics[:, 1], metrics[:, 2]
         nbest = self.nbest
         ncols = int(np.sqrt(nbest))
         nrows = int(np.sqrt(nbest))
-        if nrows*ncols != nbest:
+        if nrows * ncols != nbest:
             ncols += 1
         indices = np.indices((nrows, ncols))  # get row and column indices matrices
         indrow = indices[0].ravel()  # ravel these into 1d arrays
@@ -206,20 +245,19 @@ class Cube:
         d = self.d  # distance spanned by image on each side of axes
         for i in np.arange(nbest):
             ax = axs[indrow[i], indcols[i]]
-            image = np.array(best[i,::-1,:])  # NOTE: fukin flip the image again due to numpy vs FITS convention
-            ax.imshow(image, extent = (d, -d, -d, d),  cmap='inferno')
+            image = np.array(best[i, ::-1, :])  # NOTE: fukin flip the image again due to numpy vs FITS convention
+            ax.imshow(image, extent=(d, -d, -d, d), cmap="inferno")
             ax.set_xlim(d, -d)
-            ax.text(0.8*d, 0.8*d, f"chi2={fdata[i]:2.2f}", color='white', size=9)
+            ax.text(0.8 * d, 0.8 * d, f"chi2={fdata[i]:2.2f}", color="white", size=9)
             ax.set_title(f"Best model {i+1}")
             if indcols[i] == 0:
-                ax.set_xlabel(r'$\Delta \alpha$ (mas)')
+                ax.set_xlabel(r"$\Delta \alpha$ (mas)")
             if indrow[i] == indrow[-1]:
-                ax.set_ylabel(r'$\Delta \delta$ (mas)')
+                ax.set_ylabel(r"$\Delta \delta$ (mas)")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir,f'best_{nbest}_images.png'), dpi=250)
+        plt.savefig(os.path.join(self.dir, f"best_{nbest}_images.png"), dpi=250)
         if self.show_plots:
             plt.show()
-            
 
     # function to add the kmeans metrics to the attributes of the class; currently not really used anywhere
     def set_kmeans_metrics(self):
@@ -232,9 +270,9 @@ class Cube:
         fdatacluster, frglcluster, ftotcluster = [], [], []  # lists to contain median loss terms over the clusters
         # iterate over cluster labels
         for i in np.arange(nk):
-            fdatak = fdata[clusters==i]  # retrieve fdata at all positions where the cluster label = the relevant one
-            frglk = frgl[clusters==i]  # same for regularization
-            ftotk = ftot[clusters==i]
+            fdatak = fdata[clusters == i]  # retrieve fdata at all positions where the cluster label = the relevant one
+            frglk = frgl[clusters == i]  # same for regularization
+            ftotk = ftot[clusters == i]
             fdatacluster.append(np.median(fdatak))
             frglcluster.append(np.median(frglk))
             ftotcluster.append(np.median(ftotk))
@@ -242,44 +280,42 @@ class Cube:
         self.keamnfrgl = frglcluster
         self.kmeanftot = ftotcluster
 
-
     # function to plot the clustering results
     def plot_kmeans(self):
         fig, ax = plt.subplots()
         # scatter PCA projection weights, coloured by the associated cluster
-        plt.scatter(self.pca[:,0], self.pca[:,1], c=self.kmeans)
+        plt.scatter(self.pca[:, 0], self.pca[:, 1], c=self.kmeans)
         centroids = self.centers
         # label the clusters with a text label
-        for centre, k in zip(centroids,np.arange(self.nkmeans)):
-            plt.text(centre[0], centre[1], s=f"{k}", size='large', backgroundcolor='lightgray', alpha=0.6)
-        plt.ylabel('Principal component 2')
-        plt.xlabel('Principal component 1')
+        for centre, k in zip(centroids, np.arange(self.nkmeans)):
+            plt.text(centre[0], centre[1], s=f"{k}", size="large", backgroundcolor="lightgray", alpha=0.6)
+        plt.ylabel("Principal component 2")
+        plt.xlabel("Principal component 1")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir,'pca_sets.png'), dpi=250)
+        plt.savefig(os.path.join(self.dir, "pca_sets.png"), dpi=250)
         if self.show_plots:
             plt.show()
-            
 
         # actually scatterplot the loss terms
         fig, ax = plt.subplots()
         plt.scatter(self.fdata, self.frgl, c=self.kmeans)
         for fd, fr, k in zip(self.kmeanfdata, self.keamnfrgl, np.arange(self.nkmeans)):
-            plt.text(fd, fr, s=f"{k}", size='large', backgroundcolor='lightgray', alpha=0.6)  # plot text label at mean loss positions
-        plt.ylabel('frgl')
-        plt.xlabel('fdata')
+            plt.text(
+                fd, fr, s=f"{k}", size="large", backgroundcolor="lightgray", alpha=0.6
+            )  # plot text label at mean loss positions
+        plt.ylabel("frgl")
+        plt.xlabel("fdata")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir,'pca_metrics.png'), dpi=250)
+        plt.savefig(os.path.join(self.dir, "pca_metrics.png"), dpi=250)
         if self.show_plots:
             plt.show()
-            
 
     # TODO: this one seems outdated, don't think it's used a lot
     def plot_pca(self):
         fig, ax = plt.subplots()
-        plt.scatter(self.pca[:,0], self.pca[:,1])
+        plt.scatter(self.pca[:, 0], self.pca[:, 1])
         if self.show_plots:
             plt.show()
-            
 
     # function to group images properly per kmeans cluster and add corresponding instance attributes
     def group_images(self):
@@ -310,17 +346,16 @@ class Cube:
         images = np.array(self.medians)
         fig, axs = plt.subplots(ncols=self.nkmeans, sharey=True)
         d = self.d
-        for ax,i in zip(axs,np.arange(self.nkmeans)):
-            ax.imshow(images[i,::-1,:], extent = (d, -d, -d, d),  cmap='inferno')
+        for ax, i in zip(axs, np.arange(self.nkmeans)):
+            ax.imshow(images[i, ::-1, :], extent=(d, -d, -d, d), cmap="inferno")
             ax.set_xlim(d, -d)
             ax.set_title(f"{i}: {self.counts[i]} images")
-            ax.set_xlabel(r'$\Delta \alpha$ (mas)')
-            ax.set_ylabel(r'$\Delta \delta$ (mas)')
+            ax.set_xlabel(r"$\Delta \alpha$ (mas)")
+            ax.set_ylabel(r"$\Delta \delta$ (mas)")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.dir,'median_image_across_sets.png'), dpi=250)
+        plt.savefig(os.path.join(self.dir, "median_image_across_sets.png"), dpi=250)
         if self.show_plots:
             plt.show()
-            
 
     # function to write median images per kmeans cluster to fits files
     def write_median_images(self, add_stars=False):
@@ -329,32 +364,32 @@ class Cube:
         images = np.array(self.medians)
         for i in np.arange(len(self.counts)):
             hdr = self.hdr  # primary cube.fits header
-            hdr['SETCLUST'] = i  # which kmeans set the image belongs to
-            hdr['CDELT1'] = hdr['CDELT1']  # NOTE: what does this even do?
-            img = images[i,:,:]
-            hdu = fits.PrimaryHDU(img, header = hdr)
+            hdr["SETCLUST"] = i  # which kmeans set the image belongs to
+            hdr["CDELT1"] = hdr["CDELT1"]  # NOTE: what does this even do?
+            img = images[i, :, :]
+            hdu = fits.PrimaryHDU(img, header=hdr)
             hdul = fits.HDUList([hdu])
-            hdul.writeto(os.path.join(self.dir, f'median_image_cluster_set{i}.fits'), overwrite=True)
+            hdul.writeto(os.path.join(self.dir, f"median_image_cluster_set{i}.fits"), overwrite=True)
 
     # static method to add a Gaussian to a random image
     # NOTE: currently not really used in a meaningful sense
     @staticmethod
     def add_gaussian(image, x, y, f):
         nx, ny = image.shape
-        xg = np.linspace(-nx/2.-x, nx/2.-x, nx)
-        yg = np.linspace(-ny/2.-y, ny/2.-y, ny)
+        xg = np.linspace(-nx / 2.0 - x, nx / 2.0 - x, nx)
+        yg = np.linspace(-ny / 2.0 - y, ny / 2.0 - y, ny)
         xg2, yg2 = np.meshgrid(xg, yg)
         R = np.sqrt(xg2**2 + yg2**2)
         c = 0.2
-        Gauss = np.exp(-(R)**2/(2*c**2))
-        #fig, ax = plt.subplots()
-        #plt.imshow(Gauss)
-        #plt.scatter(nx/2.,nx/2.)
-        #plt.show()
+        Gauss = np.exp(-((R) ** 2) / (2 * c**2))
+        # fig, ax = plt.subplots()
+        # plt.imshow(Gauss)
+        # plt.scatter(nx/2.,nx/2.)
+        # plt.show()
         #
 
         Gauss /= np.sum(Gauss)
-        image += f*Gauss
+        image += f * Gauss
         if np.sum(image) != 0:
             image /= np.sum(image)
         return image
@@ -365,18 +400,18 @@ class Cube:
         images = np.array(self.medians)
         xb = self.x2
         yb = self.y2
-        fs = self.fs/100
-        fb = self.f2/100
+        fs = self.fs / 100
+        fb = self.f2 / 100
         newimages = []
         for i in np.arange(len(self.counts)):
-            img = images[i,:,:]
+            img = images[i, :, :]
             img /= np.sum(img)
             Gs = self.add_gaussian(np.zeros_like(img), 0.0, 0.0, fs)
-            xbp = xb/self.ps
-            ybp = yb/self.ps
+            xbp = xb / self.ps
+            ybp = yb / self.ps
             Gb = self.add_gaussian(np.zeros_like(img), xbp, ybp, fb)
 
-            final = (1-fs-fb) * img + fs * Gs + fb * Gb
+            final = (1 - fs - fb) * img + fs * Gs + fb * Gb
             newimages.append(final)
         self.medians = newimages
 
@@ -388,82 +423,80 @@ class Cube:
         self.data = data
 
         # setting the ft coordinates
-        ftps = 1000*3600*180/np.pi/self.d
-        ftd = 1000*3600*180/np.pi/self.ps
-        ftx0 = np.linspace(-ftd, ftd, self.n)  #- +
-        fty0 = np.linspace(-ftd, ftd, self.n)  #- +
+        ftps = 1000 * 3600 * 180 / np.pi / self.d
+        ftd = 1000 * 3600 * 180 / np.pi / self.ps
+        ftx0 = np.linspace(-ftd, ftd, self.n)  # - +
+        fty0 = np.linspace(-ftd, ftd, self.n)  # - +
         ftx, fty = np.meshgrid(ftx0, fty0)
         self.wave0 = 2.2e-6
 
         imgs = np.array(self.medians)
         for i in np.arange(self.nkmeans):
-            image = imgs[i,:,:]
+            image = imgs[i, :, :]
             image /= np.sum(image)
-            ftimg = np.fft.ifftshift(image, axes=(0,1) )
+            ftimg = np.fft.ifftshift(image, axes=(0, 1))
             ftimg = np.fft.fft2(ftimg)
-            ftimg = np.fft.fftshift(ftimg, axes=(0,1) )
+            ftimg = np.fft.fftshift(ftimg, axes=(0, 1))
 
-
-            #fig, ax = plt.subplots()
-            #plt.imshow(np.abs(ftimg), extent=( -ftd, ftd, -ftd, ftd) )
-            #plt.scatter(u, v, marker='+')
-            #plt.scatter(-u, -v, marker='+')
-            #plt.show()
+            # fig, ax = plt.subplots()
+            # plt.imshow(np.abs(ftimg), extent=( -ftd, ftd, -ftd, ftd) )
+            # plt.scatter(u, v, marker='+')
+            # plt.scatter(-u, -v, marker='+')
+            # plt.show()
             #
 
-            FourierRe = sc.interpolate.interp2d(ftx0, fty0, ftimg.real, bounds_error=True, kind='cubic')
-            FourierIm = sc.interpolate.interp2d(ftx0, fty0, ftimg.imag, bounds_error=True, kind='cubic')
+            FourierRe = sc.interpolate.interp2d(ftx0, fty0, ftimg.real, bounds_error=True, kind="cubic")
+            FourierIm = sc.interpolate.interp2d(ftx0, fty0, ftimg.imag, bounds_error=True, kind="cubic")
 
-            #FourierRe = sc.interpolate.RectBivariateSpline(ftx0, fty0, ftimg.real)
-            #FourierRe = sc.interpolate.RectBivariateSpline(ftx0, fty0, ftimg.real)
+            # FourierRe = sc.interpolate.RectBivariateSpline(ftx0, fty0, ftimg.real)
+            # FourierRe = sc.interpolate.RectBivariateSpline(ftx0, fty0, ftimg.real)
 
-            #fig,ax = plt.subplots()
-            #plt.imshow(np.abs(ftimg))
-            #plt.show()
+            # fig,ax = plt.subplots()
+            # plt.imshow(np.abs(ftimg))
+            # plt.show()
             #
-#            print( f'u shape is {u.shape} and v shape is {v.shape}' )
+            #            print( f'u shape is {u.shape} and v shape is {v.shape}' )
             Vis, Phi = self.give_vis(u, v, waveV2, FourierRe, FourierIm)
 
-            chi2v2 = ((np.power(Vis,2) - V2)/ V2e )**2
+            chi2v2 = ((np.power(Vis, 2) - V2) / V2e) ** 2
             print(f"len V2: {len(V2)}")
             chi2v2 = np.sum(chi2v2) / len(V2)
 
-            #fig, ax = plt.subplots()
-            #plt.scatter(np.sqrt(u**2, v**2), np.power(Vis,2) )
-            #plt.scatter(np.sqrt(u**2, v**2), V2)
-            #plt.show()
+            # fig, ax = plt.subplots()
+            # plt.scatter(np.sqrt(u**2, v**2), np.power(Vis,2) )
+            # plt.scatter(np.sqrt(u**2, v**2), V2)
+            # plt.show()
             #
 
     # Function to calculate the visibility
     # NOTE: currently not used in a meaningfull way
     def give_vis(self, u, v, wave, FTre, FTim):
         # interpolate in the Fourier plane
-        #Vimg = FTre(u, v) + 1j*FTim(u, v)
-        #Vimg = [ FTre(ui, vi) + 1j*FTim(ui, vi) for ui, vi in zip(u, v)]
+        # Vimg = FTre(u, v) + 1j*FTim(u, v)
+        # Vimg = [ FTre(ui, vi) + 1j*FTim(ui, vi) for ui, vi in zip(u, v)]
         Vimg = np.zeros_like(u).astype(complex)
         for i, (ui, vi) in enumerate(zip(u, v)):
-
-            Vimg[i] = FTre(ui, vi) + 1j*FTim(ui, vi)
-        #Vimg = np.array(Vimg)
+            Vimg[i] = FTre(ui, vi) + 1j * FTim(ui, vi)
+        # Vimg = np.array(Vimg)
 
         # add sparco on top
-        f1 = self.fs/100 * np.power(wave/self.wave0, -4)
-        f2 = self.f2/100 * np.power(wave/self.wave0, self.dsec)
-        fimg = (1 - self.fs/100 - self.f2/100) * np.power(wave/self.wave0, self.denv)
+        f1 = self.fs / 100 * np.power(wave / self.wave0, -4)
+        f2 = self.f2 / 100 * np.power(wave / self.wave0, self.dsec)
+        fimg = (1 - self.fs / 100 - self.f2 / 100) * np.power(wave / self.wave0, self.denv)
 
+        V1 = 0j + 2 * sc.special.jv(1, np.pi * self.ud / 1000 / 3600 / 180 * np.pi * np.sqrt(u**2, v**2)) / (
+            np.pi * self.ud / 1000 / 3600 / 180 * np.pi * np.sqrt(u**2, v**2)
+        )
 
-        V1 = 0j + 2 * sc.special.jv(1, np.pi * self.ud/1000/3600/180*np.pi * np.sqrt(u**2, v**2)) / (np.pi * self.ud/1000/3600/180*np.pi * np.sqrt(u**2, v**2) )
+        alpha = self.x2 / 1000 / 3600 * np.pi / 180
+        delta = self.y2 / 1000 / 3600 * np.pi / 180
+        V2 = np.exp(-2 * np.pi * 1j * (u * alpha + v * delta))
 
-        alpha = self.x2 /1000 /3600 *np.pi /180
-        delta = self.y2 /1000 /3600 *np.pi /180
-        V2 = np.exp(-2*np.pi*1j * (u*alpha + v*delta) )
+        # Vtot = np.divide(np.multiply(fimg , Vimg) + np.multiply(f1, V1) + np.multiply(f2, V2 ), fimg + f1 + f2)
 
+        Vtot = (fimg * Vimg + f1 * V1 + f2 * V2) / (fimg + f1 + f2)
 
-        #Vtot = np.divide(np.multiply(fimg , Vimg) + np.multiply(f1, V1) + np.multiply(f2, V2 ), fimg + f1 + f2)
-
-        Vtot = (fimg * Vimg + f1 * V1 + f2 * V2 )/ (fimg + f1 + f2)
-
-#        print(Vtot.shape)
+        #        print(Vtot.shape)
 
         return np.abs(Vtot), np.arctan2(Vtot.imag, Vtot.real)
 
@@ -472,29 +505,28 @@ class Cube:
         images = self.groups[set]
         number = self.counts[set]
 
-        fig, axs = plt.subplots(ncols=5,nrows=3)
+        fig, axs = plt.subplots(ncols=5, nrows=3)
         i = -1
         for axy in axs:
             for ax in axy:
                 i += 1
-                if i < number-1:
-                    ax.imshow(images[i,::-1,:], cmap='inferno')
+                if i < number - 1:
+                    ax.imshow(images[i, ::-1, :], cmap="inferno")
         plt.tight_layout()
         if self.show_plots:
             plt.show()
-            
 
     # function to add image pixel coordinates and values to the Cube object
     def set_coord(self):
         n = self.n
-        xr = np.arange(n)+1
-        x =  - (xr-self.n/2)*self.ps
-        y =  - (xr-self.n/2)*self.ps
-        d = n*self.ps/2.  # distance spanned along each side
-        x = np.linspace(d - self.ps/2, -(d - self.ps/2), n)
-        y = np.linspace(-(d - self.ps/2), d - self.ps/2, n)  # this is wrong btw
+        xr = np.arange(n) + 1
+        x = -(xr - self.n / 2) * self.ps
+        y = -(xr - self.n / 2) * self.ps
+        d = n * self.ps / 2.0  # distance spanned along each side
+        x = np.linspace(d - self.ps / 2, -(d - self.ps / 2), n)
+        y = np.linspace(-(d - self.ps / 2), d - self.ps / 2, n)  # this is wrong btw
         x2, y2 = np.meshgrid(x, y)  # make a meshgrid
-        r = np.sqrt(x2**2+y2**2)  # radial coordinate
+        r = np.sqrt(x2**2 + y2**2)  # radial coordinate
         angle = np.arctan2(y2, x2)  # position angle
 
         self.d = d  # distance spanned along each side of the axis by the image
@@ -502,7 +534,6 @@ class Cube:
         self.y = -y2  # y positions in meshgrid style array
         self.r = r  # radial coordinates in meshgrid style array
         self.angle = angle  # position angles of the points in meshgrid style array
-
 
     # function to compute and plot radial profiles of the intensity
     def get_radial_profiles(self, R=20, set=-1):
@@ -517,25 +548,24 @@ class Cube:
             image /= np.sum(image)
             std = np.std(cube, axis=0)
 
-
         self.compute_radial_profile(R, image, std)
         self.plot_radial_profile()
 
     def compute_radial_profile(self, R, image, noise):
-        #noise /= np.max(image)
-        #image /= np.max(image)
+        # noise /= np.max(image)
+        # image /= np.max(image)
         dr = (self.d - self.ps) / R
-        radii_m = np.linspace(self.ps, self.d-dr, R)
-        radii_p = np.linspace(self.ps+dr, self.d, R)
-        self.radii = (radii_m + radii_p)/2.
+        radii_m = np.linspace(self.ps, self.d - dr, R)
+        radii_p = np.linspace(self.ps + dr, self.d, R)
+        self.radii = (radii_m + radii_p) / 2.0
         profile, noises, rms = [], [], []
         for rad_m, rad_p in zip(radii_m, radii_p):
             mask = (self.r >= rad_m) * (self.r < rad_p)
-            reduced_image = image[mask!=0]
-            reduced_noise = noise[mask!=0]
+            reduced_image = image[mask != 0]
+            reduced_noise = noise[mask != 0]
             fluxi = np.average(reduced_image)
             noisei = np.average(reduced_noise)
-            rmsi = np.std(reduced_image ) #/len(reduced_image)
+            rmsi = np.std(reduced_image)  # /len(reduced_image)
             profile.append(fluxi)
             noises.append(noisei)
             rms.append(rmsi)
@@ -545,21 +575,19 @@ class Cube:
         self.rms = np.array(rms)
 
     def plot_radial_profile(self):
-
         fig, ax = plt.subplots()
-        ax.plot(self.radii, self.profile, label = 'profile', color='black')
-        ax.plot(self.radii, self.noises, label = 'noise', color='blue')
-        ax.plot(self.radii, self.rms, label = 'azim. std.', color='red')
-        plt.yscale('log')
+        ax.plot(self.radii, self.profile, label="profile", color="black")
+        ax.plot(self.radii, self.noises, label="noise", color="blue")
+        ax.plot(self.radii, self.rms, label="azim. std.", color="red")
+        plt.yscale("log")
         plt.legend()
         if self.show_plots:
             plt.show()
-            
 
         fig, ax = plt.subplots()
-        ax.plot(self.radii, self.profile/self.noises, label = 'SNR-noise', color='blue')
-        ax.plot(self.radii, self.profile/self.rms, label = 'SNR-std.', color='red')
-        #plt.ylim(0,5)
+        ax.plot(self.radii, self.profile / self.noises, label="SNR-noise", color="blue")
+        ax.plot(self.radii, self.profile / self.rms, label="SNR-std.", color="red")
+        # plt.ylim(0,5)
         plt.legend()
         if self.show_plots:
             plt.show()
@@ -568,8 +596,8 @@ class Cube:
 # main function to execute
 def main(sys_argv):
     arg = sys_argv[1:]
-    
-    cube = Cube(arg[0], npca = 15, nkmeans=2, show_plots=True)
+
+    cube = Cube(arg[0], npca=15, nkmeans=2, show_plots=True)
     cube.give_best()  # give the best images
     cube.write_median_images(add_stars=True)  # write median images per cluster group to fits files
 
@@ -579,6 +607,6 @@ def main(sys_argv):
 
 
 # if used as a script
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(sys.argv)
     main(sys.argv)
