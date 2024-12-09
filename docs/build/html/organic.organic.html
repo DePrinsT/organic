@@ -1,190 +1,462 @@
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>organic.organic module &mdash; ORGANIC  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-      <link rel="stylesheet" href="_static/fonts.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>organic.organic module &#8212; ORGANIC</title>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/js/theme.js"></script>
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'organic.organic';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="organic.auxiliary.post_organic module" href="organic.auxiliary.post_organic.html" /> 
-</head>
+    <link rel="prev" title="organic.auxiliary.post_organic module" href="organic.auxiliary.post_organic.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-            <a href="index.html">
-            <img src="_static/organic_logo.png" class="logo" alt="Logo"/>
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="organic.html">organic package</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="organic.html#subpackages">Subpackages</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="organic.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">organic.organic module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.GAN"><code class="docutils literal notranslate"><span class="pre">GAN</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.InputImages"><code class="docutils literal notranslate"><span class="pre">InputImages</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.SPARCO"><code class="docutils literal notranslate"><span class="pre">SPARCO</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.bcolors"><code class="docutils literal notranslate"><span class="pre">bcolors</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.bold"><code class="docutils literal notranslate"><span class="pre">bold()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.cross_entropy"><code class="docutils literal notranslate"><span class="pre">cross_entropy()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.fail"><code class="docutils literal notranslate"><span class="pre">fail()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.header"><code class="docutils literal notranslate"><span class="pre">header()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.inform"><code class="docutils literal notranslate"><span class="pre">inform()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.inform2"><code class="docutils literal notranslate"><span class="pre">inform2()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.log"><code class="docutils literal notranslate"><span class="pre">log()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.underline"><code class="docutils literal notranslate"><span class="pre">underline()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#organic.organic.warn"><code class="docutils literal notranslate"><span class="pre">warn()</span></code></a></li>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/organic_logo.png" class="logo__image only-light" alt="ORGANIC - Home"/>
+    <img src="_static/organic_logo.png" class="logo__image only-dark pst-js-only" alt="ORGANIC - Home"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="organic.html">organic package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="organic.auxiliary.html">organic.auxiliary package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="organic.auxiliary.ReadOIFITS.html">organic.auxiliary.ReadOIFITS module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="organic.auxiliary.SelectData.html">organic.auxiliary.SelectData module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="organic.auxiliary.post_organic.html">organic.auxiliary.post_organic module</a></li>
 </ul>
-</li>
+</details></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">organic.organic module</a></li>
 </ul>
-</li>
-</ul>
-</li>
+</details></li>
 </ul>
 
-        </div>
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
       </div>
-    </nav>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">ORGANIC</a>
-      </nav>
+<div class="sbt-scroll-pixel-helper"></div>
 
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-          <li class="breadcrumb-item"><a href="organic.html">organic package</a></li>
-      <li class="breadcrumb-item active">organic.organic module</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/organic.organic.rst.txt" rel="nofollow"> View page source</a>
-      </li>
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/organic.organic.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
   </ul>
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>organic.organic module</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.get_bootstrap"><code class="docutils literal notranslate"><span class="pre">Data.get_bootstrap()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.get_data"><code class="docutils literal notranslate"><span class="pre">Data.get_data()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.read_data"><code class="docutils literal notranslate"><span class="pre">Data.read_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN"><code class="docutils literal notranslate"><span class="pre">GAN</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_discriminator"><code class="docutils literal notranslate"><span class="pre">GAN.create_discriminator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_gan"><code class="docutils literal notranslate"><span class="pre">GAN.create_gan()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_generator"><code class="docutils literal notranslate"><span class="pre">GAN.create_generator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.filter_pca_cluster"><code class="docutils literal notranslate"><span class="pre">GAN.filter_pca_cluster()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_image"><code class="docutils literal notranslate"><span class="pre">GAN.get_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_optimizer"><code class="docutils literal notranslate"><span class="pre">GAN.get_optimizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_random_image"><code class="docutils literal notranslate"><span class="pre">GAN.get_random_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.give_imgrec_diagnostics"><code class="docutils literal notranslate"><span class="pre">GAN.give_imgrec_diagnostics()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.image_reconstruction"><code class="docutils literal notranslate"><span class="pre">GAN.image_reconstruction()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.image_to_fits"><code class="docutils literal notranslate"><span class="pre">GAN.image_to_fits()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.img_rec"><code class="docutils literal notranslate"><span class="pre">GAN.img_rec()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_gan_evolution"><code class="docutils literal notranslate"><span class="pre">GAN.plot_gan_evolution()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_generated_images"><code class="docutils literal notranslate"><span class="pre">GAN.plot_generated_images()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_image"><code class="docutils literal notranslate"><span class="pre">GAN.plot_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_loss_evol"><code class="docutils literal notranslate"><span class="pre">GAN.plot_loss_evol()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.read_models"><code class="docutils literal notranslate"><span class="pre">GAN.read_models()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.run_grid"><code class="docutils literal notranslate"><span class="pre">GAN.run_grid()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_cube"><code class="docutils literal notranslate"><span class="pre">GAN.save_cube()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_image_from_noise"><code class="docutils literal notranslate"><span class="pre">GAN.save_image_from_noise()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_images"><code class="docutils literal notranslate"><span class="pre">GAN.save_images()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_model"><code class="docutils literal notranslate"><span class="pre">GAN.save_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_random_image"><code class="docutils literal notranslate"><span class="pre">GAN.save_random_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.set_dataloss"><code class="docutils literal notranslate"><span class="pre">GAN.set_dataloss()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.single_img_rec"><code class="docutils literal notranslate"><span class="pre">GAN.single_img_rec()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.train"><code class="docutils literal notranslate"><span class="pre">GAN.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages"><code class="docutils literal notranslate"><span class="pre">InputImages</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load"><code class="docutils literal notranslate"><span class="pre">InputImages.load()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load_data"><code class="docutils literal notranslate"><span class="pre">InputImages.load_data()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load_data_from_cube"><code class="docutils literal notranslate"><span class="pre">InputImages.load_data_from_cube()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.SPARCO"><code class="docutils literal notranslate"><span class="pre">SPARCO</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors"><code class="docutils literal notranslate"><span class="pre">bcolors</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.BOLD"><code class="docutils literal notranslate"><span class="pre">bcolors.BOLD</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.ENDC"><code class="docutils literal notranslate"><span class="pre">bcolors.ENDC</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.FAIL"><code class="docutils literal notranslate"><span class="pre">bcolors.FAIL</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.HEADER"><code class="docutils literal notranslate"><span class="pre">bcolors.HEADER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.OKBLUE"><code class="docutils literal notranslate"><span class="pre">bcolors.OKBLUE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.OKGREEN"><code class="docutils literal notranslate"><span class="pre">bcolors.OKGREEN</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.UNDERLINE"><code class="docutils literal notranslate"><span class="pre">bcolors.UNDERLINE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.WARNING"><code class="docutils literal notranslate"><span class="pre">bcolors.WARNING</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bold"><code class="docutils literal notranslate"><span class="pre">bold()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.cross_entropy"><code class="docutils literal notranslate"><span class="pre">cross_entropy()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.fail"><code class="docutils literal notranslate"><span class="pre">fail()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.header"><code class="docutils literal notranslate"><span class="pre">header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.inform"><code class="docutils literal notranslate"><span class="pre">inform()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.inform2"><code class="docutils literal notranslate"><span class="pre">inform2()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.log"><code class="docutils literal notranslate"><span class="pre">log()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.underline"><code class="docutils literal notranslate"><span class="pre">underline()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.warn"><code class="docutils literal notranslate"><span class="pre">warn()</span></code></a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="module-organic.organic">
-<span id="organic-organic-module"></span><h1>organic.organic module<a class="headerlink" href="#module-organic.organic" title="Permalink to this heading"></a></h1>
+<span id="organic-organic-module"></span><h1>organic.organic module<a class="headerlink" href="#module-organic.organic" title="Link to this heading">#</a></h1>
 <p>A module to reconstruct images from optical interferometry data using Generative Adversarial Networks. This is the
 core module of ORGANIC.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="organic.organic.Data">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.Data.get_bootstrap">
-<span class="sig-name descname"><span class="pre">get_bootstrap</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.get_bootstrap" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_bootstrap</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.get_bootstrap" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.Data.get_data">
-<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.get_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.get_data" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.Data.read_data">
-<span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.read_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.Data.read_data" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="organic.organic.GAN">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">GAN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_disc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noiselength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adam_lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adam_beta1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.91</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amsgrad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">GAN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_disc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noiselength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adam_lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adam_beta1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.91</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amsgrad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The GAN class to train and use it
 The GAN is made from a generator and a discriminator</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.create_discriminator">
-<span class="sig-name descname"><span class="pre">create_discriminator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ReLU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_discriminator" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_discriminator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ReLU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_discriminator" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.create_gan">
-<span class="sig-name descname"><span class="pre">create_gan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_disc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_gan" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_gan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_disc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_gan" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.create_generator">
-<span class="sig-name descname"><span class="pre">create_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ReLU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_generator" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ReLU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.create_generator" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.filter_pca_cluster">
-<span class="sig-name descname"><span class="pre">filter_pca_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncluster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.filter_pca_cluster" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">filter_pca_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncluster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.filter_pca_cluster" title="Link to this definition">#</a></dt>
 <dd><p>Method to filter the worst (in terms of total loss) <cite>ncluster</cite> clusters in PCA-projected space.
 :param Cube cube: The post_organic Cube object containing the generated images.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.get_image">
-<span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_image" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.get_optimizer">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amsgrad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_optimizer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amsgrad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_optimizer" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.get_random_image">
-<span class="sig-name descname"><span class="pre">get_random_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_random_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_random_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.get_random_image" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.give_imgrec_diagnostics">
-<span class="sig-name descname"><span class="pre">give_imgrec_diagnostics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discloss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.give_imgrec_diagnostics" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">give_imgrec_diagnostics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discloss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.give_imgrec_diagnostics" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.image_reconstruction">
-<span class="sig-name descname"><span class="pre">image_reconstruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparco</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrestart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nboot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_low_cp_approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_reconstruction" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">image_reconstruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparco</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrestart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nboot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_low_cp_approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_reconstruction" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.image_to_fits">
-<span class="sig-name descname"><span class="pre">image_to_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frgl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.fits'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_to_fits" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">image_to_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frgl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.fits'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_to_fits" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.img_rec">
-<span class="sig-name descname"><span class="pre">img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.img_rec" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.img_rec" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.plot_gan_evolution">
-<span class="sig-name descname"><span class="pre">plot_gan_evolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis_fake_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_real_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_fake_accuracy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_accuracy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_gan_evolution" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_gan_evolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis_fake_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_real_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_fake_accuracy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_accuracy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_gan_evolution" title="Link to this definition">#</a></dt>
 <dd><p>plotGanEvolution</p>
 <dl class="simple">
 <dt>parameters:</dt><dd><p>epoch: array containing the epochs to be plotted on the x-newaxis
@@ -202,7 +474,7 @@ genAccuracy: accuracy values for the generator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.plot_generated_images">
-<span class="sig-name descname"><span class="pre">plot_generated_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(6,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(15,</span> <span class="pre">9)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_generated_images" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_generated_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(6,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(15,</span> <span class="pre">9)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_generated_images" title="Link to this definition">#</a></dt>
 <dd><dl class="simple">
 <dt>parameters:</dt><dd><p>epoch: the epoch at which th plots are made, used for naming the image
 generator: the generator neural network during the given epochs
@@ -215,43 +487,43 @@ examples: the number of examples to be displayed in the plot</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.plot_image">
-<span class="sig-name descname"><span class="pre">plot_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.png'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chi2_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.png'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chi2_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_image" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.plot_loss_evol">
-<span class="sig-name descname"><span class="pre">plot_loss_evol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_loss</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_loss_evol" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_loss_evol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dis_loss</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.plot_loss_evol" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.read_models">
-<span class="sig-name descname"><span class="pre">read_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.read_models" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">read_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.read_models" title="Link to this definition">#</a></dt>
 <dd><p>Loading the dictionnary from the generator and discriminator pathes</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.run_grid">
-<span class="sig-name descname"><span class="pre">run_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.run_grid" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.run_grid" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_cube">
-<span class="sig-name descname"><span class="pre">save_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube.fits'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_cube" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube.fits'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_cube" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_image_from_noise">
-<span class="sig-name descname"><span class="pre">save_image_from_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.png'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_image_from_noise" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_image_from_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image.png'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_image_from_noise" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_images">
-<span class="sig-name descname"><span class="pre">save_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_images" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_images" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_model">
-<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_model" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_model" title="Link to this definition">#</a></dt>
 <dd><p>saveModel</p>
 <dl class="simple">
 <dt>parameters:</dt><dd><p>Modelname: name to be used for storing the networks of this run</p>
@@ -263,50 +535,51 @@ examples: the number of examples to be displayed in the plot</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_random_image">
-<span class="sig-name descname"><span class="pre">save_random_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random_image.png'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_random_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_random_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random_image.png'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_random_image" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.set_dataloss">
-<span class="sig-name descname"><span class="pre">set_dataloss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.set_dataloss" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_dataloss</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.set_dataloss" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.single_img_rec">
-<span class="sig-name descname"><span class="pre">single_img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.single_img_rec" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">single_img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.single_img_rec" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.train">
-<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./saved_models/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nepochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OverTrainDiscr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotEpochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Use1sidedLabelSmooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveEpochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.train" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./saved_models/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nepochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OverTrainDiscr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotEpochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Use1sidedLabelSmooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveEpochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.train" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="organic.organic.InputImages">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">InputImages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagesize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadfromCube</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurewise_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplewise_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurewise_std_normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplewise_std_normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zca_whitening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zca_epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.9,</span> <span class="pre">1.1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical_flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">InputImages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagesize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadfromCube</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurewise_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplewise_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurewise_std_normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplewise_std_normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zca_whitening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zca_epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.9,</span> <span class="pre">1.1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_shift_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical_flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>a class to get format the images the way keras can augment them</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.InputImages.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.InputImages.load_data">
-<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load_data" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.InputImages.load_data_from_cube">
-<span class="sig-name descname"><span class="pre">load_data_from_cube</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load_data_from_cube" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_data_from_cube</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.InputImages.load_data_from_cube" title="Link to this definition">#</a></dt>
 <dd><p>load_data_fromCube</p>
 <dl class="simple">
 <dt>parameters:</dt><dd><p>dir: a directory where the training images can be found (must contain * to expand and find multiple images)
 imagesize: the size to which the obtained images will be rescaled (imagesize*imagesize pixels)</p>
 </dd>
-<dt>returns:</dt><dd><p>images: a numpy array containing the image information and dimensions (number of images <a href="#id1"><span class="problematic" id="id2">*</span></a>imagesize*imagesize*1 )</p>
+<dt>returns:</dt><dd><p>images: a numpy array containing the image information and dimensions (number of
+images*imagesize*imagesize*1 )</p>
 </dd>
 </dl>
 </dd></dl>
@@ -315,131 +588,253 @@ imagesize: the size to which the obtained images will be rescaled (imagesize*ima
 
 <dl class="py class">
 <dt class="sig sig-object py" id="organic.organic.SPARCO">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">SPARCO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wave0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.65e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UDstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ysec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.SPARCO" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">SPARCO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wave0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.65e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UDstar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xsec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ysec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.SPARCO" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="organic.organic.bcolors">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">bcolors</span></span><a class="headerlink" href="#organic.organic.bcolors" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">bcolors</span></span><a class="headerlink" href="#organic.organic.bcolors" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.BOLD">
-<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#organic.organic.bcolors.BOLD" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#organic.organic.bcolors.BOLD" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.ENDC">
-<span class="sig-name descname"><span class="pre">ENDC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#organic.organic.bcolors.ENDC" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">ENDC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#organic.organic.bcolors.ENDC" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.FAIL">
-<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#organic.organic.bcolors.FAIL" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#organic.organic.bcolors.FAIL" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.HEADER">
-<span class="sig-name descname"><span class="pre">HEADER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#organic.organic.bcolors.HEADER" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">HEADER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#organic.organic.bcolors.HEADER" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.OKBLUE">
-<span class="sig-name descname"><span class="pre">OKBLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#organic.organic.bcolors.OKBLUE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OKBLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#organic.organic.bcolors.OKBLUE" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.OKGREEN">
-<span class="sig-name descname"><span class="pre">OKGREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#organic.organic.bcolors.OKGREEN" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OKGREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#organic.organic.bcolors.OKGREEN" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.UNDERLINE">
-<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#organic.organic.bcolors.UNDERLINE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#organic.organic.bcolors.UNDERLINE" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="organic.organic.bcolors.WARNING">
-<span class="sig-name descname"><span class="pre">WARNING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#organic.organic.bcolors.WARNING" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">WARNING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#organic.organic.bcolors.WARNING" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.bold">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">bold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.bold" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">bold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.bold" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.cross_entropy">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">cross_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.cross_entropy" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">cross_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.cross_entropy" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.fail">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.fail" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.fail" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.header">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.header" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.header" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.inform">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">inform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.inform" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">inform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.inform" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.inform2">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">inform2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.inform2" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">inform2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.inform2" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.log">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.log" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.log" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.underline">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">underline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.underline" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">underline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.underline" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="organic.organic.warn">
-<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.warn" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">organic.organic.</span></span><span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.warn" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </section>
 
 
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="organic.auxiliary.post_organic.html" class="btn btn-neutral float-left" title="organic.auxiliary.post_organic module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-    </div>
+                </article>
+              
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2024, Toon De Prins, Jacques Kluska and Rik Claes.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
-        </div>
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="organic.auxiliary.post_organic.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">organic.auxiliary.post_organic module</p>
       </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-</body>
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.get_bootstrap"><code class="docutils literal notranslate"><span class="pre">Data.get_bootstrap()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.get_data"><code class="docutils literal notranslate"><span class="pre">Data.get_data()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.Data.read_data"><code class="docutils literal notranslate"><span class="pre">Data.read_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN"><code class="docutils literal notranslate"><span class="pre">GAN</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_discriminator"><code class="docutils literal notranslate"><span class="pre">GAN.create_discriminator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_gan"><code class="docutils literal notranslate"><span class="pre">GAN.create_gan()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.create_generator"><code class="docutils literal notranslate"><span class="pre">GAN.create_generator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.filter_pca_cluster"><code class="docutils literal notranslate"><span class="pre">GAN.filter_pca_cluster()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_image"><code class="docutils literal notranslate"><span class="pre">GAN.get_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_optimizer"><code class="docutils literal notranslate"><span class="pre">GAN.get_optimizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.get_random_image"><code class="docutils literal notranslate"><span class="pre">GAN.get_random_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.give_imgrec_diagnostics"><code class="docutils literal notranslate"><span class="pre">GAN.give_imgrec_diagnostics()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.image_reconstruction"><code class="docutils literal notranslate"><span class="pre">GAN.image_reconstruction()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.image_to_fits"><code class="docutils literal notranslate"><span class="pre">GAN.image_to_fits()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.img_rec"><code class="docutils literal notranslate"><span class="pre">GAN.img_rec()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_gan_evolution"><code class="docutils literal notranslate"><span class="pre">GAN.plot_gan_evolution()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_generated_images"><code class="docutils literal notranslate"><span class="pre">GAN.plot_generated_images()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_image"><code class="docutils literal notranslate"><span class="pre">GAN.plot_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.plot_loss_evol"><code class="docutils literal notranslate"><span class="pre">GAN.plot_loss_evol()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.read_models"><code class="docutils literal notranslate"><span class="pre">GAN.read_models()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.run_grid"><code class="docutils literal notranslate"><span class="pre">GAN.run_grid()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_cube"><code class="docutils literal notranslate"><span class="pre">GAN.save_cube()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_image_from_noise"><code class="docutils literal notranslate"><span class="pre">GAN.save_image_from_noise()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_images"><code class="docutils literal notranslate"><span class="pre">GAN.save_images()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_model"><code class="docutils literal notranslate"><span class="pre">GAN.save_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.save_random_image"><code class="docutils literal notranslate"><span class="pre">GAN.save_random_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.set_dataloss"><code class="docutils literal notranslate"><span class="pre">GAN.set_dataloss()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.single_img_rec"><code class="docutils literal notranslate"><span class="pre">GAN.single_img_rec()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.GAN.train"><code class="docutils literal notranslate"><span class="pre">GAN.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages"><code class="docutils literal notranslate"><span class="pre">InputImages</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load"><code class="docutils literal notranslate"><span class="pre">InputImages.load()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load_data"><code class="docutils literal notranslate"><span class="pre">InputImages.load_data()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.InputImages.load_data_from_cube"><code class="docutils literal notranslate"><span class="pre">InputImages.load_data_from_cube()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.SPARCO"><code class="docutils literal notranslate"><span class="pre">SPARCO</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors"><code class="docutils literal notranslate"><span class="pre">bcolors</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.BOLD"><code class="docutils literal notranslate"><span class="pre">bcolors.BOLD</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.ENDC"><code class="docutils literal notranslate"><span class="pre">bcolors.ENDC</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.FAIL"><code class="docutils literal notranslate"><span class="pre">bcolors.FAIL</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.HEADER"><code class="docutils literal notranslate"><span class="pre">bcolors.HEADER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.OKBLUE"><code class="docutils literal notranslate"><span class="pre">bcolors.OKBLUE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.OKGREEN"><code class="docutils literal notranslate"><span class="pre">bcolors.OKGREEN</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.UNDERLINE"><code class="docutils literal notranslate"><span class="pre">bcolors.UNDERLINE</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bcolors.WARNING"><code class="docutils literal notranslate"><span class="pre">bcolors.WARNING</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.bold"><code class="docutils literal notranslate"><span class="pre">bold()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.cross_entropy"><code class="docutils literal notranslate"><span class="pre">cross_entropy()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.fail"><code class="docutils literal notranslate"><span class="pre">fail()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.header"><code class="docutils literal notranslate"><span class="pre">header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.inform"><code class="docutils literal notranslate"><span class="pre">inform()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.inform2"><code class="docutils literal notranslate"><span class="pre">inform2()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.log"><code class="docutils literal notranslate"><span class="pre">log()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.underline"><code class="docutils literal notranslate"><span class="pre">underline()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organic.organic.warn"><code class="docutils literal notranslate"><span class="pre">warn()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Toon De Prins, Jacques Kluska and Rik Claes
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Toon De Prins, Jacques Kluska and Rik Claes.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
 </html>
