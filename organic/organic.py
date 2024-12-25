@@ -167,8 +167,9 @@ def log(msg, dir):
 
 
 # return the binary cross-entropy function
-# DEPRECATED in newer tf versions -> use tf.keras.losses.BinaryCrossentropy
-# Loss class now
+# NOTE: if y_true = 1 and y_pred is the discriminator output D -> ouputs -log(D)
+# this is how this function is used as a loss function during the image reconstruction
+# phase to calculate the regularization loss term
 def cross_entropy(y_true, y_pred):
     """
     Computes the binary cross-entropy loss between true labels and predicted labels.
@@ -1167,7 +1168,7 @@ class GAN:
             # target values, for the discriminator output it makes sense (causes the binary cross entropy term to
             # reduce to -log(D)), the data_loss one is just a dummy one since the set_dataloss function doesn't make
             # use of it really
-            y_gen = [np.ones(1), np.ones(1)]
+            y_target = [np.ones(1), np.ones(1)]
             # the loop on epochs with one noise vector
             if self.diagnostics:  # keep track of diagnostics accross epochs if needed
                 dis_loss_epochs = []  # regularization loss term
@@ -1175,8 +1176,8 @@ class GAN:
             # iterate over epochs
             epochs = range(1, params["epochs"] + 1)
             for e in epochs:
-                # perform a training step
-                hist = self.gan.train_on_batch(noisevector, y_gen)  # hist gives us the loss terms
+                # perform a training step with noisvector input and y_gen true labels
+                hist = self.gan.train_on_batch(noisevector, y_target)  # hist gives us the loss terms
                 # NOTE: the regulatory term is already multiplied with the appropriate weight in this case (Keras
                 # multiplies loss by the specified weights accordingly before returning them)
 

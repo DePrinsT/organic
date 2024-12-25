@@ -2,8 +2,11 @@
 requires = ["flit_core>=3.4", "astropy", "matplotlib", "numpy", "scikit-learn", "scipy", "tensorflow"]
 build-backend = "flit_core.buildapi"
 
+[tool.flit.module]
+name = "organic"  # import name of the module for flit build tool
+
 [project]
-name = "organic"
+name = "organic-oi"  # distribution name on pypi package index
 version = "0.0.3"
 authors = [ 
   { name="Jacques Kluska"},
@@ -16,7 +19,7 @@ maintainers = [
 description = 'A package for image reconstuction from optical interferometry data using GANs.'
 readme = "README.md"
 license = {file = "LICENSE"} 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",

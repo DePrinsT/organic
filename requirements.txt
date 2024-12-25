@@ -1,4 +1,4 @@
-# requirements file with hard dependencies so ReadTheDocs can generate the documentation properly
+# requirements file with hard dependencies for developers and so ReadTheDocs can generate the documentation properly
 astropy==6.1.7
 matplotlib==3.9.3
 numpy==1.26.4
