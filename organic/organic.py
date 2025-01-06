@@ -51,6 +51,7 @@ class Bcolors:
     UNDERLINE : str
         ANSI escape sequence for underlined text.
     """
+
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"
@@ -646,6 +647,7 @@ class GAN:
                     # Labels for generated and real data
                     y_pred = np.concatenate([y_true, y_false])
                     # Pre train discriminator on fake and real data before starting the gan.
+                    # NOTE: need to reset to trainable after the generator training step below has set to non-trainable
                     discriminator.trainable = (
                         True  # TODO: don't models need to recompile if their trainability is changed?
                     )
@@ -1128,8 +1130,10 @@ class GAN:
         mu = params["mu"]
         # create data loss
         data_loss_function = self.set_dataloss()  # the dataloss function is what does the whole V2 T3PHI calculation
-
-        chi2_restarts, dis_loss_restarts = [], []  # lists to store loss terms across restarts
+        # lists to store loss terms across restarts
+        # NOTE: DIS_LOSS_RESTARTS WILL HOLD the -log(D) TERM (i.e. discriminator loss not yet multiplied by the
+        # appropriate regularization weight)
+        chi2_restarts, dis_loss_restarts = [], []
         imgs = []  # to store different images accross epochs
         vects = []  # to store different noise vectors
         num_iterations = range(params["nrestart"])  # number of iterations
@@ -1157,7 +1161,7 @@ class GAN:
                 # note this also assigns the weights to the losses
                 # NOTE: The cross entropy function is passed here to describe the regularization term -log(D), with
                 # D the discriminator output. This is achieved by setting y_true = 1 (in which case the binary
-                # cross entropy term jsut reduces to -log(D)).
+                # cross entropy term just reduces to -log(D)).
                 self.gan.compile(loss=[cross_entropy, data_loss_function], optimizer=opt, loss_weights=[mu, 1])
                 # cross_entropy loss is applied to the 1st gan Keras model ouptut -> e.g. the discriminator's value
                 # the data loss one is applied to the second output of the model, which is the generator image ->
@@ -1175,15 +1179,40 @@ class GAN:
                 chi2_epochs = []  # chi2 data loss term
             # iterate over epochs
             epochs = range(1, params["epochs"] + 1)
-            for e in epochs:
+            for e in range(1, params["epochs"] + 1):
+                ### TEST CODE TO SEE WHICH FORM OF REGULARIZATION LOSS HIST HOLDS (this is manual calculation)
+                # if e == params["epochs"]:
+                #    # RESULTS FROM MANUAL CALCULATION
+                #    print("\n")
+                #    print(f"EPOCH {e} =====================")
+                #    disc_prediction = self.gan.predict(noisevector)[0]
+                #    img_prediction = self.gen.predict(noisevector)
+                #    print(f"y_pred from discriminator (calling through self.gan): {disc_prediction}")
+                #    print(
+                #        f"output from calling predict directly on the discriminator: {self.dis.predict(img_prediction)[0, 0]}"
+                #    )
+                #    print(f"-log(y_pred): {-np.log(disc_prediction)}")
+                #    print(f"-mu log(y_pred): {-mu * np.log(disc_prediction)}")
+
                 # perform a training step with noisvector input and y_gen true labels
                 hist = self.gan.train_on_batch(noisevector, y_target)  # hist gives us the loss terms
-                # NOTE: the regulatory term is already multiplied with the appropriate weight in this case (Keras
-                # multiplies loss by the specified weights accordingly before returning them)
+                # NOTE: HIST REGULATORY LOSS TERM IS NOT YET MULTIPLIED WITH THE APPROPRIATE REGULARIZATION WEIGHT
+                # hist[0] thus contains the total loss (regularization weight is taken into account here),
+                # hist[1] contains -log(D) (with D the discriminator output) and hist[2] the reduced chi2
 
                 if self.diagnostics:  # add losses to diagnostics if needed
                     dis_loss_epochs.append(hist[1])  # note the losses are outputs
                     chi2_epochs.append(hist[2])
+
+                ### TEST CODE TO SEE WHICH FORM OF REGULARIZATION LOSS HIST HOLDS (this is straight from hist)
+                # if e == params["epochs"]:
+                #
+                #    # RESULTS FROM HIST
+                #    print(f"Full return from train_on_batch: {hist}")
+                #    print(f"Discriminator weight: {mu}")
+                #    print(f"Discriminator loss term returned by train_on_batch: {hist[1]}")
+                #    print("===============================")
+                #    print("\n")
 
             img = self.get_image(noisevector)  # retrieve the image
             img = (img + 1) / 2  # remap the image to fall in the 0 to 1 range
@@ -1196,7 +1225,7 @@ class GAN:
                     noisevector, name=os.path.join(self.dir0, self.dir, f"image_restart{r}.png")
                 )  # get an image from the noise vector and save at the correct spot
             chi2_restarts.append(hist[2])  # data loss (chi2)
-            dis_loss_restarts.append(hist[1])  # discriminator loss (multiplied by the weight)
+            dis_loss_restarts.append(hist[1])  # discriminator loss (-log(D) NOT multiplied by the weight)
             imgs.append(img[:, ::-1])  # append the image to the list of images
             vects.append(noisevector)  # append used noise vector to a list
 
@@ -1218,6 +1247,7 @@ class GAN:
         losses : list
             List of loss values.
         """
+        # NOTE: `frgl` is defined as -log(D) (with D the discriminator outpu)
 
         # TODO: rewrite the median function to be more robust against
         # first find the median
@@ -1228,43 +1258,44 @@ class GAN:
         # data_loss() function expect).
         median_remap = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
-        fdata = self.data_loss(1, median_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
-        frgl = self.dis.predict(median_remap)[0, 0]  # get regulator loss, note this is not multiplied by the weight yet
-        ftot = fdata + self.params["mu"] * frgl  # calc total loss
+        fdata_med = self.data_loss(1, median_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl_med = -np.log(self.dis.predict(median_remap)[0, 0])  # get regulator loss (-log(D), D = disc output)
+        ftot_med = fdata_med + self.params["mu"] * frgl_med  # calc total loss
         # plot median image and save it to location
         self.plot_image(
             median_img,
             name=os.path.join(self.dir0, self.dir, "median_image.png"),
-            chi2_label=f"chi2={fdata:.1f}",
+            chi2_label=f"chi2={fdata_med:.2f} ; frgl={frgl_med:.2f} ; ftot={ftot_med:.2f}",
         )
         # save median image in a fits file
         self.image_to_fits(
             median_img,
-            ftot,
-            fdata,
-            frgl,
+            ftot_med,
+            fdata_med,
+            frgl_med,
             name=os.path.join(self.dir0, self.dir, "median_image.fits"),
         )
 
         # Same but for best image (best meaning lowest total loss) out of all restarts
         fdata = np.array(losses[0])
-        # Keras already multiplies the weight in its returned loss terms so we undo that here
-        frgl = np.array(losses[1]) / self.params["mu"]
+        frgl = np.array(losses[1])
         ftot = fdata + self.params["mu"] * frgl
+
         idx_best = np.argmin(ftot)  # best image index in the cube
         img_best = image[idx_best]
+        ftot_best = ftot[idx_best]
         fdata_best = fdata[idx_best]
         frgl_best = frgl[idx_best]
         # plot best image
         self.plot_image(
             img_best,
             name=os.path.join(self.dir0, self.dir, "best_image.png"),
-            chi2_label=f"chi2={fdata_best:.1f}",
+            chi2_label=f"chi2={fdata_best:.2f} ; frgl={frgl_best:.2f} ; ftot={ftot_best:.2f}",
         )
         # save best image to fits file
         self.image_to_fits(
             img_best,
-            ftot[idx_best],
+            ftot_best,
             fdata_best,
             frgl_best,
             name=os.path.join(self.dir0, self.dir, "best_image.fits"),
@@ -1283,7 +1314,7 @@ class GAN:
         fdata : float
             Data loss.
         frgl : float
-            Regularization term.
+            Regularization term -log(D).
         name : str, optional
             Name of the saved FITS file.
         """
@@ -1339,7 +1370,7 @@ class GAN:
 
         header["FTOT"] = ftot  # total loss (i.e. data loss + weigth-multiplied regularization)
         header["FDATA"] = fdata  # data loss (i.e. chi2)
-        header["FRGL"] = frgl  # regularization term (not multiplied by the weight)
+        header["FRGL"] = frgl  # regularization term (not multiplied by the regularization weight)
         header["MU"] = mu  # regularization weight
 
         # Make the headers
@@ -1358,10 +1389,12 @@ class GAN:
         dis_loss : list
             List of discriminator loss values.
         """
+        mu = self.params["mu"]  # regularization weight
+
         fig, ax = plt.subplots()
         plt.plot(chi2, label="f_data")
-        plt.plot(dis_loss, label="mu * f_discriminator")
-        plt.plot(np.array(chi2) + np.array(dis_loss), label="f_tot")
+        plt.plot(mu * np.array(dis_loss), label="mu * f_discriminator")
+        plt.plot(np.array(chi2) + mu * np.array(dis_loss), label="f_tot")
         plt.legend()
         plt.xlabel("#restart")
         plt.ylabel("Losses")
@@ -1370,7 +1403,6 @@ class GAN:
         plt.savefig(os.path.join(self.dir0, self.dir, "lossevol.png"), dpi=250)
         plt.close()
 
-    # NOTE: the regularization loss that needs to be passed along here needs to not be multiplied by mu yet
     def save_cube(self, cube, losses, name="cube.fits"):
         """
         Save a cube of images and their diagnostics across restarts in a .fits file.
@@ -1438,7 +1470,7 @@ class GAN:
 
         # define columns for the losses
         fdata = np.array(losses[0])
-        frgl = np.array(losses[1])
+        frgl = np.array(losses[1])  # contains -log(D) (with D the discriminator output)
         ftot = fdata + mu * frgl
         colftot = fits.Column(name="ftot", array=ftot, format="E")
         colfdata = fits.Column(name="fdata", array=fdata, format="E")
@@ -1507,16 +1539,16 @@ class GAN:
         fdata_median_filtered = self.data_loss(
             1, median_filtered_remap
         ).numpy()  # get data loss the 1 is just a dummy value, it's not used
-        frgl_median_filtered = self.dis.predict(median_filtered_remap)[
-            0, 0
-        ]  # get regulator loss, note this is not multiplied by the weight yet
+        # get regulator loss, note this is not multiplied by the weight yet
+        frgl_median_filtered = -np.log(self.dis.predict(median_filtered_remap)[0, 0])
         ftot_median_filtered = fdata_median_filtered + self.params["mu"] * frgl_median_filtered  # calc total loss
 
         # plot median image and save it to location
         self.plot_image(
             median_img_filtered,
             name=os.path.join(self.dir0, self.dir, "median_image_filtered.png"),
-            chi2_label=f"chi2={fdata_median_filtered:.1f}",
+            chi2_label=f"chi2={fdata_median_filtered:.2f} ; frgl={frgl_median_filtered:.2f} "
+            + f"; ftot={ftot_median_filtered:.2f}",
         )
         # save median image in a fits file
         self.image_to_fits(
@@ -1566,6 +1598,7 @@ class GAN:
         plt.close()
 
     # !! Master function to calculate the data loss !!
+    # TODO: check correctness
     # TODO: current iteration of bootstrap makes no sense, since it resamples data each time the function is evaluated,
     # i.e. each epoch, while it should be called each restart iteration instead
     # TODO: adapt to always use phasors instead of just the raw closure phase values
