@@ -176,6 +176,9 @@ where:
 - **theGANextended2** MCMax model circumstellar disks with extended component /data/leuven/334/vsc33405/summerjobTests/GANspirals/saved_models
 - **GANspirals** geometrical pinwheel nebula models /data/leuven/334/vsc33405/summerjobTests/GANspirals/saved_models
 
+# API documentation
+The API documentation (built automatically from the in-source docstrings using [Sphinx](https://www.sphinx-doc.org/en/master/)) is available [here](https://organic.readthedocs.io/en/latest/).
+
 # Use and acknowledgement
 
 If you wish to use ORGANIC in your own research, don't hesitate to contact [Toon De Prins](https://deprinst.github.io/).
