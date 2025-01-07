@@ -1017,7 +1017,7 @@ class GAN:
             "fstar": sparco.fstar,
             "dstar": sparco.dstar,
             "denv": sparco.denv,
-            "UDstar": sparco.UDstar,
+            "udstar": sparco.udstar,
             "fsec": sparco.fsec,
             "dsec": sparco.dsec,
             "xsec": sparco.xsec,
@@ -1356,7 +1356,7 @@ class GAN:
         header["SDEX1"] = (0, "dRA Position of primary")  # X position of primary
         header["SDEY1"] = (0, "dDEC position of primary")  # Y position of primary
         header["SIND1"] = (params["dstar"], "Spectral index of primary")  # spectral index of primary
-        header["SUD1"] = (params["UDstar"], "UD diameter of primary")  # uniform diameter of primary
+        header["SUD1"] = (params["udstar"], "UD diameter of primary")  # uniform diameter of primary
 
         header["SMOD2"] = "star"  # model for secondary, `star` just a point source
         header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")  # flux ratio of secondary
@@ -1455,7 +1455,7 @@ class GAN:
         header["SDEX1"] = (0, "dRA Position of primary")
         header["SDEY1"] = (0, "dDEC position of primary")
         header["SIND1"] = (params["dstar"], "Spectral index of primary")
-        header["SUD1"] = (params["UDstar"], "UD diameter of primary")
+        header["SUD1"] = (params["udstar"], "UD diameter of primary")
 
         header["SMOD2"] = "star"
         header["SFLU2"] = (params["fsec"], "SPARCO flux ratio of secondary")
@@ -1628,7 +1628,7 @@ class GAN:
 
         fstar = params["fstar"]
         fsec = params["fsec"]
-        UD = params["UDstar"] * MAS2RAD  # put uniform diameter in radian
+        ud = params["udstar"] * MAS2RAD  # put uniform diameter in radian
         dstar = params["dstar"]
         denv = params["denv"]
         dsec = params["dsec"]
@@ -1777,7 +1777,7 @@ class GAN:
         def compTotalCompVis(ftImages, ufunc, vfunc, wavelfunc):
             # to compute the radial coordinate in the uv plane so compute the ft of the primary,
             # which is a uniform disk, so the ft is....
-            radii = np.pi * UD * np.sqrt(ufunc**2 + vfunc**2)
+            radii = np.pi * ud * np.sqrt(ufunc**2 + vfunc**2)
             ftPrimary = tf.constant(2 * sp.jv(1, radii) / (radii), dtype=tf.complex128)
             # see extra function
             ftSecondary = off_center_point_ft(xsec, ysec, ufunc, vfunc)
@@ -1996,7 +1996,7 @@ class SPARCO:
         Spectral index of primary.
     denv : float, optional
         Spectral index of reconstructed environment.
-    UDstar : float, optional
+    udstar : float, optional
         Uniform diameter of primary in mas.
     fsec : float, optional
         Flux contribution of secondary.
@@ -2029,7 +2029,7 @@ class SPARCO:
         self.fstar = fstar  # primary flux contrib
         self.dstar = dstar  # spectral index of primary
         self.denv = denv  # spectral index of reconstructed environment
-        self.UDstar = udstar  # uniform diameter of primary in mas
+        self.udstar = udstar  # uniform diameter of primary in mas
         self.fsec = fsec  # flux contrib of secondary
         self.dsec = dsec  # spectral index of secondary
         self.xsec = xsec  # position of the secondary (primary is at 0 always)

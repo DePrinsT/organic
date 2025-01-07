@@ -94,19 +94,20 @@ SPARCO is an approach allowing to model the star(s) as a geometrical model and i
 This improves the image of the stellar environment and takes into account the spectral index difference between the stars and the environment.
 
 ```python
-sparco = org.sparco(fstar=0.61, fstar=0.6, dstar=-4.0, denv=0.0, udstar=0.01, fsec=0.0,
+sparco = org.sparco(fstar=0.61, dstar=-4.0, udstar=0.01, denv=0.0, fsec=0.0,
                         dsec=-4, xsec = 0.0, ysec = 0.0, wave0=1.65e-6,)
 ```
 
 with:
-- `fstar` being the stellar-to-total flux ratio at `wave0`
-- `dstar` being the spectral index of the secondary (if the star is assumed to be Rayleigh-Jeans then lambda^-4^ and `dstar` should be set to -4)
-- `denv` being the spectral index of the environment
-- `udstar` uniform disk diameter of the primary (in mas)
-- `fsec` is the secondary-to-total flux ratio
-- `dsec` is the secondary star spectral index
-- `xsec` is the ra position of the secondary relative to the primary (in mas)
-- `ysec` is the dec position of the secondary relative to the primary (in mas)
+- `fstar` the stellar-to-total flux ratio at `wave0`
+- `dstar` the spectral index of the secondary (if the star is assumed to be Rayleigh-Jeans then lambda^-4^ and `dstar` should be set to -4)
+- `udstar` the uniform disk diameter of the primary (in mas)
+- `denv` the spectral index of the environment
+- `fsec` the secondary-to-total flux ratio
+- `dsec` the secondary star spectral index
+- `xsec` the ra position of the secondary relative to the primary (in mas)
+- `ysec` the dec position of the secondary relative to the primary (in mas)
+- `wave0` the reference wavelength at which the flux ratio's are defined (in m)
 
 For more information about SPARCO read [the corresponding paper](https://ui.adsabs.harvard.edu/abs/2014A%26A...564A..80K/abstract) or [this one (application to a circumbinary disk)](https://ui.adsabs.harvard.edu/abs/2016A%26A...588L...1H/abstract).
 
@@ -139,10 +140,13 @@ This will automatically make image reconstructions corresponding to each paramet
 creating folders for each combination of parameters with the value of the parameters reflected
 in the name of the folder.
 
+A small example script can be found in `examples/img_rec_example.py` in the ORGANIC project directory.
+
 # Training the neural network (under development)
 
 To train a neural network you need to generate many (~1000) images. Then you can ues them to train the neural network. You need to put them in a fits format as cube of images the third dimenstion being the number of images.
-Then you can train your neural network such as indicated in the files `TrainGanExample.py`
+A small example script can be found in `examples/train_gan_example.py` in the ORGANIC project directory.
+
 
 1. Initialise the GAN
 

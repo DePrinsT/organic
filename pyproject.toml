@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "organic"  # import name of the module for flit build tool
 
 [project]
-name = "organic-oi"  # distribution name on pypi package index
+name = "organic-imgrec"  # distribution name on pypi package index
 version = "0.0.3"
 authors = [ 
   { name="Jacques Kluska"},
