@@ -25,6 +25,7 @@ import scipy.special as sp
 import matplotlib.colors as colors
 import sys
 import glob
+import pickle
 
 
 # some colors for printing warnings, etc
@@ -728,7 +729,7 @@ class GAN:
         img = self.gan.predict(noise_input)[1]  # select second GAN model output, i.e. the generator image
         # select batch position and channel (both 0, since only 1 channel
         # and only one noise vector passed through).
-        img = (np.array(img)[0, :, :, 0],)  # notice we also make it a numpy array
+        img = (np.array(img)[0, :, :, 0],)  # NOTE: THIS AUTOMATICALLY CASTS TO A NUMPY ARRAY !!!
         img = img[0]  # extract from tuple with one value
 
         return img
@@ -1236,13 +1237,13 @@ class GAN:
         self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
         self.plot_loss_evol(chi2_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
 
-    def save_images(self, image, losses):
+    def save_images(self, images, losses):
         """
         Save median and best image fits.
 
         Parameters
         ----------
-        image : list
+        images : list
             List of images.
         losses : list
             List of loss values.
@@ -1251,14 +1252,16 @@ class GAN:
 
         # TODO: rewrite the median function to be more robust against
         # first find the median
-        median_img = np.median(image, axis=0)  # get the median image (NOTE: the images are normalized before)
+        median_img = np.median(images, axis=0)  # get the median image (NOTE: the images are normalized before)
         median_img /= np.sum(median_img)  # normalize the median image by its own total intensity
         # some reshaping going on, ::-1 means the order is reversed along the axis
         # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and
         # data_loss() function expect).
         median_remap = np.reshape(median_img[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
         # get the associated losses
-        fdata_med = self.data_loss(1, median_remap).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        fdata_med = self.data_loss(1, median_remap, training=False, name="median_image")[
+            0
+        ].numpy()  # get data loss the 1 is just a dummy value, it's not used
         frgl_med = -np.log(self.dis.predict(median_remap)[0, 0])  # get regulator loss (-log(D), D = disc output)
         ftot_med = fdata_med + self.params["mu"] * frgl_med  # calc total loss
         # plot median image and save it to location
@@ -1282,10 +1285,15 @@ class GAN:
         ftot = fdata + self.params["mu"] * frgl
 
         idx_best = np.argmin(ftot)  # best image index in the cube
-        img_best = image[idx_best]
-        ftot_best = ftot[idx_best]
-        fdata_best = fdata[idx_best]
-        frgl_best = frgl[idx_best]
+        img_best = images[idx_best]
+        # NOTE: note this also remaps the best image back into the -1 to 1 interval (which the discriminator and
+        # data_loss() function expect).
+        best_remap = np.reshape(img_best[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
+        fdata_best = self.data_loss(1, best_remap, training=False, name="best_image")[
+            0
+        ].numpy()  # get data loss the 1 is just a dummy value, it's not used
+        frgl_best = -np.log(self.dis.predict(best_remap)[0, 0])  # get regulator loss (-log(D), D = disc output)
+        ftot_best = fdata_best + self.params["mu"] * frgl_best  # calc total loss
         # plot best image
         self.plot_image(
             img_best,
@@ -1536,9 +1544,9 @@ class GAN:
         # NOTE: note this also remaps the median image back into the -1 to 1 interval (which the discriminator and
         # data_loss() function expect).
         median_filtered_remap = np.reshape(median_img_filtered[:, ::-1] * 2 - 1, (1, self.npix, self.npix, 1))
-        fdata_median_filtered = self.data_loss(
-            1, median_filtered_remap
-        ).numpy()  # get data loss the 1 is just a dummy value, it's not used
+        fdata_median_filtered = self.data_loss(1, median_filtered_remap, training=False, name="median_image_filtered")[
+            0
+        ].numpy()  # get data loss the 1 is just a dummy value, it's not used
         # get regulator loss, note this is not multiplied by the weight yet
         frgl_median_filtered = -np.log(self.dis.predict(median_filtered_remap)[0, 0])
         ftot_median_filtered = fdata_median_filtered + self.params["mu"] * frgl_median_filtered  # calc total loss
@@ -1670,108 +1678,192 @@ class GAN:
             return interp_values
 
         # plots a comperison between observations and observables of the reconstruction,as well as the uv coverage
-        # TODO: currently not used at all
-        def plotObservablesComparison(V2generated, V2observed, V2err, CPgenerated, CPobserved, CPerr):
-            # v2 with residual comparison, no colors indicating wavelength
-            fig, ax = plt.subplots(figsize=(3.5, 6))
-            absB = np.sqrt(u**2 + v**2) / (10**6)  # baseline length in megaLambda
-            plt.scatter(
-                absB,
-                V2generated[0],
-                marker=".",
-                s=40,
-                label="image",
-                c="b",
-                alpha=0.4,
-                edgecolors="k",
-                linewidth=0.15,
+        def plot_observables_comparison(V2generated, V2observed, V2err, CPgenerated, CPobserved, CPerr, name=""):
+            # put closure phases from radiand to degrees
+            CPgenerated *= 180 / np.pi
+            CPobserved *= 180 / np.pi
+            CPerr *= 180 / np.pi
+
+            # plot uv coverage
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+            fig.subplots_adjust(right=0.8, bottom=0.2)
+            cax = fig.add_axes([0.82, 0.20, 0.02, 0.68])
+            ax.set_aspect("equal", adjustable="datalim")  # make plot axes have same scale
+            ax.scatter(u / 1e6, v / 1e6, c=np.real(waveV2), s=1, cmap="rainbow")
+            sc = ax.scatter(
+                -u / 1e6,
+                -v / 1e6,
+                c=np.real(waveV2) * 1e6,
+                s=1,
+                cmap="rainbow",
             )
-            plt.scatter(
+            clb = fig.colorbar(sc, cax=cax)
+            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
+
+            ax.set_xlim(ax.get_xlim()[::-1])
+            ax.set_xlabel(r"$\leftarrow B_u$ ($\mathrm{M \lambda}$)")
+            ax.set_ylabel(r"$B_v \rightarrow$ ($\mathrm{M \lambda}$)")
+            plt.savefig(
+                os.path.join(self.dir0, self.dir, "uv_plane.png"),
+                dpi=250,
+                bbox_inches="tight",
+            )
+
+            # plot (squared) visibilities
+            fig = plt.figure(figsize=(8, 7))
+            gs = fig.add_gridspec(2, hspace=0, height_ratios=[1, 0.2])
+            ax = gs.subplots(sharex=True)
+            fig.subplots_adjust(right=0.8, bottom=0.2)
+            cax = fig.add_axes([0.81, 0.20, 0.01, 0.68])
+
+            absB = np.sqrt(u**2 + v**2) / (1e6)  # baseline length in megaLambda
+            # for observations
+            sc = ax[0].scatter(
                 absB,
                 V2observed,
-                marker="*",
-                s=40,
+                c=np.real(waveV2) * 1e6,
+                marker="o",
+                s=16,
+                alpha=1.0,
+                cmap="rainbow",
                 label="observed",
-                c="r",
-                alpha=0.4,
-                edgecolors="k",
-                linewidth=0.15,
+                zorder=1000,
             )
-            plt.errorbar(absB, V2observed, V2err, elinewidth=0.2, ls="none", c="r")
-            plt.ylim(0, 1)
-            plt.ylabel(r"$V^2$")
-            plt.legend()
-
-            plt.savefig(os.path.join(os.getcwd(), "v2_comparison_no_color.png"), dpi=250)
-            plt.close()
-
-            # plots the uv coverage
-            plt.figure()
-            plt.scatter(
-                u / (10**6),
-                v / (10**6),
-                marker=".",
-                c=np.real(waveV2),
+            ax[0].errorbar(
+                absB,
+                V2observed,
+                V2err,
+                ecolor="grey",
+                marker="",
+                capsize=0,
+                zorder=999,
+                ls="",
+                alpha=1,
+                elinewidth=0.4,
+            )
+            # plot colorbar
+            clb = fig.colorbar(sc, cax=cax)
+            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
+            # for reconstructed image
+            ax[0].scatter(
+                absB,
+                V2generated[0],
+                marker="x",
+                c="black",
+                linewidth=0.7,
+                s=14,
+                alpha=0.6,
+                label="model image",
+                zorder=0,
+            )
+            ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
+            ax[0].tick_params(axis="x", direction="in", pad=-15)
+            ax[0].set_ylim(0.2, np.maximum(1, np.max(1.05 * V2observed)))
+            ax[0].set_ylabel(r"$V^2$")
+            ax[0].legend()
+            # for residuals
+            residuals = (V2generated[0] - V2observed) / V2err
+            ax[1].scatter(
+                absB,
+                residuals,
+                c=np.real(waveV2) * 1e6,
+                marker="o",
+                s=16,
+                alpha=1.0,
                 cmap="rainbow",
-                alpha=0.9,
-                edgecolors="k",
-                linewidth=0.1,
+                zorder=1000,
             )
-            plt.scatter(
-                -u / (10**6),
-                -v / (10**6),
-                marker=".",
-                c=np.real(waveV2),
-                cmap="rainbow",
-                alpha=0.9,
-                edgecolors="k",
-                linewidth=0.1,
+            ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
+            ax[1].set_xlim(0, np.max(absB) * 1.05)
+            ax[1].set_ylim(-1.20 * np.max(np.abs(residuals)), 1.20 * np.max(np.abs(residuals)))
+            ax[1].set_xlabel(r"$B$ ($\mathrm{M \lambda}$)")
+            ax[1].set_ylabel(r"$\sigma_{V^2}$")
+            plt.savefig(
+                os.path.join(self.dir0, self.dir, f"{name}_visibilities.png"),
+                dpi=250,
+                bbox_inches="tight",
             )
-            plt.xlabel(r"$ u (M\lambda)$")
-            plt.ylabel(r"$ v (M\lambda)$")
-            plt.gca().set_aspect("equal", adjustable="box")
 
-            plt.savefig(os.path.join(os.getcwd(), "uv_coverage.png"), dpi=250)
-            plt.close()
-
-            # cp with residual comparison without color indicating wavelength
-            fig, ax = plt.subplots(figsize=(3.5, 6))
+            # plot closure phases
+            fig = plt.figure(figsize=(8, 7))
+            gs = fig.add_gridspec(2, hspace=0, height_ratios=[1, 0.2])
+            ax = gs.subplots(sharex=True)
+            fig.subplots_adjust(right=0.8, bottom=0.2)
+            cax = fig.add_axes([0.81, 0.20, 0.01, 0.68])
+            # max baseline length in megalambda
             maxB = np.maximum(
                 np.maximum(np.sqrt(u1**2 + v1**2), np.sqrt(u2**2 + v2**2)),
                 np.sqrt(u3**2 + v3**2),
             ) / (10**6)
-            plt.scatter(
-                maxB,
-                CPgenerated[0].numpy(),
-                s=30,
-                marker=".",
-                c="b",
-                label="image",
-                cmap="rainbow",
-                alpha=0.4,
-                edgecolors=colors.to_rgba("k", 0.1),
-                linewidth=0.3,
-            )
-            plt.scatter(
+            # for observations
+            sc = ax[0].scatter(
                 maxB,
                 CPobserved,
-                s=30,
-                marker="*",
+                c=np.real(waveCP) * 1e6,
+                marker="o",
+                s=16,
+                alpha=1.0,
+                cmap="rainbow",
                 label="observed",
-                c="r",
-                alpha=0.4,
-                edgecolors=colors.to_rgba("k", 0.1),
-                linewidth=0.3,
+                zorder=1000,
             )
-            plt.errorbar(maxB, CPobserved, CPerr, ls="none", elinewidth=0.2, c="r")
-            plt.legend()
-            plt.ylabel(r"closure phase(radian)", fontsize=12)
-            plt.xlabel(r"max($\mid B\mid)(M\lambda)$", fontsize=12)
+            ax[0].errorbar(
+                maxB,
+                CPobserved,
+                CPerr,
+                ecolor="grey",
+                marker="",
+                capsize=0,
+                zorder=999,
+                ls="",
+                alpha=1,
+                elinewidth=0.4,
+            )
+            # plot colorbar
+            clb = fig.colorbar(sc, cax=cax)
+            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
+            # for reconstructed image
+            ax[0].scatter(
+                maxB,
+                CPgenerated[0],
+                marker="x",
+                c="black",
+                linewidth=0.7,
+                s=14,
+                alpha=0.6,
+                label="model image",
+                zorder=0,
+            )
+            ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
+            ax[0].tick_params(axis="x", direction="in", pad=-15)
+            ax[0].set_ylim(1.05 * -np.max(np.abs(CPobserved)), 1.05 * np.max(np.abs(CPobserved)))
+            ax[0].set_ylabel(r"$\phi_3$ $(^\circ)$")
+            ax[0].legend()
+            # for residuals
+            residuals = (CPgenerated[0] - CPobserved) / CPerr
+            ax[1].scatter(
+                maxB,
+                residuals,
+                c=np.real(waveCP) * 1e6,
+                marker="o",
+                s=16,
+                alpha=1.0,
+                cmap="rainbow",
+                zorder=1000,
+            )
+            ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
+            ax[1].set_xlim(0, np.max(maxB) * 1.05)
+            ax[1].set_ylim(-1.20 * np.max(np.abs(residuals)), 1.20 * np.max(np.abs(residuals)))
+            ax[1].set_xlabel(r"$B_{max}$ ($\mathrm{M \lambda}$)")
+            ax[1].set_ylabel(r"$\sigma_{\phi_3}$")
+            plt.savefig(
+                os.path.join(self.dir0, self.dir, f"{name}_closure_phases.png"),
+                dpi=250,
+                bbox_inches="tight",
+            )
 
-            plt.tight_layout()
-            plt.savefig(os.path.join(os.getcwd(), "cp_comparison_no_color.png"), dpi=250)
-
-            plt.close()
+            # show plots
+            # plt.show()
 
         # function to calculate full visibility if passed an FT image
         def compTotalCompVis(ftImages, ufunc, vfunc, wavelfunc):
@@ -1802,7 +1894,24 @@ class GAN:
         # notice that y_true is not used, it's just a dummy value that Keras expects you to have
         # note that everything must be done using tensorflow functions in this case, otherwise you lose the
         # speed and parallelization advantage
-        def data_loss(y_true, y_pred, training=True):
+        def data_loss(y_true, y_pred, training=True, name=""):
+            """Custom Keras loss function to give the data loss.
+
+            Parameters
+            ----------
+            y_true
+                Dummy label value that the Keras format expects you to have when defining a loss function.
+            y_pred
+                Image predicted by the generator
+            training : bool
+                Whether in training mode (then only loss value is returned, as Keras and Tensorlow expect) or not
+                in which case the loss terms are separately applied. If not, plots are also supplied.
+                Note that when in training mode (i.e. when y_pred is provided by a call on train_on_batch for
+                example), the tensors remain symbolic and no plots can be made.
+            name : str
+                Name used as prefix when saving observable plot images and numpy files of the generated image
+                observables.
+            """
             # img = y_pred.numpy()[0,:,:,0]
             y_pred = tf.squeeze(y_pred, axis=3)  # remove batch dimension (it's of size 1 anyway) using squeeze
             y_pred = (y_pred + 1) / 2  # NOTE: remaps the image into the 0 to 1 interval to get positive pixel fluxes
@@ -1819,13 +1928,12 @@ class GAN:
             V2Chi2Terms = kbackend.pow(V2 - V2image, 2) / (
                 kbackend.pow(V2e, 2) * nV2
             )  # individual terms of chi**2 for V**2
-            # V2Chi2Terms = V2Chi2Terms
             V2loss = kbackend.sum(V2Chi2Terms, axis=1)
 
             CPimage = tf.math.angle(compTotalCompVis(ftImages, u1, v1, waveCP))
             CPimage += tf.math.angle(compTotalCompVis(ftImages, u2, v2, waveCP))
             # note it's minus for the third baseline's complex angle since it's defined as the line AC instead of CA
-            # in an ABC triangle (often used convention in interferometry)
+            # in an ABC triangle (often used convention in optical interferometry)
             CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
             CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (kbackend.pow(CPe, 2) * nCP)
             if use_low_cp_approx:
@@ -1835,12 +1943,24 @@ class GAN:
 
             lossValue = (kbackend.mean(V2loss) * nV2 + kbackend.mean(CPloss) * nCP) / (nV2 + nCP)
 
+            # when training, returns just the loss value
             if training:
-                # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
                 return tf.cast(lossValue, tf.float32)  # cast to
 
+            # othwerwise, plots the observables and returs the individual loss contributions (V2 and closure phases)
             else:
-                # plotObservablesComparison(V2image, V2, V2e, CPimage, CP, CPe)
+                # plot observables
+                plot_observables_comparison(V2image, V2, V2e, CPimage, CP, CPe, name=name)
+                # save observables to numpy arrays
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities.npy"), np.squeeze(V2image.numpy()))
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases.npy"),
+                    np.squeeze(CPimage.numpy() * 180 / np.pi),
+                )
+                # save individual loss values to numpy arrays
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibility_loss.npy"), V2loss.numpy())
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_closure_phase_loss.npy"), CPloss.numpy())
+
                 return lossValue, V2loss, CPloss
 
         self.data_loss = data_loss
