@@ -26,6 +26,10 @@ import matplotlib.colors as colors
 import sys
 import glob
 import pickle
+import multiprocessing
+import gc
+
+multiprocessing.set_start_method("fork")
 
 
 # some colors for printing warnings, etc
@@ -1045,6 +1049,7 @@ class GAN:
                 ngrid += 1
                 gridpars.append(x)
                 gridvals.append(v)
+                niters *= len(v)  # adapt the total number of iterations accordingly (it's a grid so you just multiply)
 
         # Run a single image reconstruction or a grid
         if self.grid:
@@ -1073,6 +1078,10 @@ class GAN:
             Whether to re-initialize generator state each iteration.
         """
         for i, k in zip(self.iterable, np.arange(self.niters)):
+            #kbackend.clear_session()  # clear keras session, releasing any previously associated memory
+            #tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
+            #gc.collect()
+
             state = ""
             dir_name = "img_rec"
             # iterate over the different points in the grid
@@ -1089,12 +1098,17 @@ class GAN:
             except FileExistsError:
                 fail("The following folder already exists: {self.dir0, self.dir)}")
                 fail("Please define another folder by changing the name keyword")
-                fail("in the imag_reconstruction command")
+                fail("in the image_reconstruction command")
                 sys.exit(1)
 
             inform2(f"Image reconstruction with {state}")
 
-            self.img_rec(reinit_gen=reinit_gen)  # do an image reconstruction  for the current grid point
+            # do an image reconstruction  for the current grid point
+            # proc = multiprocessing.Process(target=self.img_rec, kwargs={"reinit_gen": reinit_gen})
+            # proc.start()  # start the process
+            # print(f"!!! PROCESS STARTED !!!")
+            # proc.join()  # wait unitl process terminates
+            self.img_rec(reinit_gen=reinit_gen)
 
     def single_img_rec(self, reinit_gen=False):
         """
@@ -1105,6 +1119,10 @@ class GAN:
         reinit_gen : bool, optional
             Whether to re-initialize generator state each iteration.
         """
+        #kbackend.clear_session()  # clear keras session, releasing any associated memory
+        #tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
+        #gc.collect()
+
         inform2("Single image reconstruction started")
         self.dir = "img_rec"
         try:
@@ -1181,20 +1199,6 @@ class GAN:
             # iterate over epochs
             epochs = range(1, params["epochs"] + 1)
             for e in range(1, params["epochs"] + 1):
-                ### TEST CODE TO SEE WHICH FORM OF REGULARIZATION LOSS HIST HOLDS (this is manual calculation)
-                # if e == params["epochs"]:
-                #    # RESULTS FROM MANUAL CALCULATION
-                #    print("\n")
-                #    print(f"EPOCH {e} =====================")
-                #    disc_prediction = self.gan.predict(noisevector)[0]
-                #    img_prediction = self.gen.predict(noisevector)
-                #    print(f"y_pred from discriminator (calling through self.gan): {disc_prediction}")
-                #    print(
-                #        f"output from calling predict directly on the discriminator: {self.dis.predict(img_prediction)[0, 0]}"
-                #    )
-                #    print(f"-log(y_pred): {-np.log(disc_prediction)}")
-                #    print(f"-mu log(y_pred): {-mu * np.log(disc_prediction)}")
-
                 # perform a training step with noisvector input and y_gen true labels
                 hist = self.gan.train_on_batch(noisevector, y_target)  # hist gives us the loss terms
                 # NOTE: HIST REGULATORY LOSS TERM IS NOT YET MULTIPLIED WITH THE APPROPRIATE REGULARIZATION WEIGHT
@@ -1204,16 +1208,6 @@ class GAN:
                 if self.diagnostics:  # add losses to diagnostics if needed
                     dis_loss_epochs.append(hist[1])  # note the losses are outputs
                     chi2_epochs.append(hist[2])
-
-                ### TEST CODE TO SEE WHICH FORM OF REGULARIZATION LOSS HIST HOLDS (this is straight from hist)
-                # if e == params["epochs"]:
-                #
-                #    # RESULTS FROM HIST
-                #    print(f"Full return from train_on_batch: {hist}")
-                #    print(f"Discriminator weight: {mu}")
-                #    print(f"Discriminator loss term returned by train_on_batch: {hist[1]}")
-                #    print("===============================")
-                #    print("\n")
 
             img = self.get_image(noisevector)  # retrieve the image
             img = (img + 1) / 2  # remap the image to fall in the 0 to 1 range
@@ -1708,6 +1702,7 @@ class GAN:
                 dpi=250,
                 bbox_inches="tight",
             )
+            plt.close()
 
             # plot (squared) visibilities
             fig = plt.figure(figsize=(8, 7))
@@ -1723,7 +1718,7 @@ class GAN:
                 V2observed,
                 c=np.real(waveV2) * 1e6,
                 marker="o",
-                s=16,
+                s=12,
                 alpha=1.0,
                 cmap="rainbow",
                 label="observed",
@@ -1768,7 +1763,7 @@ class GAN:
                 residuals,
                 c=np.real(waveV2) * 1e6,
                 marker="o",
-                s=16,
+                s=12,
                 alpha=1.0,
                 cmap="rainbow",
                 zorder=1000,
@@ -1783,6 +1778,7 @@ class GAN:
                 dpi=250,
                 bbox_inches="tight",
             )
+            plt.close()
 
             # plot closure phases
             fig = plt.figure(figsize=(8, 7))
@@ -1801,7 +1797,7 @@ class GAN:
                 CPobserved,
                 c=np.real(waveCP) * 1e6,
                 marker="o",
-                s=16,
+                s=12,
                 alpha=1.0,
                 cmap="rainbow",
                 label="observed",
@@ -1846,7 +1842,7 @@ class GAN:
                 residuals,
                 c=np.real(waveCP) * 1e6,
                 marker="o",
-                s=16,
+                s=12,
                 alpha=1.0,
                 cmap="rainbow",
                 zorder=1000,
@@ -1861,9 +1857,7 @@ class GAN:
                 dpi=250,
                 bbox_inches="tight",
             )
-
-            # show plots
-            # plt.show()
+            plt.close()
 
         # function to calculate full visibility if passed an FT image
         def compTotalCompVis(ftImages, ufunc, vfunc, wavelfunc):
