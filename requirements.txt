@@ -1,10 +1,11 @@
-# requirements file with hard dependencies for developers and so ReadTheDocs can generate the documentation properly
+# requirements file with hard dependencies for developers and so ReadTheDocs
+# can generate the documentation properly
+tensorflow==2.8.0
+scikit-learn==1.6.1
 astropy==6.1.7
-matplotlib==3.9.3
-numpy==1.26.4
-scikit-learn==1.5.2
-scipy==1.14.1
-tensorflow==2.15.1
+matplotlib==3.8.2
+scipy==1.15.1
+numpy==1.26.3  # downgraded numpy version
 # following sphinx packages only for building documentation
 sphinx==8.1.3
 sphinx-book-theme==1.1.3

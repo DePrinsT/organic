@@ -1,11 +1,10 @@
 # Installation command proven to make the ORGANIC GPU version work
 # on Ubuntu 22.04
 
-# create conda enironment
-conda create -n organicEnv2 python=3.10
-# install tensorflow
-pip install tensorflow[and-cuda]==2.15.1
-# install other packages
-conda install -c conda-forge scipy matplotlib scikit-learn astropy
-# downgrade numpy version (the size of numpy.dtype changed at some point)
-pip install numpy==1.26.4
+conda create -n organicEnv python=3.10
+pip install tensorflow==2.8.0
+pip install numpy==1.26.3  # downgrade numpy
+pip install astropy==6.1.7
+pip intall matplotlib==3.8.2
+pip install scipy==1.15.1
+pip install scikit-learn==1.6.1

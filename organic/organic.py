@@ -26,10 +26,6 @@ import matplotlib.colors as colors
 import sys
 import glob
 import pickle
-import multiprocessing
-import gc
-
-multiprocessing.set_start_method("fork")
 
 
 # some colors for printing warnings, etc
@@ -950,6 +946,7 @@ class GAN:
         grid=False,
         diagnostics=False,
         name="",
+        overwrite=False,
     ):
         """
         Master image reconstruction function.
@@ -984,6 +981,8 @@ class GAN:
             Whether to print out diagnostic plots for every epoch.
         name : str, optional
             Directory name under which to store everything.
+        overwrite : bool
+            Whether or not to overwrite existing files.
         """
         self.mu = mu  # regularization weight
         self.epochs = epochs  # number of epochs (single gradient descent steps) during a single reconsturction
@@ -1066,9 +1065,9 @@ class GAN:
         else:
             inform("Running a single image reconstruction")
             self.dir = "img_rec"  # set the output directory of the GAN object for this image reconstruction
-            self.single_img_rec(reinit_gen=reinit_gen)
+            self.single_img_rec(reinit_gen=reinit_gen, overwrite=overwrite)
 
-    def run_grid(self, reinit_gen=False):
+    def run_grid(self, reinit_gen=False, overwrite=False):
         """
         Run a grid of image reconstructions.
 
@@ -1076,11 +1075,13 @@ class GAN:
         ----------
         reinit_gen : bool, optional
             Whether to re-initialize generator state each iteration.
+        overwrite : bool
+            Whether or not to overwrite existing files.
         """
         for i, k in zip(self.iterable, np.arange(self.niters)):
-            #kbackend.clear_session()  # clear keras session, releasing any previously associated memory
-            #tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
-            #gc.collect()
+            # kbackend.clear_session()  # clear keras session, releasing any previously associated memory
+            # tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
+            # gc.collect()
 
             state = ""
             dir_name = "img_rec"
@@ -1093,13 +1094,16 @@ class GAN:
                 dir_name += f"_{pars}={i[p]}"  # create the appropriate folder name for the current grid point
 
             self.dir = dir_name
-            try:
+
+            folder_exists = os.path.exists(os.path.join(self.dir0, self.dir))
+            if not folder_exists:
                 os.makedirs(os.path.join(self.dir0, self.dir))
-            except FileExistsError:
-                fail("The following folder already exists: {self.dir0, self.dir)}")
-                fail("Please define another folder by changing the name keyword")
-                fail("in the image_reconstruction command")
-                sys.exit(1)
+            else:
+                if not overwrite:
+                    fail("The following folder already exists: {self.dir0, self.dir)}")
+                    fail("Please define another folder by changing the name keyword")
+                    fail("in the image_reconstruction command")
+                    sys.exit(1)
 
             inform2(f"Image reconstruction with {state}")
 
@@ -1110,7 +1114,7 @@ class GAN:
             # proc.join()  # wait unitl process terminates
             self.img_rec(reinit_gen=reinit_gen)
 
-    def single_img_rec(self, reinit_gen=False):
+    def single_img_rec(self, reinit_gen=False, overwrite=False):
         """
         Run a single image reconstruction.
 
@@ -1118,20 +1122,25 @@ class GAN:
         ----------
         reinit_gen : bool, optional
             Whether to re-initialize generator state each iteration.
+        overwrite : bool
+            Whether or not to overwrite existing files.
         """
-        #kbackend.clear_session()  # clear keras session, releasing any associated memory
-        #tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
-        #gc.collect()
+        # kbackend.clear_session()  # clear keras session, releasing any associated memory
+        # tf.compat.v1.reset_default_graph()  # clear the tensorflow graph
+        # gc.collect()
 
         inform2("Single image reconstruction started")
         self.dir = "img_rec"
-        try:
+
+        folder_exists = os.path.exists(os.path.join(self.dir0, self.dir))
+        if not folder_exists:
             os.makedirs(os.path.join(self.dir0, self.dir))
-        except FileExistsError:
-            fail("The following folder already exists: {self.dir0, self.dir)}")
-            fail("Please define another folder by changing the name keyword")
-            fail("in the image_reconstruction command")
-            sys.exit(1)
+        else:
+            if not overwrite:
+                fail("The following folder already exists: {self.dir0, self.dir)}")
+                fail("Please define another folder by changing the name keyword")
+                fail("in the image_reconstruction command")
+                sys.exit(1)
 
         self.img_rec(reinit_gen=reinit_gen)
 
@@ -1167,7 +1176,7 @@ class GAN:
             # by default, the Adam optimizer state is reset in a new optimizer object, this can be changed
             # by setting reset_opt = False in the argument list of the GAN class __init__
             if self.reset_opt:
-                opt = "optimizers." + self.opt.name  # python command get the optimizer
+                opt = "optimizers." + self.opt._name  # python command get the optimizer
                 opt = eval(opt)
 
                 # TODO: this seems like a pretty weird way of doing it, since here we call from_config specifically from
@@ -1225,7 +1234,7 @@ class GAN:
             vects.append(noisevector)  # append used noise vector to a list
 
         self.save_cube(
-            imgs, [chi2_restarts, dis_loss_restarts], name="cube.fits"
+            imgs, [chi2_restarts, dis_loss_restarts], name=os.path.join(self.dir0, self.dir, "cube.fits")
         )  # save images accross restarts to fits cube
         # save the median image and best fits images, both into plots and into fits files
         self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
@@ -1378,7 +1387,7 @@ class GAN:
         # Make the headers
         prim_hdu = fits.PrimaryHDU(image, header=header)  # primary HDU
         hdul = fits.HDUList([prim_hdu])  # primary HDU is the only one to be added
-        hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
+        hdul.writeto(name, overwrite=True)  # write to file
 
     def plot_loss_evol(self, chi2, dis_loss):
         """
@@ -1416,7 +1425,7 @@ class GAN:
         losses : list
             List of loss values.
         name : str, optional
-            Name of the saved FITS file.
+            Full path name of the saved FITS file.
         """
         params = self.params
         mu = params["mu"]
@@ -1490,9 +1499,9 @@ class GAN:
         sec_hdu = fits.BinTableHDU.from_columns(cols, header=headermetrics, name="METRICS")
 
         hdul = fits.HDUList([prim_hdu, sec_hdu])  # make list of HDUs
-        hdul.writeto(os.path.join(self.dir0, self.dir, name), overwrite=True)  # write to file
+        hdul.writeto(name, overwrite=True)  # write to file
 
-    def filter_pca_cluster(self, cube, ncluster=1):
+    def filter_pca_cluster(self, cube, save_dir, ncluster=1):
         """
         Method to filter the worst (in terms of total loss) `ncluster` clusters in PCA-projected space.
 
@@ -1545,24 +1554,26 @@ class GAN:
         frgl_median_filtered = -np.log(self.dis.predict(median_filtered_remap)[0, 0])
         ftot_median_filtered = fdata_median_filtered + self.params["mu"] * frgl_median_filtered  # calc total loss
 
-        # plot median image and save it to location
+        # plot filtered median image and save it to location
         self.plot_image(
             median_img_filtered,
-            name=os.path.join(self.dir0, self.dir, "median_image_filtered.png"),
+            name=os.path.join(save_dir, "median_image_filtered.png"),
             chi2_label=f"chi2={fdata_median_filtered:.2f} ; frgl={frgl_median_filtered:.2f} "
             + f"; ftot={ftot_median_filtered:.2f}",
         )
-        # save median image in a fits file
+        # save filtered median image in a fits file
         self.image_to_fits(
             median_img_filtered,
             ftot_median_filtered,
             fdata_median_filtered,
             frgl_median_filtered,
-            name=os.path.join(self.dir0, self.dir, "median_image_filtered.fits"),
+            name=os.path.join(save_dir, "median_image_filtered.fits"),
         )
 
         # Save filtered cube of images
-        self.save_cube(img_cube_filtered, [fdata_filtered, frgl_filtered], name="cube_filtered.fits")
+        self.save_cube(
+            img_cube_filtered, [fdata_filtered, frgl_filtered], name=os.path.join(save_dir, "cube_filtered.fits")
+        )
 
     def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
         """
@@ -1757,7 +1768,7 @@ class GAN:
             ax[0].set_ylabel(r"$V^2$")
             ax[0].legend()
             # for residuals
-            residuals = (V2generated[0] - V2observed) / V2err
+            residuals = (V2observed - V2generated[0]) / V2err
             ax[1].scatter(
                 absB,
                 residuals,
@@ -1836,7 +1847,7 @@ class GAN:
             ax[0].set_ylabel(r"$\phi_3$ $(^\circ)$")
             ax[0].legend()
             # for residuals
-            residuals = (CPgenerated[0] - CPobserved) / CPerr
+            residuals = (CPobserved - CPgenerated[0]) / CPerr
             ax[1].scatter(
                 maxB,
                 residuals,
@@ -1858,6 +1869,7 @@ class GAN:
                 bbox_inches="tight",
             )
             plt.close()
+            return
 
         # function to calculate full visibility if passed an FT image
         def compTotalCompVis(ftImages, ufunc, vfunc, wavelfunc):
@@ -1906,7 +1918,6 @@ class GAN:
                 Name used as prefix when saving observable plot images and numpy files of the generated image
                 observables.
             """
-            # img = y_pred.numpy()[0,:,:,0]
             y_pred = tf.squeeze(y_pred, axis=3)  # remove batch dimension (it's of size 1 anyway) using squeeze
             y_pred = (y_pred + 1) / 2  # NOTE: remaps the image into the 0 to 1 interval to get positive pixel fluxes
             y_pred = tf.cast((y_pred), tf.complex128)
