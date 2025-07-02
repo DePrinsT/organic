@@ -844,6 +844,12 @@ def dataLikeloss_NoSparco(DataDir,filename,ImageSize,pixelSize,forTraining = Tru
         CPgenerated -= tf.math.angle(complV3)
         #DiffComplexPhasors = tf.math.abs(tf.math.exp(tf.dtypes.complex(tf.zeros_like(CPobserved),CPobserved))- tf.math.exp(tf.dtypes.complex(tf.zeros_like(CPgenerated),CPgenerated)))
         #CPchi2Terms= K.pow(DiffComplexPhasors,2)/(K.pow(CPerr,2)*nCP)
+
+        # NOTE: This is the von Mises approximation to the phase only data
+        # It assumes a von Mises distribution for circular data
+        # see Appendix A in (Vol. 34, No. 6 / June 2017 / Journal of the Optical 
+        # Society of America A) "Principles of image reconstruction in optical interferometry: tutorial"
+        # by Eric Thiebaut and John Young
         CPchi2Terms = 2*(1-tf.math.cos(CPobserved-CPgenerated))/(K.pow(CPerr,2)*nCP)
         #CPchi2Terms = K.pow(tf.math.atan2(tf.math.sin(CPobserved-CPgenerated),tf.math.cos(CPobserved-CPgenerated)),2)/(K.pow(CPerr,2)*nCP)
         #CPchi2Terms=K.pow(CPobserved-CPgenerated,2)/(K.pow(CPerr,2)*nCP)

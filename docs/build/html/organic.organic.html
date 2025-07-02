@@ -16,8 +16,8 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
+  <!--
+    this give us a css class that will be invisible only if js is disabled
   -->
   <noscript>
     <style>
@@ -27,17 +27,17 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -162,9 +162,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -644,7 +649,7 @@ The GAN is made from a generator and a discriminator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.filter_pca_cluster">
-<span class="sig-name descname"><span class="pre">filter_pca_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncluster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.filter_pca_cluster" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">filter_pca_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncluster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.filter_pca_cluster" title="Link to this definition">#</a></dt>
 <dd><p>Method to filter the worst (in terms of total loss) <cite>ncluster</cite> clusters in PCA-projected space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -730,7 +735,7 @@ The GAN is made from a generator and a discriminator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.image_reconstruction">
-<span class="sig-name descname"><span class="pre">image_reconstruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparco</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrestart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nboot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_low_cp_approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_reconstruction" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">image_reconstruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparco</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrestart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nboot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_low_cp_approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.image_reconstruction" title="Link to this definition">#</a></dt>
 <dd><p>Master image reconstruction function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -749,6 +754,7 @@ The GAN is made from a generator and a discriminator</p>
 <li><p><strong>grid</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to do a grid.</p></li>
 <li><p><strong>diagnostics</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print out diagnostic plots for every epoch.</p></li>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory name under which to store everything.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether or not to overwrite existing files.</p></li>
 </ul>
 </dd>
 </dl>
@@ -764,7 +770,7 @@ The GAN is made from a generator and a discriminator</p>
 <li><p><strong>image</strong> (<em>numpy.ndarray</em>) – Image to save.</p></li>
 <li><p><strong>ftot</strong> (<em>float</em>) – Total loss.</p></li>
 <li><p><strong>fdata</strong> (<em>float</em>) – Data loss.</p></li>
-<li><p><strong>frgl</strong> (<em>float</em>) – Regularization term.</p></li>
+<li><p><strong>frgl</strong> (<em>float</em>) – Regularization term -log(D).</p></li>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the saved FITS file.</p></li>
 </ul>
 </dd>
@@ -852,11 +858,14 @@ The GAN is made from a generator and a discriminator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.run_grid">
-<span class="sig-name descname"><span class="pre">run_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.run_grid" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">run_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.run_grid" title="Link to this definition">#</a></dt>
 <dd><p>Run a grid of image reconstructions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>reinit_gen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to re-initialize generator state each iteration.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reinit_gen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to re-initialize generator state each iteration.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether or not to overwrite existing files.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -870,7 +879,7 @@ The GAN is made from a generator and a discriminator</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cube</strong> (<em>numpy.ndarray</em>) – Cube of images.</p></li>
 <li><p><strong>losses</strong> (<em>list</em>) – List of loss values.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the saved FITS file.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Full path name of the saved FITS file.</p></li>
 </ul>
 </dd>
 </dl>
@@ -892,12 +901,12 @@ The GAN is made from a generator and a discriminator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.save_images">
-<span class="sig-name descname"><span class="pre">save_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_images" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">save_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">losses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.save_images" title="Link to this definition">#</a></dt>
 <dd><p>Save median and best image fits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>image</strong> (<em>list</em>) – List of images.</p></li>
+<li><p><strong>images</strong> (<em>list</em>) – List of images.</p></li>
 <li><p><strong>losses</strong> (<em>list</em>) – List of loss values.</p></li>
 </ul>
 </dd>
@@ -942,11 +951,14 @@ The GAN is made from a generator and a discriminator</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="organic.organic.GAN.single_img_rec">
-<span class="sig-name descname"><span class="pre">single_img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.single_img_rec" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">single_img_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reinit_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#organic.organic.GAN.single_img_rec" title="Link to this definition">#</a></dt>
 <dd><p>Run a single image reconstruction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>reinit_gen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to re-initialize generator state each iteration.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reinit_gen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to re-initialize generator state each iteration.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether or not to overwrite existing files.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1056,7 +1068,7 @@ The GAN is made from a generator and a discriminator</p>
 <li><p><strong>fstar</strong> (<em>float</em><em>, </em><em>optional</em>) – Primary flux contribution.</p></li>
 <li><p><strong>dstar</strong> (<em>float</em><em>, </em><em>optional</em>) – Spectral index of primary.</p></li>
 <li><p><strong>denv</strong> (<em>float</em><em>, </em><em>optional</em>) – Spectral index of reconstructed environment.</p></li>
-<li><p><strong>UDstar</strong> (<em>float</em><em>, </em><em>optional</em>) – Uniform diameter of primary in mas.</p></li>
+<li><p><strong>udstar</strong> (<em>float</em><em>, </em><em>optional</em>) – Uniform diameter of primary in mas.</p></li>
 <li><p><strong>fsec</strong> (<em>float</em><em>, </em><em>optional</em>) – Flux contribution of secondary.</p></li>
 <li><p><strong>dsec</strong> (<em>float</em><em>, </em><em>optional</em>) – Spectral index of secondary.</p></li>
 <li><p><strong>xsec</strong> (<em>float</em><em>, </em><em>optional</em>) – Position of the secondary in mas.</p></li>
@@ -1343,8 +1355,8 @@ By Toon De Prins, Jacques Kluska and Rik Claes
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
   </footer>

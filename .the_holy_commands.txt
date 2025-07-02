@@ -3,8 +3,19 @@
 
 conda create -n organicEnv python=3.10
 pip install tensorflow==2.8.0
-pip install numpy==1.26.3  # downgrade numpy
+pip install numpy==1.26.3  # downgrade numpy to 1.x version
 pip install astropy==6.1.7
 pip intall matplotlib==3.8.2
 pip install scipy==1.15.1
 pip install scikit-learn==1.6.1
+pip install protobuf==3.20.0  # downgrade protobuf to 3.20.x version
+pip install --no-deps -e .  # in the organic directory for local install
+
+# and for if you want GPU capabilities
+conda install -c conda-forge cudatoolkit=11.2
+conda install -c conda-forge cudnn=8.1
+# note this doesn't work fully, and tensorflow doesn't
+# recognize the path to the CUDA libraries, so you have to
+# point the GNU linker to it manually as follows
+# alternatively you can just export this every time you run a script
+conda env config vars set LD_LIBRARY_PATH=$CONDA_PREFIX/lib

@@ -620,7 +620,7 @@ class GAN:
         inform("Starting GAN training")
         # iterate over the training epochs
         for epoch in np.arange(nepochs):
-            inform2(f"Epoch {epoch+1} of {nepochs}")
+            inform2(f"Epoch {epoch + 1} of {nepochs}")
             # set loss terms and accuracy terms for this epoch
             # set the loss terms and accuracy for the discriminator
             dis_fake_loss_ep, dis_real_loss_ep, dis_fake_accuracy_ep = 0, 0, 0
@@ -840,7 +840,7 @@ class GAN:
 
         fig, ax = plt.subplots()
 
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, 5)))
+        color = iter(plt.cm.turbo(np.linspace(0, 1, 5)))
 
         c = next(color)
         plt.plot(dis_fake_loss, label="discriminator fake data loss", c=c)
@@ -940,7 +940,6 @@ class GAN:
         nrestart=50,
         reinit_gen=False,  # whether to re-initialize generator state each iteration
         boot=False,
-        nboot=100,
         ps=0.6,
         use_low_cp_approx=False,
         grid=False,
@@ -987,7 +986,6 @@ class GAN:
         self.mu = mu  # regularization weight
         self.epochs = epochs  # number of epochs (single gradient descent steps) during a single reconsturction
         self.ps = ps  # pixelscale
-        self.nboot = nboot  # number of bootstrap samples
         self.boot = boot  # whether to bootstrap in the first place
         self.nrestart = nrestart  # number of generator restarts to perform
         self.use_low_cp_approx = (
@@ -995,7 +993,8 @@ class GAN:
         )
         self.sparco = sparco  # SPARCO object containing geometrical model information
         self.grid = grid  # whether to do a grid, but this is just checked from whether the input contains lists below
-        self.data = Data(data_dir, data_files)  # create a Data object to contain the OI data
+        # create a Data object to contain the OI data, with bootstrapped data if asked for
+        self.data = Data(data_dir, data_files, boot=self.boot)
         self.diagnostics = diagnostics  # whether to print out diagnostic plots for every epoch
         self.dir0 = name  # directory name under which to store everything
         self.dirorig = os.getcwd()
@@ -1603,7 +1602,7 @@ class GAN:
         plt.plot(epochs, mu * np.array(discloss), label="mu * f_discriminator")
         plt.plot(epochs, np.array(chi2) + mu * np.array(discloss), label="f_tot")
         plt.legend()
-        plt.xlabel("#epochs")
+        plt.xlabel("\#epochs")
         plt.ylabel("Losses")
         plt.yscale("log")
         plt.tight_layout()
@@ -1629,11 +1628,7 @@ class GAN:
         data = self.data  # retrieve data object
 
         # if bootstrapping, resample the data
-        # TODO: THE IMPLEMENTATION HERE IS WRONG
-        if self.boot:
-            V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = data.get_bootstrap()
-        else:
-            V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = data.get_data()
+        V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = data.get_data()
 
         params = self.params
 
@@ -1692,7 +1687,7 @@ class GAN:
             # plot uv coverage
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
             fig.subplots_adjust(right=0.8, bottom=0.2)
-            cax = fig.add_axes([0.82, 0.20, 0.02, 0.68])
+            cax = fig.add_axes([0.81, 0.20, 0.015, 0.15])
             ax.set_aspect("equal", adjustable="datalim")  # make plot axes have same scale
             ax.scatter(u / 1e6, v / 1e6, c=np.real(waveV2), s=1, cmap="rainbow")
             sc = ax.scatter(
@@ -1716,60 +1711,50 @@ class GAN:
             plt.close()
 
             # plot (squared) visibilities
-            fig = plt.figure(figsize=(8, 7))
+            fig = plt.figure(figsize=(11, 7))
             gs = fig.add_gridspec(2, hspace=0, height_ratios=[1, 0.2])
             ax = gs.subplots(sharex=True)
             fig.subplots_adjust(right=0.8, bottom=0.2)
-            cax = fig.add_axes([0.81, 0.20, 0.01, 0.68])
-
+            cax = fig.add_axes([0.81, 0.20, 0.015, 0.15])
             absB = np.sqrt(u**2 + v**2) / (1e6)  # baseline length in megaLambda
             # for observations
-            sc = ax[0].scatter(
-                absB,
-                V2observed,
-                c=np.real(waveV2) * 1e6,
-                marker="o",
-                s=12,
-                alpha=1.0,
-                cmap="rainbow",
-                label="observed",
-                zorder=1000,
-            )
             ax[0].errorbar(
                 absB,
                 V2observed,
                 V2err,
-                ecolor="grey",
-                marker="",
-                capsize=0,
-                zorder=999,
+                ecolor="blue",
+                marker="o",
+                markerfacecolor="white",
+                color="blue",
+                markersize=4,
+                capsize=2,
+                capthick=0.6,
+                zorder=0,
                 ls="",
                 alpha=1,
-                elinewidth=0.4,
+                elinewidth=0.6,
             )
-            # plot colorbar
-            clb = fig.colorbar(sc, cax=cax)
-            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
+            # print(f"COOL SHAPE OF ARRAY {V2generated}")
+            # print(f"COOL SHAPE OF ARRAY[0] {V2generated[0]}")
             # for reconstructed image
             ax[0].scatter(
                 absB,
                 V2generated[0],
-                marker="x",
+                marker=".",
                 c="black",
                 linewidth=0.7,
                 s=14,
-                alpha=0.6,
+                alpha=1,
                 label="model image",
-                zorder=0,
+                zorder=999,
             )
             ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
             ax[0].tick_params(axis="x", direction="in", pad=-15)
-            ax[0].set_ylim(0.2, np.maximum(1, np.max(1.05 * V2observed)))
+            ax[0].set_ylim(0.0, 1.0)
             ax[0].set_ylabel(r"$V^2$")
-            ax[0].legend()
             # for residuals
             residuals = (V2observed - V2generated[0]) / V2err
-            ax[1].scatter(
+            sc = ax[1].scatter(
                 absB,
                 residuals,
                 c=np.real(waveV2) * 1e6,
@@ -1779,11 +1764,14 @@ class GAN:
                 cmap="rainbow",
                 zorder=1000,
             )
+            # plot colorbar
+            clb = fig.colorbar(sc, cax=cax)
+            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
             ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
             ax[1].set_xlim(0, np.max(absB) * 1.05)
-            ax[1].set_ylim(-1.20 * np.max(np.abs(residuals)), 1.20 * np.max(np.abs(residuals)))
+            ax[1].set_ylim(-np.ceil(np.max(np.abs(residuals))) - 1, np.ceil(np.max(np.abs(residuals))) + 1)
             ax[1].set_xlabel(r"$B$ ($\mathrm{M \lambda}$)")
-            ax[1].set_ylabel(r"$\sigma_{V^2}$")
+            ax[1].set_ylabel(r"$\sigma$")
             plt.savefig(
                 os.path.join(self.dir0, self.dir, f"{name}_visibilities.png"),
                 dpi=250,
@@ -1792,63 +1780,51 @@ class GAN:
             plt.close()
 
             # plot closure phases
-            fig = plt.figure(figsize=(8, 7))
+            fig = plt.figure(figsize=(11, 7))
             gs = fig.add_gridspec(2, hspace=0, height_ratios=[1, 0.2])
             ax = gs.subplots(sharex=True)
             fig.subplots_adjust(right=0.8, bottom=0.2)
-            cax = fig.add_axes([0.81, 0.20, 0.01, 0.68])
-            # max baseline length in megalambda
+            cax = fig.add_axes([0.81, 0.20, 0.015, 0.15])
             maxB = np.maximum(
                 np.maximum(np.sqrt(u1**2 + v1**2), np.sqrt(u2**2 + v2**2)),
                 np.sqrt(u3**2 + v3**2),
             ) / (10**6)
             # for observations
-            sc = ax[0].scatter(
-                maxB,
-                CPobserved,
-                c=np.real(waveCP) * 1e6,
-                marker="o",
-                s=12,
-                alpha=1.0,
-                cmap="rainbow",
-                label="observed",
-                zorder=1000,
-            )
             ax[0].errorbar(
                 maxB,
                 CPobserved,
                 CPerr,
-                ecolor="grey",
-                marker="",
-                capsize=0,
-                zorder=999,
+                ecolor="blue",
+                marker="o",
+                markerfacecolor="white",
+                color="blue",
+                markersize=4,
+                capsize=2,
+                capthick=0.6,
+                zorder=0,
                 ls="",
                 alpha=1,
-                elinewidth=0.4,
+                elinewidth=0.6,
             )
-            # plot colorbar
-            clb = fig.colorbar(sc, cax=cax)
-            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
             # for reconstructed image
             ax[0].scatter(
                 maxB,
                 CPgenerated[0],
-                marker="x",
+                marker=".",
                 c="black",
                 linewidth=0.7,
                 s=14,
-                alpha=0.6,
+                alpha=1,
                 label="model image",
-                zorder=0,
+                zorder=999,
             )
             ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
             ax[0].tick_params(axis="x", direction="in", pad=-15)
             ax[0].set_ylim(1.05 * -np.max(np.abs(CPobserved)), 1.05 * np.max(np.abs(CPobserved)))
-            ax[0].set_ylabel(r"$\phi_3$ $(^\circ)$")
-            ax[0].legend()
+            ax[0].set_ylabel(r"$\phi 3$ $(^\circ)$")
             # for residuals
             residuals = (CPobserved - CPgenerated[0]) / CPerr
-            ax[1].scatter(
+            sc = ax[1].scatter(
                 maxB,
                 residuals,
                 c=np.real(waveCP) * 1e6,
@@ -1858,11 +1834,14 @@ class GAN:
                 cmap="rainbow",
                 zorder=1000,
             )
+            # plot colorbar
+            clb = fig.colorbar(sc, cax=cax)
+            clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
             ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
             ax[1].set_xlim(0, np.max(maxB) * 1.05)
-            ax[1].set_ylim(-1.20 * np.max(np.abs(residuals)), 1.20 * np.max(np.abs(residuals)))
+            ax[1].set_ylim(-np.ceil(np.max(np.abs(residuals))) - 1, np.ceil(np.max(np.abs(residuals))) + 1)
             ax[1].set_xlabel(r"$B_{max}$ ($\mathrm{M \lambda}$)")
-            ax[1].set_ylabel(r"$\sigma_{\phi_3}$")
+            ax[1].set_ylabel(r"$\sigma$")
             plt.savefig(
                 os.path.join(self.dir0, self.dir, f"{name}_closure_phases.png"),
                 dpi=250,
@@ -1940,6 +1919,11 @@ class GAN:
             # note it's minus for the third baseline's complex angle since it's defined as the line AC instead of CA
             # in an ABC triangle (often used convention in optical interferometry)
             CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
+            # NOTE: This is the von Mises approximation to the phase only data
+            # It assumes a von Mises distribution for circular data
+            # see Appendix A in (Vol. 34, No. 6 / June 2017 / Journal of the Optical 
+            # Society of America A) "Principles of image reconstruction in optical interferometry: tutorial"
+            # by Eric Thiebaut and John Young
             CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (kbackend.pow(CPe, 2) * nCP)
             if use_low_cp_approx:
                 CPchi2Terms = kbackend.pow(CP - CPimage, 2) / (kbackend.pow(CPe, 2) * nCP)
@@ -1985,24 +1969,29 @@ class Data:
         Directory containing the data files.
     file : str
         Data file.
+    boot : bool
+        Whether to take a bootstrapped sample of the data being read in.
     """
 
-    def __init__(self, dir, file):
+    def __init__(self, dir, file, boot):
         self.dir = dir
         self.file = file
-        self.read_data()
+        self.read_data(boot=boot)
 
-    def read_data(self):
+    def read_data(self, boot=False):
         """
         Read the data from the file.
+
+        boot : bool
+            Whether to take a bootstrapped sample of the data being read in.
         """
         data = oi.read(self.dir, self.file)
         dataObj = data.givedataJK()
 
-        V2observed, V2err = dataObj["v2"]
+        V2, V2err = dataObj["v2"]
         nV2 = len(V2err)
 
-        CPobserved, CPerr = dataObj["cp"]
+        CP, CPerr = dataObj["cp"]
         nCP = len(CPerr)
 
         u, u1, u2, u3 = dataObj["u"]
@@ -2011,13 +2000,7 @@ class Data:
         waveV2 = dataObj["wave"][0]
         waveCP = dataObj["wave"][1]
 
-        V2 = tf.constant(V2observed)  # conversion to tensor
-        V2err = tf.constant(V2err)  # conversion to tensor
-        CP = tf.constant(CPobserved) * np.pi / 180  # conversion to radian & cast to tensor
-        CPerr = tf.constant(CPerr) * np.pi / 180  # conversion to radian & cast to tensor
-        waveV2 = tf.constant(waveV2, dtype=tf.complex128)  # conversion to tensor
-        waveCP = tf.constant(waveCP, dtype=tf.complex128)  # conversion to tensor
-
+        # assign numpy arrays to class members
         self.nV2 = nV2
         self.nCP = nCP
         self.V2 = V2
@@ -2035,6 +2018,63 @@ class Data:
         self.v2 = v2
         self.v3 = v3
         self.target = data.target[0].target[0]
+
+        print(f"Number of unique V2 points: {np.size(np.unique(self.v2))}")
+        print(f"Number of unique T3PHI points: {np.size(np.unique(self.CP))}")
+
+        # apply the bootstrap if asked for (needs to be in numpy arrays)
+        if boot:
+            (
+                self.V2,
+                self.V2err,
+                self.CP,
+                self.CPerr,
+                self.waveV2,
+                self.waveCP,
+                self.u,
+                self.u1,
+                self.u2,
+                self.u3,
+                self.v,
+                self.v1,
+                self.v2,
+                self.v3,
+            ) = self.get_bootstrap()
+
+        print(f"Number of unique V2 points: {np.size(np.unique(self.v2))}")
+        print(f"Number of unique T3PHI points: {np.size(np.unique(self.CP))}")
+
+        # cast to tensorflow tensors. Only do this at this stage, otherwise
+        # the `get_bootstrap` function fails
+        V2 = tf.constant(V2)  # conversion to tensor
+        V2err = tf.constant(V2err)  # conversion to tensor
+        CP = tf.constant(CP) * np.pi / 180  # conversion to radian & cast to tensor
+        CPerr = tf.constant(CPerr) * np.pi / 180  # conversion to radian & cast to tensor
+        waveV2 = tf.constant(waveV2, dtype=tf.complex128)  # conversion to tensor
+        waveCP = tf.constant(waveCP, dtype=tf.complex128)  # conversion to tensor
+
+        # after casting to tensors, put back into member variables
+        # (I know this code is shit but it was a quick workaround to make it
+        # at least function)
+        self.nV2 = nV2
+        self.nCP = nCP
+        self.V2 = V2
+        self.V2err = V2err
+        self.CP = CP
+        self.CPerr = CPerr
+        self.waveV2 = waveV2
+        self.waveCP = waveCP
+        self.u = u
+        self.u1 = u1
+        self.u2 = u2
+        self.u3 = u3
+        self.v = v
+        self.v1 = v1
+        self.v2 = v2
+        self.v3 = v3
+        self.target = data.target[0].target[0]
+
+        return
 
     def get_data(self):
         """
