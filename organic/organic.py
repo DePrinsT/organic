@@ -243,6 +243,8 @@ class GAN:
         Whether or not to use the amsgrad version of the Adam optimizer.
     tf_verbose : bool, optional
         Whether or not to let tensorflow be verbose in its debug warnings.
+    log_plot_vis : bool, optional
+        Whether to make visibility plots in log scale or not.
     """
 
     def __init__(
@@ -257,10 +259,12 @@ class GAN:
         reset_opt=True,
         amsgrad=True,
         tf_verbose=False,
+        log_plot_vis=False,
     ):
         # suppress tensorflow warnings if needed
         if not tf_verbose:
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+        self.log_plot_vis = log_plot_vis
         self.reset_opt = reset_opt
         self.adam_lr = adam_lr
         self.adam_beta1 = adam_beta1
@@ -935,7 +939,7 @@ class GAN:
         data_files,
         sparco,
         data_dir="./",
-        mu=1,
+        mu=1.0,
         epochs=50,
         nrestart=50,
         reinit_gen=False,  # whether to re-initialize generator state each iteration
@@ -1026,6 +1030,8 @@ class GAN:
             "xsec": sparco.xsec,
             "ysec": sparco.ysec,
             "wave0": sparco.wave0,
+            "fbkg": sparco.fbkg,
+            "dbkg": sparco.dbkg,
         }
 
         # checking if grid of reconstructions needed
@@ -1375,6 +1381,11 @@ class GAN:
         header["SDEY2"] = (params["ysec"], "dDEC position of secondary")
         header["SIND2"] = (params["dsec"], "Spectral index of secondary")  # spectral index of secondary
 
+        header["SMOD3"] = "background"  # model for overresolved component `background`
+        header["SFLU3"] = (params["fbkg"], "SPARCO flux ratio of overresolved background")
+        header["SPEC3"] = "pow"  # type of spectrum, i.e. power law
+        header["SIND3"] = (params["dbkg"], "Spectral index of overresolved background")
+
         header["NEPOCHS"] = params["epochs"]  # number of epochs per restart
         header["NRSTARTS"] = params["nrestart"]  # number of restarts
 
@@ -1473,6 +1484,11 @@ class GAN:
         header["SDEX2"] = (params["xsec"], "dRA Position of secondary")
         header["SDEY2"] = (params["ysec"], "dDEC position of secondary")
         header["SIND2"] = (params["dsec"], "Spectral index of secondary")
+
+        header["SMOD3"] = "background"  # model for overresolved component `background`
+        header["SFLU3"] = (params["fbkg"], "SPARCO flux ratio of overresolved background")
+        header["SPEC3"] = "pow"  # type of spectrum, i.e. power law
+        header["SIND3"] = (params["dbkg"], "Spectral index of overresolved background")
 
         header["NEPOCHS"] = params["epochs"]
         header["NRSTARTS"] = params["nrestart"]
@@ -1642,6 +1658,8 @@ class GAN:
         dsec = params["dsec"]
         xsec = params["xsec"] * MAS2RAD  # put positions in radian
         ysec = params["ysec"] * MAS2RAD
+        fbkg = params["fbkg"]
+        dbkg = params["dbkg"]
         ps = params["ps"]
         wave0 = params["wave0"]
         use_low_cp_approx = params["use_low_cp_approx"]
@@ -1750,7 +1768,10 @@ class GAN:
             )
             ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
             ax[0].tick_params(axis="x", direction="in", pad=-15)
-            ax[0].set_ylim(0.0, 1.0)
+            if not self.log_plot_vis:
+                ax[0].set_ylim(0.0, 1.0)
+            else:
+                ax[0].set_yscale("log")
             ax[0].set_ylabel(r"$V^2$")
             # for residuals
             residuals = (V2observed - V2generated[0]) / V2err
@@ -1867,11 +1888,12 @@ class GAN:
             # equation 4 in sparco paper:
             VcomplTotal = fstar * ftPrimary * kbackend.pow(wavelfunc / wave0, dstar)
             VcomplTotal += fsec * ftSecondary * kbackend.pow(wavelfunc / wave0, dsec)
-            VcomplTotal += (1 - fstar - fsec) * VcomplDisk * kbackend.pow(wavelfunc / wave0, denv)
+            VcomplTotal += (1 - fstar - fsec - fbkg) * VcomplDisk * kbackend.pow(wavelfunc / wave0, denv)
             VcomplTotal = VcomplTotal / (
                 (fstar * kbackend.pow(wavelfunc / wave0, dstar))
                 + (fsec * kbackend.pow(wavelfunc / wave0, dsec))
-                + ((1 - fstar - fsec) * kbackend.pow(wavelfunc / wave0, denv))
+                + (fbkg * kbackend.pow(wavelfunc / wave0, dbkg))
+                + ((1 - fstar - fsec - fbkg) * kbackend.pow(wavelfunc / wave0, denv))
             )
             return VcomplTotal
 
@@ -1921,7 +1943,7 @@ class GAN:
             CPimage -= tf.math.angle(compTotalCompVis(ftImages, u3, v3, waveCP))
             # NOTE: This is the von Mises approximation to the phase only data
             # It assumes a von Mises distribution for circular data
-            # see Appendix A in (Vol. 34, No. 6 / June 2017 / Journal of the Optical 
+            # see Appendix A in (Vol. 34, No. 6 / June 2017 / Journal of the Optical
             # Society of America A) "Principles of image reconstruction in optical interferometry: tutorial"
             # by Eric Thiebaut and John Young
             CPchi2Terms = 2 * (1 - tf.math.cos(CP - CPimage)) / (kbackend.pow(CPe, 2) * nCP)
@@ -1940,12 +1962,51 @@ class GAN:
             else:
                 # plot observables
                 plot_observables_comparison(V2image, V2, V2e, CPimage, CP, CPe, name=name)
+
                 # save observables to numpy arrays
                 np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities.npy"), np.squeeze(V2image.numpy()))
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities_observed.npy"), np.squeeze(V2))
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities_observed_err.npy"), np.squeeze(V2e))
                 np.save(
                     os.path.join(self.dir0, self.dir, f"{name}_closure_phases.npy"),
                     np.squeeze(CPimage.numpy() * 180 / np.pi),
                 )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_observed.npy"),
+                    np.squeeze(CP.numpy() * 180 / np.pi),
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_observed_err.npy"),
+                    np.squeeze(CPe.numpy() * 180 / np.pi),
+                )
+
+                # save uv and wavelenght coordinates
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities_ucoord_observed.npy"), np.squeeze(u))
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities_vcoord_observed.npy"), np.squeeze(v))
+                np.save(os.path.join(self.dir0, self.dir, f"{name}_visibilities_wave_observed.npy"), np.squeeze(waveV2))
+
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_u1coord_observed.npy"), np.squeeze(u1)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_v1coord_observed.npy"), np.squeeze(v1)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_u2coord_observed.npy"), np.squeeze(u2)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_v2coord_observed.npy"), np.squeeze(v2)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_u3coord_observed.npy"), np.squeeze(u3)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_v3coord_observed.npy"), np.squeeze(v3)
+                )
+                np.save(
+                    os.path.join(self.dir0, self.dir, f"{name}_closure_phases_wave_observed.npy"), np.squeeze(waveCP)
+                )
+
                 # save individual loss values to numpy arrays
                 np.save(os.path.join(self.dir0, self.dir, f"{name}_visibility_loss.npy"), V2loss.numpy())
                 np.save(os.path.join(self.dir0, self.dir, f"{name}_closure_phase_loss.npy"), CPloss.numpy())
@@ -2000,6 +2061,25 @@ class Data:
         waveV2 = dataObj["wave"][0]
         waveCP = dataObj["wave"][1]
 
+        #print(f"Number of V2 points before NaN filtering: {np.size(np.unique(V2))}")
+        #print(f"Number of T3PHI points before NaN filtering: {np.size(np.unique(CP))}")
+
+        # v2dat, v2err, v2ufdat, v2vfdat, v2wavedat, v2_base = nan_filter_arrays(
+        #    v2dat, v2err, v2ufdat, v2vfdat, v2wavedat, v2_base, filter_ref=True
+        # )
+        # t3phidat, t3phierr, uf1dat, vf1dat, uf2dat, vf2dat, uf3dat, vf3dat, t3wavedat, t3_bmax = nan_filter_arrays(
+        #    t3phidat, t3phierr, uf1dat, vf1dat, uf2dat, vf2dat, uf3dat, vf3dat, t3wavedat, t3_bmax, filter_ref=True
+        # )
+
+        # filter arrays based on NaN value observables
+        V2, V2err, u, v, waveV2 = nan_filter_arrays(V2, V2err, u, v, waveV2, filter_ref=True)
+        CP, CPerr, u1, v1, u2, v2, u3, v3, waveCP = nan_filter_arrays(
+            CP, CPerr, u1, v1, u2, v2, u3, v3, waveCP, filter_ref=True
+        )
+
+        #print(f"Number of V2 points after NaN filtering: {np.size(np.unique(V2))}")
+        #print(f"Number of T3PHI points after NaN filtering: {np.size(np.unique(CP))}")
+
         # assign numpy arrays to class members
         self.nV2 = nV2
         self.nCP = nCP
@@ -2019,9 +2099,6 @@ class Data:
         self.v3 = v3
         self.target = data.target[0].target[0]
 
-        print(f"Number of unique V2 points: {np.size(np.unique(self.v2))}")
-        print(f"Number of unique T3PHI points: {np.size(np.unique(self.CP))}")
-
         # apply the bootstrap if asked for (needs to be in numpy arrays)
         if boot:
             (
@@ -2040,9 +2117,8 @@ class Data:
                 self.v2,
                 self.v3,
             ) = self.get_bootstrap()
-
-        print(f"Number of unique V2 points: {np.size(np.unique(self.v2))}")
-        print(f"Number of unique T3PHI points: {np.size(np.unique(self.CP))}")
+            #print(f"Number of unique V2 points after bootstrap: {np.size(np.unique(self.v2))}")
+            #print(f"Number of unique T3PHI points after bootstrap: {np.size(np.unique(self.CP))}")
 
         # cast to tensorflow tensors. Only do this at this stage, otherwise
         # the `get_bootstrap` function fails
@@ -2154,7 +2230,7 @@ class SPARCO:
     Parameters
     ----------
     wave0 : float, optional
-        Central wavelength at which flux ratios are defined.
+        Central wavelength at which flux ratios and spectral indices are defined.
     fstar : float, optional
         Primary flux contribution.
     dstar : float, optional
@@ -2171,11 +2247,16 @@ class SPARCO:
         Position of the secondary in mas.
     ysec : float, optional
         Position of the secondary in mas.
+    fbkg : float, optional
+        Overresolved background flux contribution.
+    dbkg : float, optional
+        Spectral index of overresolved background.
 
     Notes
     -----
     Currently only geared to describing binary stars, with a uniform diameter
-    primary and a point-source secondary.
+    primary and a point-source secondary, and the possible addition of an
+    overresolved background.
     """
 
     def __init__(
@@ -2186,9 +2267,11 @@ class SPARCO:
         denv=0.0,
         udstar=0.01,
         fsec=0.0,
-        dsec=-4,
+        dsec=-4.0,
         xsec=0.0,
         ysec=0.0,
+        fbkg=0.0,
+        dbkg=0.0,
     ):
         self.wave0 = wave0  # central wavelength at which flux ratio's are defined
         self.fstar = fstar  # primary flux contrib
@@ -2199,6 +2282,8 @@ class SPARCO:
         self.dsec = dsec  # spectral index of secondary
         self.xsec = xsec  # position of the secondary (primary is at 0 always)
         self.ysec = ysec
+        self.fbkg = fbkg  # flux contribution overresolved background
+        self.dbkg = dbkg  # spectral index of overresolved background
 
 
 # NOTE: Question to self: are the training images normalized first? How
@@ -2411,6 +2496,42 @@ class InputImages:
         newcube = (newcube[:, :, :, np.newaxis] - 0.5) * 2
 
         return newcube
+
+
+def nan_filter_arrays(ref_array, *args, filter_ref=False):
+    """
+    Filter arrays based on NaN values of reference array.
+
+    Parameters
+    ----------
+    ref_array : np.ndarray
+        Reference array based on whose values NaN filtering will occur.
+    *args : tuple(np.ndarray)
+        Extra arrays which will be filtered. Must have same shape as ref_array.
+    filter_ref : Bool
+        Whether to filter `ref_array` itself. `ref_array` is not filtered in place
+        but the filtered array is included in the returned tuple.
+
+    Returns
+    -------
+    filtered_arrays : tuple(np.ndarray)
+        Tuple of the filtered arrays in order, including the filtered reference array
+        if `filter_ref` flag is used.
+    """
+    nan_mask = np.isnan(ref_array)
+    non_nan_mask = ~nan_mask  # invert NaN mask
+
+    filtered_arrays = []  # convert to tuple later
+
+    if filter_ref:
+        filtered_arrays.append(ref_array[non_nan_mask])  # add filtered reference array
+
+    for target_array in args:
+        filtered_arrays.append(target_array[non_nan_mask])  # filter other arrays based on mask
+
+    filtered_arrays = tuple(filtered_arrays)  # cast to tuple
+
+    return filtered_arrays
 
 
 if "__main__" == __name__:
