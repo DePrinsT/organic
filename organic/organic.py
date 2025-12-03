@@ -738,7 +738,7 @@ class GAN:
 
         return img
 
-    def plot_image(self, img, name="image.png", chi2_label=""):
+    def plot_image(self, img, name="image.png", ldata_label=""):
         """
         Plot an image.
 
@@ -748,8 +748,8 @@ class GAN:
             Image to plot.
         name : str, optional
             Name of the saved image file.
-        chi2_label : str, optional
-            Chi2 label string to be added to the image.
+        ldata_label : str, optional
+            Data loss label string to be added to the image.
         """
         binary = False
         star_present = False
@@ -767,7 +767,7 @@ class GAN:
             plt.plot(0, 0, color="gold", marker="*")
         if binary:
             plt.plot(xb, yb, color="white", marker="x")
-        plt.text(0.9 * d, 0.9 * d, chi2_label, c="white")
+        plt.text(0.9 * d, 0.9 * d, ldata_label, c="white")
         plt.xlabel(r"$\Delta \alpha$ (mas)")
         plt.ylabel(r"$\Delta \delta$ (mas)")
         plt.tight_layout()
@@ -977,7 +977,7 @@ class GAN:
         ps : float, optional
             Pixel scale.
         use_low_cp_approx : bool, optional
-            Whether to use low closure phase approximation when calculating chi2.
+            Whether to use low closure phase approximation when calculating ldata.
         grid : bool, optional
             Whether to do a grid.
         diagnostics : bool, optional
@@ -993,7 +993,7 @@ class GAN:
         self.boot = boot  # whether to bootstrap in the first place
         self.nrestart = nrestart  # number of generator restarts to perform
         self.use_low_cp_approx = (
-            use_low_cp_approx  # whether to use low closure phase approximation when calculating chi2
+            use_low_cp_approx  # whether to use low closure phase approximation when calculating ldata
         )
         self.sparco = sparco  # SPARCO object containing geometrical model information
         self.grid = grid  # whether to do a grid, but this is just checked from whether the input contains lists below
@@ -1166,7 +1166,7 @@ class GAN:
         # lists to store loss terms across restarts
         # NOTE: DIS_LOSS_RESTARTS WILL HOLD the -log(D) TERM (i.e. discriminator loss not yet multiplied by the
         # appropriate regularization weight)
-        chi2_restarts, dis_loss_restarts = [], []
+        ldata_restarts, dis_loss_restarts = [], []
         imgs = []  # to store different images accross epochs
         vects = []  # to store different noise vectors
         num_iterations = range(params["nrestart"])  # number of iterations
@@ -1209,7 +1209,7 @@ class GAN:
             # the loop on epochs with one noise vector
             if self.diagnostics:  # keep track of diagnostics accross epochs if needed
                 dis_loss_epochs = []  # regularization loss term
-                chi2_epochs = []  # chi2 data loss term
+                ldata_epochs = []  # data loss term
             # iterate over epochs
             epochs = range(1, params["epochs"] + 1)
             for e in range(1, params["epochs"] + 1):
@@ -1217,11 +1217,11 @@ class GAN:
                 hist = self.gan.train_on_batch(noisevector, y_target)  # hist gives us the loss terms
                 # NOTE: HIST REGULATORY LOSS TERM IS NOT YET MULTIPLIED WITH THE APPROPRIATE REGULARIZATION WEIGHT
                 # hist[0] thus contains the total loss (regularization weight is taken into account here),
-                # hist[1] contains -log(D) (with D the discriminator output) and hist[2] the reduced chi2
+                # hist[1] contains -log(D) (with D the discriminator output) and hist[2] the reduced ldata
 
                 if self.diagnostics:  # add losses to diagnostics if needed
                     dis_loss_epochs.append(hist[1])  # note the losses are outputs
-                    chi2_epochs.append(hist[2])
+                    ldata_epochs.append(hist[2])
 
             img = self.get_image(noisevector)  # retrieve the image
             img = (img + 1) / 2  # remap the image to fall in the 0 to 1 range
@@ -1229,21 +1229,21 @@ class GAN:
             # estimation).
             img = img / np.sum(img)
             if self.diagnostics:
-                self.give_imgrec_diagnostics(hist, chi2_epochs, dis_loss_epochs, r, epochs, mu)
+                self.give_imgrec_diagnostics(hist, ldata_epochs, dis_loss_epochs, r, epochs, mu)
                 self.save_image_from_noise(
                     noisevector, name=os.path.join(self.dir0, self.dir, f"image_restart{r}.png")
                 )  # get an image from the noise vector and save at the correct spot
-            chi2_restarts.append(hist[2])  # data loss (chi2)
+            ldata_restarts.append(hist[2])  # data loss (ldata)
             dis_loss_restarts.append(hist[1])  # discriminator loss (-log(D) NOT multiplied by the weight)
             imgs.append(img[:, ::-1])  # append the image to the list of images
             vects.append(noisevector)  # append used noise vector to a list
 
         self.save_cube(
-            imgs, [chi2_restarts, dis_loss_restarts], name=os.path.join(self.dir0, self.dir, "cube.fits")
+            imgs, [ldata_restarts, dis_loss_restarts], name=os.path.join(self.dir0, self.dir, "cube.fits")
         )  # save images accross restarts to fits cube
         # save the median image and best fits images, both into plots and into fits files
-        self.save_images(imgs, [chi2_restarts, dis_loss_restarts])
-        self.plot_loss_evol(chi2_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
+        self.save_images(imgs, [ldata_restarts, dis_loss_restarts])
+        self.plot_loss_evol(ldata_restarts, dis_loss_restarts)  # plot and save the loss evolution accross restarts
 
     def save_images(self, images, losses):
         """
@@ -1276,7 +1276,7 @@ class GAN:
         self.plot_image(
             median_img,
             name=os.path.join(self.dir0, self.dir, "median_image.png"),
-            chi2_label=f"chi2={fdata_med:.2f} ; frgl={frgl_med:.2f} ; ftot={ftot_med:.2f}",
+            ldata_label=f"fdata={fdata_med:.2f} ; frgl={frgl_med:.2f} ; ftot={ftot_med:.2f}",
         )
         # save median image in a fits file
         self.image_to_fits(
@@ -1306,7 +1306,7 @@ class GAN:
         self.plot_image(
             img_best,
             name=os.path.join(self.dir0, self.dir, "best_image.png"),
-            chi2_label=f"chi2={fdata_best:.2f} ; frgl={frgl_best:.2f} ; ftot={ftot_best:.2f}",
+            ldata_label=f"fdata={fdata_best:.2f} ; frgl={frgl_best:.2f} ; ftot={ftot_best:.2f}",
         )
         # save best image to fits file
         self.image_to_fits(
@@ -1390,7 +1390,7 @@ class GAN:
         header["NRSTARTS"] = params["nrestart"]  # number of restarts
 
         header["FTOT"] = ftot  # total loss (i.e. data loss + weigth-multiplied regularization)
-        header["FDATA"] = fdata  # data loss (i.e. chi2)
+        header["FDATA"] = fdata  # data loss (i.e. ldata)
         header["FRGL"] = frgl  # regularization term (not multiplied by the regularization weight)
         header["MU"] = mu  # regularization weight
 
@@ -1399,23 +1399,23 @@ class GAN:
         hdul = fits.HDUList([prim_hdu])  # primary HDU is the only one to be added
         hdul.writeto(name, overwrite=True)  # write to file
 
-    def plot_loss_evol(self, chi2, dis_loss):
+    def plot_loss_evol(self, ldata, dis_loss):
         """
         Plot the loss evolution across restarts.
 
         Parameters
         ----------
-        chi2 : list
-            List of chi2 values.
+        ldata : list
+            List of data loss values.
         dis_loss : list
             List of discriminator loss values.
         """
         mu = self.params["mu"]  # regularization weight
 
         fig, ax = plt.subplots()
-        plt.plot(chi2, label="f_data")
+        plt.plot(ldata, label="f_data")
         plt.plot(mu * np.array(dis_loss), label="mu * f_discriminator")
-        plt.plot(np.array(chi2) + mu * np.array(dis_loss), label="f_tot")
+        plt.plot(np.array(ldata) + mu * np.array(dis_loss), label="f_tot")
         plt.legend()
         plt.xlabel("#restart")
         plt.ylabel("Losses")
@@ -1505,7 +1505,7 @@ class GAN:
 
         headermetrics = fits.Header()  # create header for the metrics extension
         headermetrics["TTYPE1"] = "FTOT"  # total loss (i.e. data loss + weigth-multiplied regularization)
-        headermetrics["TTYPE2"] = "FDATA"  # data loss (i.e. chi2)
+        headermetrics["TTYPE2"] = "FDATA"  # data loss (i.e. ldata)
         headermetrics["TTYPE3"] = "FRGL"  # regularization term (not multiplied by the weight)
         headermetrics["MU"] = mu  # regularization weight
 
@@ -1573,7 +1573,7 @@ class GAN:
         self.plot_image(
             median_img_filtered,
             name=os.path.join(save_dir, "median_image_filtered.png"),
-            chi2_label=f"chi2={fdata_median_filtered:.2f} ; frgl={frgl_median_filtered:.2f} "
+            ldata_label=f"fdata={fdata_median_filtered:.2f} ; frgl={frgl_median_filtered:.2f} "
             + f"; ftot={ftot_median_filtered:.2f}",
         )
         # save filtered median image in a fits file
@@ -1590,7 +1590,7 @@ class GAN:
             img_cube_filtered, [fdata_filtered, frgl_filtered], name=os.path.join(save_dir, "cube_filtered.fits")
         )
 
-    def give_imgrec_diagnostics(self, hist, chi2, discloss, r, epochs, mu):
+    def give_imgrec_diagnostics(self, hist, ldata, discloss, r, epochs, mu):
         """
         Print and save the plots of the diagnostics across epochs for every restart.
 
@@ -1598,8 +1598,8 @@ class GAN:
         ----------
         hist : list
             List of loss values.
-        chi2 : list
-            List of chi2 values.
+        ldata : list
+            List of data loss values.
         discloss : list
             List of discriminator loss values.
         r : int
@@ -1614,9 +1614,9 @@ class GAN:
         # print(type(discloss))
         # print(discloss)  # print the discriminator loss
         fig, ax = plt.subplots()
-        plt.plot(epochs, chi2, label="f_data")
+        plt.plot(epochs, ldata, label="f_data")
         plt.plot(epochs, mu * np.array(discloss), label="mu * f_discriminator")
-        plt.plot(epochs, np.array(chi2) + mu * np.array(discloss), label="f_tot")
+        plt.plot(epochs, np.array(ldata) + mu * np.array(discloss), label="f_tot")
         plt.legend()
         plt.xlabel("\#epochs")
         plt.ylabel("Losses")
@@ -1697,10 +1697,21 @@ class GAN:
 
         # plots a comperison between observations and observables of the reconstruction,as well as the uv coverage
         def plot_observables_comparison(V2generated, V2observed, V2err, CPgenerated, CPobserved, CPerr, name=""):
-            # put closure phases from radiand to degrees
-            CPgenerated *= 180 / np.pi
-            CPobserved *= 180 / np.pi
-            CPerr *= 180 / np.pi
+            DEG2RAD = np.pi / 180
+            RAD2DEG = 1 / DEG2RAD
+
+            # Cast closure phases to numpy for modulo residual calculation
+            CPobserved_np = CPobserved.numpy()
+            CPgenerated_np = CPgenerated.numpy()
+            CPerr_np = CPerr.numpy()
+
+            # put closure phases from radians to degrees
+            CPgenerated_np *= RAD2DEG
+            CPobserved_np *= RAD2DEG
+            CPerr_np *= RAD2DEG
+
+            # Calculate residual but accounting for phase modulo (i.e. in form of phasors)
+            CPresiduals = np.angle(np.exp(1j * (CPobserved_np - CPgenerated_np[0]) * DEG2RAD)) * RAD2DEG
 
             # plot uv coverage
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -1774,10 +1785,10 @@ class GAN:
                 ax[0].set_yscale("log")
             ax[0].set_ylabel(r"$V^2$")
             # for residuals
-            residuals = (V2observed - V2generated[0]) / V2err
+            norm_residuals = (V2observed - V2generated[0]) / V2err
             sc = ax[1].scatter(
                 absB,
-                residuals,
+                norm_residuals,
                 c=np.real(waveV2) * 1e6,
                 marker="o",
                 s=12,
@@ -1790,7 +1801,7 @@ class GAN:
             clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
             ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
             ax[1].set_xlim(0, np.max(absB) * 1.05)
-            ax[1].set_ylim(-np.ceil(np.max(np.abs(residuals))) - 1, np.ceil(np.max(np.abs(residuals))) + 1)
+            ax[1].set_ylim(-np.ceil(np.max(np.abs(norm_residuals))) - 1, np.ceil(np.max(np.abs(norm_residuals))) + 1)
             ax[1].set_xlabel(r"$B$ ($\mathrm{M \lambda}$)")
             ax[1].set_ylabel(r"$\sigma$")
             plt.savefig(
@@ -1813,8 +1824,8 @@ class GAN:
             # for observations
             ax[0].errorbar(
                 maxB,
-                CPobserved,
-                CPerr,
+                CPobserved_np,
+                CPerr_np,
                 ecolor="blue",
                 marker="o",
                 markerfacecolor="white",
@@ -1830,7 +1841,7 @@ class GAN:
             # for reconstructed image
             ax[0].scatter(
                 maxB,
-                CPgenerated[0],
+                CPobserved_np - CPresiduals,
                 marker=".",
                 c="black",
                 linewidth=0.7,
@@ -1841,13 +1852,16 @@ class GAN:
             )
             ax[0].axhline(y=1, c="k", ls="--", lw=1, zorder=0)
             ax[0].tick_params(axis="x", direction="in", pad=-15)
-            ax[0].set_ylim(1.05 * -np.max(np.abs(CPobserved)), 1.05 * np.max(np.abs(CPobserved)))
+            ax[0].set_ylim(
+                1.05 * -np.max(np.maximum(np.abs(CPobserved_np - CPresiduals), np.abs(CPobserved_np))),
+                1.05 * np.max(np.maximum(np.abs(CPobserved_np - CPresiduals), np.abs(CPobserved_np))),
+            )
             ax[0].set_ylabel(r"$\phi 3$ $(^\circ)$")
             # for residuals
-            residuals = (CPobserved - CPgenerated[0]) / CPerr
+            norm_residuals = CPresiduals / CPerr_np
             sc = ax[1].scatter(
                 maxB,
-                residuals,
+                norm_residuals,
                 c=np.real(waveCP) * 1e6,
                 marker="o",
                 s=12,
@@ -1860,7 +1874,7 @@ class GAN:
             clb.set_label(r"$\lambda$ ($\mu$m)", labelpad=5)
             ax[1].axhline(y=0, c="k", ls="--", lw=1, zorder=0)
             ax[1].set_xlim(0, np.max(maxB) * 1.05)
-            ax[1].set_ylim(-np.ceil(np.max(np.abs(residuals))) - 1, np.ceil(np.max(np.abs(residuals))) + 1)
+            ax[1].set_ylim(-np.ceil(np.max(np.abs(norm_residuals))) - 1, np.ceil(np.max(np.abs(norm_residuals))) + 1)
             ax[1].set_xlabel(r"$B_{max}$ ($\mathrm{M \lambda}$)")
             ax[1].set_ylabel(r"$\sigma$")
             plt.savefig(
@@ -2061,8 +2075,8 @@ class Data:
         waveV2 = dataObj["wave"][0]
         waveCP = dataObj["wave"][1]
 
-        #print(f"Number of V2 points before NaN filtering: {np.size(np.unique(V2))}")
-        #print(f"Number of T3PHI points before NaN filtering: {np.size(np.unique(CP))}")
+        # print(f"Number of V2 points before NaN filtering: {np.size(np.unique(V2))}")
+        # print(f"Number of T3PHI points before NaN filtering: {np.size(np.unique(CP))}")
 
         # v2dat, v2err, v2ufdat, v2vfdat, v2wavedat, v2_base = nan_filter_arrays(
         #    v2dat, v2err, v2ufdat, v2vfdat, v2wavedat, v2_base, filter_ref=True
@@ -2077,8 +2091,8 @@ class Data:
             CP, CPerr, u1, v1, u2, v2, u3, v3, waveCP, filter_ref=True
         )
 
-        #print(f"Number of V2 points after NaN filtering: {np.size(np.unique(V2))}")
-        #print(f"Number of T3PHI points after NaN filtering: {np.size(np.unique(CP))}")
+        # print(f"Number of V2 points after NaN filtering: {np.size(np.unique(V2))}")
+        # print(f"Number of T3PHI points after NaN filtering: {np.size(np.unique(CP))}")
 
         # assign numpy arrays to class members
         self.nV2 = nV2
@@ -2117,8 +2131,8 @@ class Data:
                 self.v2,
                 self.v3,
             ) = self.get_bootstrap()
-            #print(f"Number of unique V2 points after bootstrap: {np.size(np.unique(self.v2))}")
-            #print(f"Number of unique T3PHI points after bootstrap: {np.size(np.unique(self.CP))}")
+            # print(f"Number of unique V2 points after bootstrap: {np.size(np.unique(self.v2))}")
+            # print(f"Number of unique T3PHI points after bootstrap: {np.size(np.unique(self.CP))}")
 
         # cast to tensorflow tensors. Only do this at this stage, otherwise
         # the `get_bootstrap` function fails
