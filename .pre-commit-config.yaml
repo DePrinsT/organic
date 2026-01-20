@@ -1,0 +1,24 @@
+repos:
+  # run Ruff linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff-format # formatter
+        types_or: [python, pyi, jupyter, toml]
+      - id: ruff-check # linter
+        types_or: [python, pyi, jupyter, toml]
+        args: [--fix]
+  # run pyright LSP before commit
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.407
+    hooks:
+      - id: pyright
+        # should contain the main dependencies for /src and /tests
+        additional_dependencies:
+          [
+            jax,
+            equinox,
+            numpy,
+            astropy,
+            matplotlib,
+          ]
