@@ -33,21 +33,26 @@ dependencies = [
   "numpy",
   "astropy",
   "matplotlib",
+  "jaxtyping",
+  "albumentationsx[headless]",
 ]
 
 # optional dependencies, including for GPU support, development, etc.
 [project.optional-dependencies]
-# this pulls in jaxlib with CUDA 13 support to run on GPU
 cuda = [
   "jax[cuda13]", 
 ]
-# additional dependencies for development
 dev = [
   "pre-commit",  # pre-commit hooks for linting
   "pytest",  # testing
   "jupyterlab",  # notebook support
   "ipykernel",
   "ipympl",  # interactive plots in notebooks (widget backend)
+]
+docs = [
+  "mkdocs-material",
+  "mkdocstrings",
+  "mkdocstrings-python",
 ]
 
 # project URLs -> these will appear in project links section on PyPI
@@ -102,5 +107,6 @@ organic-imgrec = { path = ".", editable = true }
 default = { solve-group = "default" }
 cuda = { features = ["cuda"], solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
 
 [tool.pixi.tasks]

@@ -21,4 +21,6 @@ repos:
             numpy,
             astropy,
             matplotlib,
+            jaxtyping,
+            "albumentationsx[headless]",
           ]
