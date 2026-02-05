@@ -150,17 +150,17 @@ A small example script can be found in `examples/img_rec_example.py` in the ORGA
 > correspond to the geometric center of the image. If the image has an even amount of 
 > pixels (as is the case in the ORGANIC image reconstructions), this would be on the
 > vertex between the central our pixels. This is however not the case in ORGANIC, where 
-> due to API reasons the phase centre is instead defined half a pixel up and to the
+> due to API reasons the phase center is instead defined half a pixel up and to the
 > left of this vertex. This means the FOV of an ORGANIC image is not symmetric w.r.t.
 > the point `(0, 0)`, but is instead slightly larger on the negative ends (westward and
 > southward). If you do not take this into account you might make errors in the
 > plotting of SPARCO components' positions relative to the ORGANIC image.
 > Take this discrepancy into account when directly comparing ORGANIC+SPARCO runs
 > to image reconstructions of other codes, where `(x, y) = (0, 0)` might instead be
-> defined as the geometric centre of the image.
+> defined as the geometric center of the image.
 > For convenience, we provide the function `img_get_sky_coordinates`, which when
 > given an image and pixelscale correctly calculates the sky positions of the image 
-> pixel centres (x being positive towards the east/left, y being postive towards the 
+> pixel centers (x being positive towards the east/left, y being postive towards the 
 > north/top). This can then be used to correctly plot the image, e.g.:
 
 ```python
@@ -170,7 +170,7 @@ xcoords, ycoords = org.img_get_sky_coordinates(img, ps=ps)
 fig, ax = plt.subplots(1, 1)
 
 # Note we have to add half pixels to each edge to get the extent keyword correct.
-# This is because `img_get_sky_coordinates` gives the coordinates of the pixel centres,
+# This is because `img_get_sky_coordinates` gives the coordinates of the pixel centers,
 # not of their edges, and it is the edges of the outermost pixels that defines the FOV.
 ax.imshow(img,
   extent = (
