@@ -81,6 +81,8 @@ Set the paths and name of the neural network discriminator (`dis`) and generator
 There is a pretrained network for disks as seen in the near-infrared (in the `theGANextended2/saved_models` folder).
 
 ```python
+import organic.organic as org
+
 thegan = org.GAN(dis=dis, gen=gen, adam_lr=0.0001, adam_beta1=0.91, amsgrad=True)
 ```
 
@@ -141,6 +143,45 @@ creating folders for each combination of parameters with the value of the parame
 in the name of the folder.
 
 A small example script can be found in `examples/img_rec_example.py` in the ORGANIC project directory.
+
+> [!WARNING]
+> Be careful in the interpretation of the images' coordinates. At first sight, it
+> might seem that the point `(x, y) = (0, 0)`, which is also the phase center, might 
+> correspond to the geometric center of the image. If the image has an even amount of 
+> pixels (as is the case in the ORGANIC image reconstructions), this would be on the
+> vertex between the central our pixels. This is however not the case in ORGANIC, where 
+> due to API reasons the phase centre is instead defined half a pixel up and to the
+> left of this vertex. This means the FOV of an ORGANIC image is not symmetric w.r.t.
+> the point `(0, 0)`, but is instead slightly larger on the negative ends (westward and
+> southward). If you do not take this into account you might make errors in the
+> plotting of SPARCO components' positions relative to the ORGANIC image.
+> Take this discrepancy into account when directly comparing ORGANIC+SPARCO runs
+> to image reconstructions of other codes, where `(x, y) = (0, 0)` might instead be
+> defined as the geometric centre of the image.
+> For convenience, we provide the function `img_get_sky_coordinates`, which when
+> given an image and pixelscale correctly calculates the sky positions of the image 
+> pixel centres (x being positive towards the east/left, y being postive towards the 
+> north/top). This can then be used to correctly plot the image, e.g.:
+
+```python
+ps = 0.5 # pixelscale 0.5 mas
+xcoords, ycoords = org.img_get_sky_coordinates(img, ps=ps)
+
+fig, ax = plt.subplots(1, 1)
+
+# Note we have to add half pixels to each edge to get the extent keyword correct.
+# This is because `img_get_sky_coordinates` gives the coordinates of the pixel centres,
+# not of their edges, and it is the edges of the outermost pixels that defines the FOV.
+ax.imshow(img,
+  extent = (
+    np.max(xcoords) + ps / 2,
+    np.min(xcoords) - ps / 2,
+    np.min(ycoords) - ps / 2,
+    np.max(ycoords) + ps / 2,
+  )
+)
+plt.show()
+```
 
 # Training the neural network (under development)
 
