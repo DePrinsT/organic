@@ -21,7 +21,7 @@ theme:
   palette:
       # Light mode / dark mode
       - scheme: default
-        primary: black
+        primary: teal
         accent: amber
         toggle:
             icon: material/weather-night
@@ -36,3 +36,6 @@ theme:
 
 extra_css:
     - stylesheets/custom_style.css
+
+plugins:
+    - mkdocstrings
