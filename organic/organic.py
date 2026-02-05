@@ -753,7 +753,8 @@ class GAN:
         """
         binary = False
         star_present = False
-        d = self.params["ps"] * self.npix / 2.0
+        ps = self.params["ps"]
+        d = ps * self.npix / 2.0
         if self.params["fsec"] > 0:
             binary = True
             xb = self.params["xsec"]
@@ -762,7 +763,15 @@ class GAN:
             star_present = True
 
         fig, ax = plt.subplots()
-        plt.imshow(img[::-1, :], extent=(d, -d, -d, d), cmap="inferno")  # note that the x axis is flipped here
+
+        # NOTE: have to correct sky coordinates for half-pixel offset to the top-left
+        # of the phase center (x,y) = (0,0) relative to the geometric center of the
+        # image. The FOV is not symmetric around the (x,y) = (0,0) position, instead
+        # being half a pixel larger towards the bottom and towards the right for
+        # even images.
+        plt.imshow(
+            img[::-1, :], extent=(d - ps / 2, -d - ps / 2, -d - ps / 2, d - ps / 2), cmap="inferno"
+        )  # note that the x axis is flipped here
         if star_present:
             plt.plot(0, 0, color="gold", marker="*")
         if binary:
@@ -1235,7 +1244,7 @@ class GAN:
                 )  # get an image from the noise vector and save at the correct spot
             ldata_restarts.append(hist[2])  # data loss (ldata)
             dis_loss_restarts.append(hist[1])  # discriminator loss (-log(D) NOT multiplied by the weight)
-            imgs.append(img[:, ::-1])  # append the image to the list of images
+            imgs.append(img[:, ::-1])  # append the image to the list of images -> NOTE: WHY IS THE X-axis SWITCHED HERE
             vects.append(noisevector)  # append used noise vector to a list
 
         self.save_cube(
@@ -1937,7 +1946,10 @@ class GAN:
             y_pred = (y_pred + 1) / 2  # NOTE: remaps the image into the 0 to 1 interval to get positive pixel fluxes
             y_pred = tf.cast((y_pred), tf.complex128)
             y_pred = tf.signal.ifftshift(y_pred, axes=(1, 2))
-            ftImages = tf.signal.fft2d(y_pred)  # is complex!!
+
+            tf.print("Shape of 'y_pred' (tf.print):", y_pred.shape)  # TODO: remove
+
+            ftImages = tf.signal.fft2d(y_pred)  # is complex, and is applied to the innermost axes (the image ones)!!
             ftImages = tf.signal.fftshift(ftImages, axes=(1, 2))
 
             coordsMax = [[[[0, int(npix / 2), int(npix / 2)]]]]
@@ -2546,6 +2558,58 @@ def nan_filter_arrays(ref_array, *args, filter_ref=False):
     filtered_arrays = tuple(filtered_arrays)  # cast to tuple
 
     return filtered_arrays
+
+
+def img_get_sky_coordinates(img: np.ndarray, *, ps: float):
+    r"""Calculate the interferometric sky coordinates from a 2D image
+
+    Note that this returns the coordinates of the centers of the pixels, not of the
+    edges. The origin point $(x, y) = (0, 0)$ (which is also the phase center of the
+    Fourier transform). For even images, the phase center is located half a pixel up
+    and to the left of the  geometric center of the image. Note that this is strictly
+    a ORGANIC convention, not shared by other codes like SQUEEZE.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        The image to calculate coordinates for. Should be a 2D image.
+    ps : float
+        The pixelscale of the image in $\mathrm{mas / pix}$.
+
+    Returns
+    -------
+    x : np.ndarray
+        A 1D array with the x-coordinates in $\mathrm{mas}$.
+    y : np.ndarray
+        A 1D array with the x-coordinates in $\mathrm{mas}$."""
+
+    # NOTE: take care with the dimension axis convention of numpy versus that of optical
+    # interferometry. For numpy, the y direction is the first index, the x direction
+    # the second.
+    nx, ny = img.shape[1], img.shape[0]  # number of pixels
+
+    # Calculate on-sky coordinates of pixel centers.
+
+    # NOTE: take care with the coordinate convention of optical interferometry. The
+    # x-coordinate is defined from right to left in the image (from west to east), and
+    # the y-coordinate from bottom to top (south to north). The formulation below works
+    # for both uneven and even amounts of pixels in either dimension (one can also be
+    # even and the other uneven).
+    j = np.arange(nx)
+    i = np.arange(ny)
+
+    x = -(j - (nx - 1) / 2) * ps
+    y = ((ny - 1) / 2 - i) * ps
+
+    # NOTE: this is a correction, for even pixel dimensions, the ORGANIC phase center
+    # is offset by half a pixel to the top-left relative to the geometric middle of the
+    # image. This is a result of the tensorflow FFT API.
+    if nx % 2 == 0:
+        x -= ps / 2
+    if ny % 2 == 0:
+        y -= ps / 2
+
+    return x, y
 
 
 if "__main__" == __name__:

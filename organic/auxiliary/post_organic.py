@@ -218,7 +218,7 @@ class Cube:
             img = best[i, :, :]
             hdu = fits.PrimaryHDU(img, header=hdr)
             hdul = fits.HDUList([hdu])
-            hdul.writeto(os.path.join(self.dir, f"best_image{i+1}.fits"), overwrite=True)
+            hdul.writeto(os.path.join(self.dir, f"best_image{i + 1}.fits"), overwrite=True)
 
     # function to plot the n best images
     def plot_best(self):
@@ -241,10 +241,18 @@ class Cube:
         for i in np.arange(nbest):
             ax = axs[indrow[i], indcols[i]]
             image = np.array(best[i, ::-1, :])  # NOTE: fukin flip the image again due to numpy vs FITS convention
-            ax.imshow(image, extent=(d, -d, -d, d), cmap="inferno")
-            ax.set_xlim(d, -d)
+
+            # NOTE: have to correct sky coordinates for half-pixel offset to the top-left
+            # of the phase center (x,y) = (0,0) relative to the geometric center of the
+            # image. The FOV is not symmetric around the (x,y) = (0,0) position, instead
+            # being half a pixel larger towards the bottom and towards the right for
+            # even images.
+            ax.imshow(
+                image, extent=(d - self.ps / 2, -d - self.ps / 2, -d - self.ps / 2, d - self.ps / 2), cmap="inferno"
+            )
+            ax.set_xlim(d - self.ps / 2, -d - self.ps / 2)
             ax.text(0.8 * d, 0.8 * d, f"chi2={fdata[i]:2.2f}", color="white", size=9)
-            ax.set_title(f"Best model {i+1}")
+            ax.set_title(f"Best model {i + 1}")
             if indcols[i] == 0:
                 ax.set_xlabel(r"$\Delta \alpha$ (mas)")
             if indrow[i] == indrow[-1]:
@@ -357,8 +365,12 @@ class Cube:
         fig, axs = plt.subplots(ncols=self.nkmeans, sharey=True)
         d = self.d
         for ax, i in zip(axs, np.arange(self.nkmeans)):
-            ax.imshow(images[i, ::-1, :], extent=(d, -d, -d, d), cmap="inferno")
-            ax.set_xlim(d, -d)
+            ax.imshow(
+                images[i, ::-1, :],
+                extent=(d - self.ps / 2, -d - self.ps / 2, -d - self.ps / 2, d - self.ps / 2),
+                cmap="inferno",
+            )
+            ax.set_xlim(d - self.ps / 2, -d - self.ps / 2)
             ax.set_title(f"{i}: {self.counts[i]} images")
             ax.set_xlabel(r"$\Delta \alpha$ (mas)")
             ax.set_ylabel(r"$\Delta \delta$ (mas)")
