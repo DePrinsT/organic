@@ -761,6 +761,8 @@ class GAN:
             yb = self.params["ysec"]
         if self.params["fstar"] > 0:
             star_present = True
+            xstar = self.params["xstar"]
+            ystar = self.params["ystar"]
 
         fig, ax = plt.subplots()
 
@@ -773,9 +775,11 @@ class GAN:
             img[::-1, :], extent=(d - ps / 2, -d - ps / 2, -d - ps / 2, d - ps / 2), cmap="inferno"
         )  # note that the x axis is flipped here
         if star_present:
-            plt.plot(0, 0, color="gold", marker="*")
+            plt.plot(xstar, ystar, color="gold", marker="*")
         if binary:
-            plt.plot(xb, yb, color="white", marker="x")
+            plt.plot(xb, yb, color="lime", marker="x")
+        plt.axvline(0, lw=0.5, c="white", ls="--")
+        plt.axhline(0, lw=0.5, c="white", ls="--")
         plt.text(0.9 * d, 0.9 * d, ldata_label, c="white")
         plt.xlabel(r"$\Delta \alpha$ (mas)")
         plt.ylabel(r"$\Delta \delta$ (mas)")
@@ -959,6 +963,7 @@ class GAN:
         diagnostics=False,
         name="",
         overwrite=False,
+        synth_obs_dir=None,
     ):
         """
         Master image reconstruction function.
@@ -995,6 +1000,12 @@ class GAN:
             Directory name under which to store everything.
         overwrite : bool
             Whether or not to overwrite existing files.
+        synth_obs_dir: str
+            Path to a directory where synthetic V2 and T3PHI observations are stored in
+            numpy `.npy` files. This will override the `data_files` and `data_dir`
+            parameters, essentially hijacking the image reconstruction routine to treat
+            these synthetic data as real observations.
+
         """
         self.mu = mu  # regularization weight
         self.epochs = epochs  # number of epochs (single gradient descent steps) during a single reconsturction
@@ -1007,7 +1018,7 @@ class GAN:
         self.sparco = sparco  # SPARCO object containing geometrical model information
         self.grid = grid  # whether to do a grid, but this is just checked from whether the input contains lists below
         # create a Data object to contain the OI data, with bootstrapped data if asked for
-        self.data = Data(data_dir, data_files, boot=self.boot)
+        self.data = Data(data_dir, data_files, boot=self.boot, synth_obs_dir=synth_obs_dir)
         self.diagnostics = diagnostics  # whether to print out diagnostic plots for every epoch
         self.dir0 = name  # directory name under which to store everything
         self.dirorig = os.getcwd()
@@ -1032,6 +1043,8 @@ class GAN:
             "use_low_cp_approx": self.use_low_cp_approx,
             "fstar": sparco.fstar,
             "dstar": sparco.dstar,
+            "xstar": sparco.xstar,
+            "ystar": sparco.ystar,
             "denv": sparco.denv,
             "udstar": sparco.udstar,
             "fsec": sparco.fsec,
@@ -1114,7 +1127,7 @@ class GAN:
                 os.makedirs(os.path.join(self.dir0, self.dir))
             else:
                 if not overwrite:
-                    fail("The following folder already exists: {self.dir0, self.dir)}")
+                    fail(f"The following folder already exists: {self.dir0, self.dir}")
                     fail("Please define another folder by changing the name keyword")
                     fail("in the image_reconstruction command")
                     sys.exit(1)
@@ -1151,7 +1164,7 @@ class GAN:
             os.makedirs(os.path.join(self.dir0, self.dir))
         else:
             if not overwrite:
-                fail("The following folder already exists: {self.dir0, self.dir)}")
+                fail(f"The following folder already exists: {self.dir0, self.dir}")
                 fail("Please define another folder by changing the name keyword")
                 fail("in the image_reconstruction command")
                 sys.exit(1)
@@ -1378,8 +1391,8 @@ class GAN:
         header["SMOD1"] = ("UD", "model for the primary")  # model for the primary, `UD` stands for a uniform disk model
         header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")  # flux ratio contribution of primary
         header["SPEC1"] = "pow"  # spectrum type used for primary, i.e. power law
-        header["SDEX1"] = (0, "dRA Position of primary")  # X position of primary
-        header["SDEY1"] = (0, "dDEC position of primary")  # Y position of primary
+        header["SDEX1"] = (params["xstar"], "dRA Position of primary")  # X position of primary
+        header["SDEY1"] = (params["ystar"], "dDEC position of primary")  # Y position of primary
         header["SIND1"] = (params["dstar"], "Spectral index of primary")  # spectral index of primary
         header["SUD1"] = (params["udstar"], "UD diameter of primary")  # uniform diameter of primary
 
@@ -1482,8 +1495,8 @@ class GAN:
         header["SMOD1"] = ("UD", "model for the primary")
         header["SFLU1"] = (params["fstar"], "SPARCO flux ratio of primary")
         header["SPEC1"] = "pow"
-        header["SDEX1"] = (0, "dRA Position of primary")
-        header["SDEY1"] = (0, "dDEC position of primary")
+        header["SDEX1"] = (params["xstar"], "dRA Position of primary")
+        header["SDEY1"] = (params["ystar"], "dDEC position of primary")
         header["SIND1"] = (params["dstar"], "Spectral index of primary")
         header["SUD1"] = (params["udstar"], "UD diameter of primary")
 
@@ -1652,7 +1665,7 @@ class GAN:
         """
         data = self.data  # retrieve data object
 
-        # if bootstrapping, resample the data
+        # if bootstrapping, this returns resampled data data
         V2, V2e, CP, CPe, waveV2, waveCP, u, u1, u2, u3, v, v1, v2, v3 = data.get_data()
 
         params = self.params
@@ -1663,6 +1676,8 @@ class GAN:
         fsec = params["fsec"]
         ud = params["udstar"] * MAS2RAD  # put uniform diameter in radian
         dstar = params["dstar"]
+        xstar = params["xstar"] * MAS2RAD  # put positions in radian
+        ystar = params["ystar"] * MAS2RAD  # put positions in radian
         denv = params["denv"]
         dsec = params["dsec"]
         xsec = params["xsec"] * MAS2RAD  # put positions in radian
@@ -1900,6 +1915,9 @@ class GAN:
             # which is a uniform disk, so the ft is....
             radii = np.pi * ud * np.sqrt(ufunc**2 + vfunc**2)
             ftPrimary = tf.constant(2 * sp.jv(1, radii) / (radii), dtype=tf.complex128)
+            # phase shift offset for the primary
+            ftPrimary *= off_center_point_ft(xstar, ystar, ufunc, vfunc)
+
             # see extra function
             ftSecondary = off_center_point_ft(xsec, ysec, ufunc, vfunc)
             # get the total visibility amplitudes using bilinear interpolation
@@ -1946,8 +1964,6 @@ class GAN:
             y_pred = (y_pred + 1) / 2  # NOTE: remaps the image into the 0 to 1 interval to get positive pixel fluxes
             y_pred = tf.cast((y_pred), tf.complex128)
             y_pred = tf.signal.ifftshift(y_pred, axes=(1, 2))
-
-            tf.print("Shape of 'y_pred' (tf.print):", y_pred.shape)  # TODO: remove
 
             ftImages = tf.signal.fft2d(y_pred)  # is complex, and is applied to the innermost axes (the image ones)!!
             ftImages = tf.signal.fftshift(ftImages, axes=(1, 2))
@@ -2058,14 +2074,17 @@ class Data:
         Data file.
     boot : bool
         Whether to take a bootstrapped sample of the data being read in.
+    synth_obs_dir: str
+        Path to a directory where synthetic V2 and T3PHI observations are stored in
+        numpy `.npy` files.
     """
 
-    def __init__(self, dir, file, boot):
+    def __init__(self, dir, file, boot, *, synth_obs_dir=None):
         self.dir = dir
         self.file = file
-        self.read_data(boot=boot)
+        self.read_data(boot=boot, synth_obs_dir=synth_obs_dir)
 
-    def read_data(self, boot=False):
+    def read_data(self, boot=False, synth_obs_dir=None):
         """
         Read the data from the file.
 
@@ -2105,6 +2124,26 @@ class Data:
 
         # print(f"Number of V2 points after NaN filtering: {np.size(np.unique(V2))}")
         # print(f"Number of T3PHI points after NaN filtering: {np.size(np.unique(CP))}")
+
+        # .npy read-in mode to hijack data with synthetic observables.
+        if synth_obs_dir is not None:
+            V2 = np.load(os.path.join(synth_obs_dir, "V2.npy"))
+            nV2 = np.size(V2)
+            V2err = np.load(os.path.join(synth_obs_dir, "V2err.npy"))
+            waveV2 = np.load(os.path.join(synth_obs_dir, "waveV2.npy"))
+            u = np.load(os.path.join(synth_obs_dir, "u.npy"))
+            v = np.load(os.path.join(synth_obs_dir, "v.npy"))
+
+            CP = np.load(os.path.join(synth_obs_dir, "CP.npy"))
+            nCP = np.size(CP)
+            CPerr = np.load(os.path.join(synth_obs_dir, "CPerr.npy"))
+            waveCP = np.load(os.path.join(synth_obs_dir, "waveCP.npy"))
+            u1 = np.load(os.path.join(synth_obs_dir, "u1.npy"))
+            v1 = np.load(os.path.join(synth_obs_dir, "v1.npy"))
+            u2 = np.load(os.path.join(synth_obs_dir, "u2.npy"))
+            v2 = np.load(os.path.join(synth_obs_dir, "v2.npy"))
+            u3 = np.load(os.path.join(synth_obs_dir, "u3.npy"))
+            v3 = np.load(os.path.join(synth_obs_dir, "v3.npy"))
 
         # assign numpy arrays to class members
         self.nV2 = nV2
@@ -2259,6 +2298,10 @@ class SPARCO:
         Central wavelength at which flux ratios and spectral indices are defined.
     fstar : float, optional
         Primary flux contribution.
+    xstar : float, optional
+        Position of the primary in mas.
+    ystar : float, optional
+        Position of the primary in mas.
     dstar : float, optional
         Spectral index of primary.
     denv : float, optional
@@ -2290,6 +2333,8 @@ class SPARCO:
         wave0=1.65e-6,
         fstar=0.6,
         dstar=-4.0,
+        xstar=0.0,
+        ystar=0.0,
         denv=0.0,
         udstar=0.01,
         fsec=0.0,
@@ -2301,12 +2346,14 @@ class SPARCO:
     ):
         self.wave0 = wave0  # central wavelength at which flux ratio's are defined
         self.fstar = fstar  # primary flux contrib
+        self.xstar = xstar  # position of the primary star
+        self.ystar = ystar
         self.dstar = dstar  # spectral index of primary
         self.denv = denv  # spectral index of reconstructed environment
         self.udstar = udstar  # uniform diameter of primary in mas
         self.fsec = fsec  # flux contrib of secondary
         self.dsec = dsec  # spectral index of secondary
-        self.xsec = xsec  # position of the secondary (primary is at 0 always)
+        self.xsec = xsec  # position of the secondary
         self.ysec = ysec
         self.fbkg = fbkg  # flux contribution overresolved background
         self.dbkg = dbkg  # spectral index of overresolved background
