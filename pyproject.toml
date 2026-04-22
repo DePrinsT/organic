@@ -41,7 +41,7 @@ dependencies = [
 # Optional dependencies, including for GPU support, development, etc. .
 [project.optional-dependencies]
 cuda = [
-  "jax[cuda13]",   # NIVIDA GPU-enabled version of JAX.
+  "jax[cuda12]",   # NIVIDA GPU-enabled version of JAX.
 ]
 dev = [
   "pre-commit",  # Pre-commit hooks for linting.
