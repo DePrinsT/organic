@@ -17,7 +17,7 @@ maintainers = [
 description = 'A package for image reconstuction in astronomical optical interferometry using generative adversarial networks.'
 readme = "README.md"
 license = {file = "LICENSE"} 
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
@@ -29,7 +29,7 @@ classifiers = [
 
 # General PyPI dependencies required for package installation.
 dependencies = [
-  "jax",
+  "jax >= 0.8",
   "equinox",
   "numpy",
   "astropy",
@@ -41,7 +41,7 @@ dependencies = [
 # Optional dependencies, including for GPU support, development, etc. .
 [project.optional-dependencies]
 cuda = [
-  "jax[cuda12]",   # NIVIDA GPU-enabled version of JAX.
+  "jax[cuda12]; sys_platform == 'linux'",   # NIVIDA GPU-enabled version of JAX.
 ]
 dev = [
   "pre-commit",  # Pre-commit hooks for linting.
@@ -101,14 +101,14 @@ docstring-code-format = true  # Auto-formatting of docstring code examples.
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 organic-imgrec = { path = ".", editable = true }
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
-cuda = { features = ["cuda"], solve-group = "default" }
+cuda = { features = ["cuda"], solve-group = "default"}
 dev = { features = ["dev"], solve-group = "default" }
 docs = { features = ["docs"], solve-group = "default" }
 
