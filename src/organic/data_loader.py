@@ -83,10 +83,11 @@ class TrainingImgLoader:
         - `rotate`: Randomly rotate input images.
         - `fliph`: Randomly flip images horizontally.
         - `flipv`: Randomly flip images vertically.
-        - `seed`: RNG seed to be used in all randomisation of data augmentations,
+        - `seed`: Numpy RNG seed to be used in all randomisation of data augmentations,
             including those handled by numpy and by albumentations. Setting this
             seed will cause the batches of images produced by the object to be
             deterministic each time.
+            `numpy.random.default_rng()` to initialize the RNG generator.
         - `read_mode`: How to interpret image files stored on disk. E.g. `NUMPY` to read
             serialized Numpy arrays in .npy files. In the case of `NUMPY`, stored images
             should have a 3D shape, following the (Y, X, Channel) index ordering."""
@@ -231,7 +232,7 @@ class TrainingImgLoader:
             if self._rotate:
                 rot_lims = (0.0, 360.0)
             else:
-                rot_lims = 0.0
+                rot_lims = (0.0, 0.0)
             if self._zoomf is not None:
                 scale_lims = (1.0 + self._zoomf[0], 1.0 + self._zoomf[1])
             else:

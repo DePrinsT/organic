@@ -6,37 +6,44 @@ import jax.numpy as jnp
 
 from organic._consts import MAS2RAD
 
+# TODO: should also contain the flux value and spectral behaviour of the image
+# under reconstruction itself.
 
-class Sparco(eqx.Module):
-    r"""
-    Class representing the geometric components of a SPARCO imaging model.
 
-    **Attributes**
+class SpectralShape(eqx.Module):
+    r"""A fully abstract class representing the shape (e.g. power-law,
+    blackbody) of a spectrum $F_{\lambda}$. I.e. a relative spectrum or specific
+    intensity profile, not an absolute one.
 
-    - `components`: A tuple of geometric model components.
-    - `fluxes`: A tuple of fluxes for the model components. When fitting visibilities,
-        these are only considered as relative flux fractions between 0 and 1. Otherwise,
-        when fitting correlated fluxes, these are considered total fluxes in Jansky.
-        These can be either single-element JAX arrays or just Python floats. In the
-        latter case, Organic will consider them fixed during any optimization.
-    - `wave0`: The central wavelength of the Sparco model components in $\mathrm{m}$.
-    """
+    The parameters defining the geometric component are to be stored in the relevant
+    instance attributes. These can be either single-element JAX arrays or just Python
+    floats. In the latter case, Organic will consider them fixed during any
+    optimization."""
 
-    # Required instance attributes.
-    components: tuple[GeometricComponent, ...]
-    fluxes: tuple[float | jax.Array, ...]
-    wave0: float
+    @abc.abstractmethod
+    def get_flux(
+        self, wavelengths: jax.Array, *, wave0: float, f0: float | jax.Array
+    ) -> jax.Array:
+        r"""Retrieve the $F_{\lambda}$ flux at desired wavelengths given a reference
+        wavelength and reference flux.
 
-    def __init__(
-        self,
-        components: tuple[GeometricComponent, ...],
-        fluxes: tuple[float | jax.Array, ...],
-        *,
-        wave0: float,
-    ) -> None:
-        self.components = components
-        self.fluxes = fluxes
-        self.wave0 = wave0
+        **Arguments**
+
+        - `wavelengths`: JAX array containing the wavelengths in $\mathrm{m}$ at which
+            to calculate the spectral flux.
+        - `wave0`: The reference wavelength in $\mathrm{m}$. We define
+            the reference flux `f0` at this point, with the returned flux being
+            calculated relative to these reference values.
+        - `f0`: The reference $F_{\lambda}$ flux level.
+
+        **Returns**
+
+        A 1D array containing the output $F_{\lambda}$ spectrum according to the
+        spectral shape. This is calculated assuming a reference $F_{\lambda}$ flux `f0`
+        at a reference wavelength `wave0`. The units of this will be whatever the
+        original units of `f0` are (which can also represent flux fractions).
+        """
+        raise NotImplementedError
 
 
 class GeometricComponent(eqx.Module):
@@ -97,6 +104,38 @@ class GeometricComponent(eqx.Module):
         # Set component position in radian
         x_rad, y_rad = self.x * MAS2RAD, self.y * MAS2RAD
         return vis * jnp.exp(-2j * jnp.pi * (x_rad * u + y_rad * v))
+
+
+class Sparco(eqx.Module):
+    r"""
+    Class representing the geometric components of a SPARCO imaging model.
+
+    **Attributes**
+
+    - `components`: A tuple of geometric model components.
+    - `fluxes`: A tuple of fluxes for the model components. When fitting visibilities,
+        these are only considered as relative flux fractions between 0 and 1. Otherwise,
+        when fitting correlated fluxes, these are considered total fluxes in Jansky.
+        These can be either single-element JAX arrays or just Python floats. In the
+        latter case, Organic will consider them fixed during any optimization.
+    - `wave0`: The central wavelength of the Sparco model components in $\mathrm{m}$.
+    """
+
+    # Required instance attributes.
+    components: tuple[GeometricComponent, ...]
+    fluxes: tuple[float | jax.Array, ...]
+    wave0: float
+
+    def __init__(
+        self,
+        components: tuple[GeometricComponent, ...],
+        fluxes: tuple[float | jax.Array, ...],
+        *,
+        wave0: float,
+    ) -> None:
+        self.components = components
+        self.fluxes = fluxes
+        self.wave0 = wave0
 
 
 class UniformDisk(GeometricComponent):
@@ -189,42 +228,6 @@ class PointSource(GeometricComponent):
         # Component visibility including positional offset
         vis = self._apply_positional_phase_offset(vis, u, v)
         return vis
-
-
-class SpectralShape(eqx.Module):
-    r"""A fully abstract class representing the shape (e.g. power-law,
-    blackbody) of a spectrum $F_{\lambda}$. I.e. a relative spectrum or specific
-    intensity profile, not an absolute one.
-
-    The parameters defining the geometric component are to be stored in the relevant
-    instance attributes. These can be either single-element JAX arrays or just Python
-    floats. In the latter case, Organic will consider them fixed during any
-    optimization."""
-
-    @abc.abstractmethod
-    def get_flux(
-        self, wavelengths: jax.Array, *, wave0: float, f0: float | jax.Array
-    ) -> jax.Array:
-        r"""Retrieve the $F_{\lambda}$ flux at desired wavelengths given a reference
-        wavelength and reference flux.
-
-        **Arguments**
-
-        - `wavelengths`: JAX array containing the wavelengths in $\mathrm{m}$ at which
-            to calculate the spectral flux.
-        - `wave0`: The reference wavelength in $\mathrm{m}$. We define
-            the reference flux `f0` at this point, with the returned flux being
-            calculated relative to these reference values.
-        - `f0`: The reference $F_{\lambda}$ flux level.
-
-        **Returns**
-
-        A 1D array containing the output $F_{\lambda}$ spectrum according to the
-        spectral shape. This is calculated assuming a reference $F_{\lambda}$ flux `f0`
-        at a reference wavelength `wave0`. The units of this will be whatever the
-        original units of `f0` are (which can also represent flux fractions).
-        """
-        raise NotImplementedError
 
 
 class PowerLaw(SpectralShape):

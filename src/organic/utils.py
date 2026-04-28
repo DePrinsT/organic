@@ -94,6 +94,8 @@ def img_get_complex_vis_fft(
     # second.
     nx, ny = img.shape[1], img.shape[0]  # number of pixels
 
+    # -- Perform padding --
+
     if padding is None:
         img_padded = img
     else:
@@ -113,7 +115,7 @@ def img_get_complex_vis_fft(
             constant_values=0.0,
         )
 
-    # Perform FFT.
+    # -- Perform FFT --
 
     # Numpy FFT frequencies are in cycles per unit of input spacing.
     # NOTE: pixelscale used is in radian to get spatial frequencies in rad^-1

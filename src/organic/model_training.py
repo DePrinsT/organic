@@ -6,3 +6,5 @@
 # Arguments should include general algorithm settings, some stuff like size of noise
 # vector input. Maybe some things like amount of iterations for critic VS for generator,
 # etc.
+def train_wgan():
+    pass
