@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Literal
@@ -13,9 +14,12 @@ from scipy.ndimage import gaussian_filter
 class TrainingImgLoader:
     """Data loader for loading, enhancing and serving training images. The class itself
     is an Iterable, meaning it can be iterated over in for loops. The images are
-    stored on the host, and only moved to the JAX devices when a batch is served. The
-    JAX arrays containing the images are 4D, using (Batch, Y, X, Channel) index
-    ordering.
+    stored on the host, and only moved to the JAX devices when a batch is served.
+
+    The JAX arrays containing the images are 4D, using (Batch, Channel, Y, X) index
+    ordering to match the typical JAX/Equinox convention. Note that this is different
+    from (Batch, Y, X, Channel) ordering used by Albumentations (and used internally
+    here) for the data enhancement.
 
     For example, for a given number of batches `nbatch`, and an instance of this class
     `loader`, you can iterate over batches of JAX arrays `batch` for a finite number of
@@ -40,7 +44,7 @@ class TrainingImgLoader:
 
     def __init__(
         self,
-        files: Iterable[Path | str],
+        files: Iterable[str | os.PathLike[str]],
         *,
         batch_size: int,
         normalize: bool = True,
@@ -90,7 +94,8 @@ class TrainingImgLoader:
             `numpy.random.default_rng()` to initialize the RNG generator.
         - `read_mode`: How to interpret image files stored on disk. E.g. `NUMPY` to read
             serialized Numpy arrays in .npy files. In the case of `NUMPY`, stored images
-            should have a 3D shape, following the (Y, X, Channel) index ordering."""
+            should have a 3D shape, following the (Channel, Y, X) index ordering
+            convention of JAX/Equinox."""
         # Direct initialisation.
         self._batch_size = batch_size
         self._normalize = normalize
@@ -139,16 +144,19 @@ class TrainingImgLoader:
     @staticmethod
     def _read_img(file: Path, read_mode: str) -> np.ndarray:
         """Master method to load in an image from a file stored on disk. The array
-        should have a 3D shape, with (Y, X, Channel) index ordering."""
+        should have a 3D shape, with (Channel, Y, X) index ordering when stored on
+        disk. It is however mapped to (Y, X, Channnel) index odering before being
+        returned to match the convention of Albumentations."""
         if read_mode == "NUMPY":
             img = TrainingImgLoader._read_img_numpy(file)
         else:
             raise ValueError(f"Read mode {read_mode} is not supported.")
         if img.ndim != 3:
             raise ValueError(
-                "Loaded images should have 3D shape (index ordering -> Y, X, Channel)."
+                "Loaded images should have 3D shape (index ordering -> Channel, Y, X)."
                 f"Instead found number of dimensions {img.ndim} for file {file}."
             )
+        img = img.transpose(1, 2, 0)  # Put in Albumentations index ordering.
         return img
 
     @staticmethod
@@ -190,8 +198,8 @@ class TrainingImgLoader:
 
         **Returns:**
 
-        A generator yielding 4D JAX arrays containing the images, using (Batch, Y, X,
-        Channel) index ordering. The batched images are enhanced according to the
+        A generator yielding 4D JAX arrays containing the images, using (Batch, Channel,
+        Y, X) index ordering. The batched images are enhanced according to the
         various attributes set in the `TrainingImgLoader` instance."""
         dataset_size = self._arrays.shape[0]
 
@@ -214,6 +222,9 @@ class TrainingImgLoader:
                 img_batch = self._enhance_batch(
                     img_batch, rng_gen=rng_gen, normalize=self._normalize
                 )
+                # Map from internal (Batch, Y, X, Channel) to (Batch, Channel, Y, X)
+                # index odering.
+                img_batch = img_batch.transpose(0, 3, 1, 2)
 
                 yield jnp.array(img_batch)
 

@@ -2,16 +2,13 @@
 using generative adversarial networks.
 """
 
-# version string, which is automatically used when building package
+# Version string, which is automatically used when building package.
 __version__ = "0.0.4"
 
 
-# Expose submodules to the user namespace after importing main package
+# Expose submodules to the main package namespace after importing main package.
 from . import (
     _consts as _consts,
-)
-from . import (
-    data_loader as data_loader,
 )
 from . import (
     model_training as model_training,
@@ -26,5 +23,11 @@ from . import (
     sparco as sparco,
 )
 from . import (
+    training_data as training_data,
+)
+from . import (
     utils as utils,
 )
+
+# Expose main objects/functions from modules which will see frequent use to the main
+# package namespace.

@@ -52,7 +52,7 @@ def img_get_sky_coordinates(img: jax.Array, *, ps: float):
     return x, y
 
 
-@jax.jit(static_argnames=["ps", "padding"])
+@jax.jit(static_argnames=["padding"])
 def img_get_complex_vis_fft(
     img: jax.Array,
     u: jax.Array,
@@ -170,9 +170,9 @@ def img_get_complex_vis_fft(
     elif (nx % 2 == 1) and (nx_padded % 2 == 0):  # Uneven-to-even
         vis *= jnp.exp(2j * jnp.pi * ps_rad * u)
     # For y-axis
-    if (ny % 2 == 0) and (ny_padded % 2 == 0):
+    if (ny % 2 == 0) and (ny_padded % 2 == 0):  # Even-to-even
         vis *= jnp.exp(2j * jnp.pi * (ps_rad / 2) * v)
-    elif (ny % 2 == 0) and (ny_padded % 2 == 1):
+    elif (ny % 2 == 0) and (ny_padded % 2 == 1):  # Even-to-uneven
         vis *= jnp.exp(2j * jnp.pi * (ps_rad / 2) * v)
     elif (ny % 2 == 1) and (ny_padded % 2 == 0):  # Uneven-to-even
         vis *= jnp.exp(2j * jnp.pi * ps_rad * v)
