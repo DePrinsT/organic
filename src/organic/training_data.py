@@ -142,7 +142,7 @@ class TrainingImgLoader:
         self._arrays = np.stack(img_list, axis=0)
 
     @staticmethod
-    def _read_img(file: Path, read_mode: str) -> np.ndarray:
+    def _read_img(file: str | os.PathLike[str], read_mode: str) -> np.ndarray:
         """Master method to load in an image from a file stored on disk. The array
         should have a 3D shape, with (Channel, Y, X) index ordering when stored on
         disk. It is however mapped to (Y, X, Channnel) index odering before being
@@ -160,7 +160,7 @@ class TrainingImgLoader:
         return img
 
     @staticmethod
-    def _read_img_numpy(file: Path) -> np.ndarray:
+    def _read_img_numpy(file: str | os.PathLike[str]) -> np.ndarray:
         """Read in a numpy image array stored on disk."""
         img = None
         with open(file, "rb") as f:

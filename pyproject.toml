@@ -53,6 +53,8 @@ dev = [
   "jupyterlab",  # Notebook support.
   "ipykernel",
   "ipympl",  # Interactive plots in notebooks (widget backend).
+  "cmasher",  # cmasher colormaps.
+  "scienceplots",  # scienceplots matplotlib styles.
 ]
 docs = [
   "mkdocs-material",  # mkdocs material theme.

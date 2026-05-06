@@ -2,6 +2,10 @@
 which are useful as standalone components in interpreting data or analysing
 Organic's outputs."""
 
+from os import PathLike
+from pathlib import Path
+from shutil import rmtree
+
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
@@ -180,6 +184,9 @@ def img_get_complex_vis_fft(
     return vis
 
 
+# ---
+
+
 # --- JAX-RELATED UTILS ---
 
 
@@ -216,6 +223,9 @@ def _tree_print_keypaths(
             print(f"FULL KEYPATH: {key_path}")
         print(line_sep)
     return
+
+
+# ---
 
 
 # --- MISCELLANEOUS ---
@@ -284,3 +294,41 @@ def get_thin_ring_null(diam: float, n: int) -> float:
     f_rad = zero_point / (2 * np.pi * radius_rad)
 
     return f_rad
+
+
+def _create_output_dir(
+    output_dir: str | PathLike[str], *, override: bool = False
+) -> None:
+    """Create a directory for outputing the results of training or image reconstruction
+    procedures.
+
+    **Arguments**
+
+    - `output_dir`: Directory in which to store outputs.
+    - `override`: Whether to override the contents of `output_dir`. Note that if this
+        is set to `override = True` it will all delete the contents in `output_dir`
+        if it already exists.
+    """
+    output_dir = Path(output_dir).resolve()
+    working_dir = Path.cwd().resolve()
+
+    if output_dir.exists():
+        if override:
+            # Block deleting current working directory or any parent of it
+            if output_dir in working_dir.parents or output_dir == working_dir:
+                raise ValueError(
+                    "'override' is set to True but you cannot delete the current"
+                    " working directory or its parents. The current path at which"
+                    f"a directory was attempted to be made is {output_dir}."
+                )
+            else:
+                # Delete old version and make new output directory.
+                rmtree(output_dir)
+                output_dir.mkdir(parents=True)
+    else:
+        # Make output directory but error if already exists.
+        output_dir.mkdir(parents=True, exist_ok=False)
+    return
+
+
+# ---
