@@ -37,6 +37,7 @@ dependencies = [
   "matplotlib",
   "jaxtyping",
   "albumentationsx[headless]",
+  "tqdm"
 ]
 
 # Optional dependencies, including for GPU support, development, etc. .
