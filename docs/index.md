@@ -1,22 +1,6 @@
-# Welcome to MkDocs
+# Welcome to ORGANIC
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
-
-## Quick example
-
-- One
-- Two
-
-## Commands
-
-- `mkdocs new [dir-name]` - Create a new project.
-- `mkdocs serve` - Start the live-reloading docs server.
-- `mkdocs build` - Build the documentation site.
-- `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Welcome to ORGANIC! In the sidebar, you can download some example Jupyter notebooks
+which can introduce you to the general usage of ORGANIC's different capabilities.
+You can also find an up-to-date reference to the API, subdivided per package module
+and generated straight from the source code.

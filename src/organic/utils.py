@@ -19,7 +19,9 @@ from ._consts import MAS2RAD
 
 
 @jax.jit(static_argnames="ps")
-def img_get_sky_coordinates(img: jax.Array, *, ps: float):
+def img_get_sky_coordinates(
+    img: jax.Array, *, ps: float
+) -> tuple[jax.Array, jax.Array]:
     r"""Calculate the interferometric sky coordinates from a 2D image according to
     interferometric convention (positive x is towards the left, positive y towards the
     top). Note that this returns the coordinates of the centers of the pixels, not of
@@ -64,7 +66,7 @@ def img_get_complex_vis_fft(
     *,
     ps: float,
     padding: tuple[int, int] | None = None,
-):
+) -> jax.Array:
     r"""Uses FFT to calculate complex visibilities for an input 2D image (essentially
     assuming a delta-function pulse response for each pixel).
 

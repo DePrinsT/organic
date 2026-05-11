@@ -165,6 +165,12 @@ class UniformDisk(GeometricComponent):
         ud: jax.Array | float,
         spec_shape: SpectralShape,
     ) -> None:
+        r"""**Arguments**
+        - `x`: The $x$-position of the source in $\mathrm{mas}$.
+        - `y`: The $y$-position of the source in $\mathrm{mas}$.
+        - `ud`:  The angular uniform disk size in $\mathrm{mas}$.
+        - `spec_shape`: The relative spectral shape of the geometric component.
+        """
         self.x = x
         self.y = y
         self.ud = ud
@@ -206,6 +212,11 @@ class PointSource(GeometricComponent):
     def __init__(
         self, *, x: float | jax.Array, y: float | jax.Array, spec_shape: SpectralShape
     ) -> None:
+        r"""**Arguments**
+        - `x`: The $x$-position of the source in $\mathrm{mas}$.
+        - `y`: The $y$-position of the source in $\mathrm{mas}$.
+        - `spec_shape`: The relative spectral shape of the geometric component.
+        """
         self.x = x
         self.y = y
         self.spec_shape = spec_shape
@@ -236,13 +247,17 @@ class PowerLaw(SpectralShape):
     **Attributes**
 
     - `d`: The spectral index $d$ such that the $F_{\lambda}$ profile follows
-        $\propto \lambda^{d}$. This can be eithe
+        $\propto \lambda^{d}$.
     """
 
     # Required instance attributes.
     d: float | jax.Array
 
     def __init__(self, d: float | jax.Array) -> None:
+        r"""**Arguments**
+        - `d`: The spectral index $d$ such that the $F_{\lambda}$ profile follows
+        $\propto \lambda^{d}$.
+        """
         self.d = d
 
     def get_flux(
@@ -281,6 +296,10 @@ class BlackBody(SpectralShape):
     temperature: float | jax.Array
 
     def __init__(self, temperature: float | jax.Array) -> None:
+        r"""**Arguments**
+
+        - `temperature`: The blackbody's temperature in $\mathrm{K}$.
+        """
         self.temperature = temperature
 
     def get_flux(

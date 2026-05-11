@@ -2,7 +2,7 @@
 
 import numpy as np
 
-# --- angular quantities ---
+# --- Angular quantities ---
 RAD2DEG = 180 / np.pi
 DEG2MIN = 60
 MIN2SEC = 60
@@ -25,6 +25,6 @@ SEC2DEG = 1 / DEG2SEC
 MAS2DEG = 1 / DEG2MAS
 MAS2MIN = 1 / MIN2MAS
 
-# --- wavelengths and frequencies ---
+# --- Wavelengths and frequencies ---
 M2MICRON = 10e6
 MICRON2M = 1 / M2MICRON

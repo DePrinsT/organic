@@ -22,7 +22,7 @@ theme:
       # Light mode / dark mode
       - scheme: default
         primary: teal
-        accent: amber
+        accent: teal
         toggle:
             icon: material/weather-night
             name: Switch to dark mode
@@ -37,5 +37,37 @@ theme:
 extra_css:
     - stylesheets/custom_style.css
 
+# NOTE: currently full jupyter notebook support is not yet included. This just
+# adds a download link to the notebooks.
+nav:
+  - Home: index.md
+  - Example notebooks:
+        - "Loading training data": examples/data_loader.ipynb
+        - "Calculating complex visibilities": examples/calculate_complex_visibilities.ipynb
+  - API:
+        - Training data: api/training_data.md
+        - SPARCO: api/sparco.md
+        - Utilities: api/utils.md
+
 plugins:
-    - mkdocstrings
+    - search
+    - mkdocstrings:
+        handlers:
+            python:
+                paths: [src]
+                options:
+                    show_root_heading: true
+                    show_root_full_path: false
+                    show_signature_annotations: true
+    - mkdocs-ipynb:      # Activates notebook rendering
+        execute: false      # Do not runs code cells to generate fresh outputs on build.
+        include_source: true # Automatically put a "Download .ipynb" button on top.
+
+markdown_extensions:
+  - pymdownx.arithmatex:  # Math mode.
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js  # For math mode.
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js  # For math mode.
+

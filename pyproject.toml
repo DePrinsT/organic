@@ -58,9 +58,9 @@ dev = [
   "scienceplots",  # scienceplots matplotlib styles.
 ]
 docs = [
-  "mkdocs-material",  # mkdocs material theme.
-  "mkdocs-ipynb",  # Including notebooks in mkdocs.
-  "mkdocstrings",  # Docstrings for mkdocs.
+  "zensical",  # Zensical static site builder.
+  "mkdocs-jupyter",  # Including notebooks.
+  "mkdocstrings",  # Docstrings.
   "mkdocstrings-python",  # Python docstring handler.
 ]
 
