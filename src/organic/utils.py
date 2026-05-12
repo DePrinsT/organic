@@ -15,6 +15,24 @@ from jaxtyping import PyTree
 
 from ._consts import MAS2RAD
 
+# --- ORGANIC LOGO STRING ---
+ORGANIC_ASCII_ART = (
+    r" ________  ________  ________  ________  ________   ___  ___  ________     "
+    + "\n"
+    r"|\   __  \|\   __  \|\   ____\|\   __  \|\   ___  \|\  \|\  \|\   ____\    "
+    + "\n"
+    r"\ \  \|\  \ \  \|\  \ \  \___|\ \  \|\  \ \  \\ \  \ \  \ \  \ \  \___|    "
+    + "\n"
+    r" \ \  \\\  \ \   _  _\ \  \  __\ \   __  \ \  \\ \  \ \  \ \  \ \  \       "
+    + "\n"
+    r"  \ \  \\\  \ \  \\  \\ \  \|\  \ \  \ \  \ \  \\ \  \ \  \ \  \ \  \____  "
+    + "\n"
+    r"   \ \_______\ \__\\ _\\ \_______\ \__\ \__\ \__\\ \__\ \__\ \__\ \_______\ "
+    + "\n"
+    r"    \|_______|\|__|\|__|\|_______|\|__|\|__|\|__| \|__|\|__|\|__|\|_______|"
+    + "\n"
+)
+
 # --- IMAGE AND FFT CALCULATION UTILITIES ---
 
 
@@ -315,20 +333,28 @@ def _create_output_dir(
     working_dir = Path.cwd().resolve()
 
     if output_dir.exists():
-        if override:
+        if not override:
+            raise ValueError(
+                f"The 'output_dir' {output_dir} already exists.\n"
+                "'override' is also set to False. Please set 'override' to "
+                "True if you which to override this directory.\n "
+                "Note that this will delete the previous directory contents."
+            )
+        else:
             # Block deleting current working directory or any parent of it
             if output_dir in working_dir.parents or output_dir == working_dir:
                 raise ValueError(
                     "'override' is set to True but you cannot delete the current"
-                    " working directory or its parents. The current path at which"
+                    " working directory or its parents.\nThe current path at which"
                     f"a directory was attempted to be made is {output_dir}."
                 )
             else:
                 # Delete old version and make new output directory.
                 rmtree(output_dir)
                 output_dir.mkdir(parents=True)
+
     else:
-        # Make output directory but error if already exists.
+        # Make output directory (error if already exists just to be sure).
         output_dir.mkdir(parents=True, exist_ok=False)
     return
 

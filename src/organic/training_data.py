@@ -13,7 +13,7 @@ from scipy.ndimage import gaussian_filter
 
 class TrainingImgLoader:
     """Data loader for loading, enhancing and serving training images. The class itself
-    is an Iterable, meaning it can be iterated over in for loops. The images are
+    is an Iterable, meaning it can e.g. be iterated over in for loops. The images are
     stored on the host, and only moved to the JAX devices when a batch is served.
 
     The JAX arrays containing the images are 4D, using (Batch, Channel, Y, X) index
@@ -23,7 +23,9 @@ class TrainingImgLoader:
 
     For example, for a given number of batches `nbatch`, and an instance of this class
     `loader`, you can iterate over batches of JAX arrays `batch` for a finite number of
-    times using `for step, batch in zip(range(nbatch), loader):`."""
+    times using `for step, batch in zip(range(nbatch), loader):`. Alternatively, you
+    can retrieve and call directly on the corresponding `Iterator`  using e.g.
+    `batch_iterator = iter(loader); batch = next(batch_iterator)`."""
 
     # Required instance attributes.
     _arrays: np.ndarray
