@@ -1,3 +1,5 @@
+"""Module for loading in and augmenting training data."""
+
 import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path

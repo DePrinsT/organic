@@ -18,9 +18,11 @@ repos:
           [
             jax,
             equinox,
+            optax,
             numpy,
             astropy,
             matplotlib,
             jaxtyping,
             "albumentationsx[headless]",
+            tqdm,
           ]

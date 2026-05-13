@@ -47,6 +47,7 @@ nav:
         - "Calculating complex visibilities": examples/calculate_complex_visibilities.ipynb
   - API:
         - Training data: api/training_data.md
+        - Model training: api/model_training.md
         - SPARCO: api/sparco.md
         - Utilities: api/utils.md
 

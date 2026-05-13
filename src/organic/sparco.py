@@ -1,3 +1,7 @@
+"""Module for defining semi-parametric models following the Semi-Parametric Approach
+for the Reconstruction of Chromatic Objects (SPARCO) to be used for imaging of
+faint structures surrounding birght central sources."""
+
 import abc
 
 import equinox as eqx
