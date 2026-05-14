@@ -1,4 +1,6 @@
-"""Module for training WGANs for use in image reconstruction."""
+"""Module for training WGANs for use in image reconstruction. Training is started
+and controlled using the master function [train_wgan]
+[organic.model_training.train_wgan]."""
 
 import functools as ft
 import os
@@ -25,6 +27,8 @@ from organic.utils import ORGANIC_ASCII_ART, _create_output_dir
 # unintended model state updates) by removing state return values and threading if
 # the corresponding model is expected to be in infernece mode.
 
+# TODO: make sure all functions are properly documented
+
 
 class WGANCallable(Protocol):
     """Protocol defining the call signature that ORGANIC expects for a WGAN generator
@@ -46,6 +50,8 @@ class WGANCallable(Protocol):
 # Type for a WGAN component, which is just expected to be a PyTree with `__call__`
 # signature specified by the `WGANCallable` protocol.
 type WGANComponent = PyTree[WGANCallable]
+"""Type for a PyTree with the `__call__` signature of the `WGANCallable` protocol.
+"""
 
 
 def train_wgan(
@@ -160,48 +166,29 @@ def train_wgan(
     # ---
 
     # --- Checks on dimensionality and shape matching ---
-    # This section uses dummy copies of the input generator and critic state so these
-    # aren't affected or old state is invalidated until actual training.
-
     # Check if `gen` input size has been given either in `gen` or in function arguments.
-    if hasattr(gen_static, "size_in"):
-        size_in = getattr(gen_static, "size_in")
-        print(
-            f"Latent generator input size derived from 'size_in' attribute: {size_in}"
-        )
-    elif not hasattr(gen_static, "size_in") and (size_in == 0):
-        raise ValueError(
-            "Argument 'size_in' is `0` and generator has no 'size_in' attribute."
-            "Cannot infer the size of the latent vector space."
-            "Please specify either (the generator attribute having priority)."
-        )
-    else:
-        size_in = size_in
-        print(f"Latent generator input size derived from 'size_in' argument: {size_in}")
+    size_in = _gen_resolve_latent_size(gen_static, size_in)
 
     # Initialize training image iterator.
     training_img_iter = iter(training_loader)
 
     key, subkey1, subkey2 = jr.split(key, 3)
-    # Check generator and critic output dimensionality and compatibility.
-    leaves, treedef = jax.tree_util.tree_flatten(gen_state)
-    gen_state_clone = jax.tree_util.tree_unflatten(treedef, leaves)
-    leaves, treedef = jax.tree_util.tree_flatten(crit_state)
-    crit_state_clone = jax.tree_util.tree_unflatten(treedef, leaves)
+    # Check generator and critic output dimensionality and compatibility. Have to
+    # put in inference mode so the states don't get invalidated by Equinox.
+    gen_static = eqx.nn.inference_mode(gen_static, value=True)
+    crit_static = eqx.nn.inference_mode(crit_static, value=True)
     _wgan_check_gen_and_crit(
         eqx.combine(gen_params, gen_static),
-        gen_state_clone,
+        gen_state,
         eqx.combine(crit_params, crit_static),
-        crit_state_clone,
+        crit_state,
         size_in=size_in,
         key=subkey1,
     )
     # Check generator and training image batch dimensionality and compatibility.
-    leaves, treedef = jax.tree_util.tree_flatten(gen_state)
-    gen_state_clone = jax.tree_util.tree_unflatten(treedef, leaves)
     batch_size = _wgan_check_gen_and_training_loader(
         eqx.combine(gen_params, gen_static),
-        gen_state_clone,
+        gen_state,
         training_img_iter,
         size_in=size_in,
         key=subkey2,
@@ -307,12 +294,12 @@ def train_wgan(
                 key=subkey,
             )
             # Make plots of loss functions and critic scores.
-            _wgan_training_plot_loss_trajectories(
+            _wgan_training_store_loss_trajectories(
                 np.array(crit_loss_list),
                 np.array(gen_loss_list),
                 np.array(score_training_imgs_list),
                 np.array(score_gen_imgs_list),
-                filename=checkpoint_dir / "loss_trajectories.pdf",
+                out_dir=checkpoint_dir,
             )
 
     # ---
@@ -346,12 +333,12 @@ def train_wgan(
         key=subkey,
     )
     # Make plots of loss functions and critic scores.
-    _wgan_training_plot_loss_trajectories(
+    _wgan_training_store_loss_trajectories(
         np.array(crit_loss_list),
         np.array(gen_loss_list),
         np.array(score_training_imgs_list),
         np.array(score_gen_imgs_list),
-        filename=checkpoint_dir / "loss_trajectories.pdf",
+        out_dir=checkpoint_dir,
     )
     # ---
 
@@ -417,10 +404,10 @@ def _gen_plot_image_examples(
 
     !!! warning
 
-    Note that the generator should be set in inference mode before calling this
-    function. Its state should not be updated. This function trusts the caller made sure
-    of this. This function should not be used during training, and is only meant to
-    produce diagnostic images.
+        Note that the generator should be set in inference mode before calling this
+        function. Its state should not be updated. This function trusts the caller made
+        sure of this. This function should not be used during training, and is only
+        meant to produce diagnostic images.
     """
     # Retrieve batch of images.
     gen_img_batch, gen_state = _gen_get_image_examples(
@@ -485,10 +472,10 @@ def _gen_get_image_examples(
 
     !!! warning
 
-    Note that the generator should be set in inference mode before calling this
-    function. Its state should not be updated. This function trusts the caller made sure
-    of this. This function should not be used during training, and is only meant to
-    produce diagnostic images.
+        Note that the generator should be set in inference mode before calling this
+        function. Its state should not be updated. This function trusts the caller made
+        sure of this. This function should not be used during training, and is only
+        meant to help in producing diagnostic images.
     """
     gen = eqx.combine(gen_params, gen_static)
     subkey1, subkey2 = jr.split(key, 2)
@@ -500,16 +487,24 @@ def _gen_get_image_examples(
     return gen_img_batch, gen_state
 
 
-def _wgan_training_plot_loss_trajectories(
-    crit_losses,
-    gen_losses,
-    scores_training_imgs,
-    scores_gen_imgs,
+def _wgan_training_store_loss_trajectories(
+    crit_losses: np.ndarray,
+    gen_losses: np.ndarray,
+    scores_training_imgs: np.ndarray,
+    scores_gen_imgs: np.ndarray,
     *,
-    filename: str | os.PathLike[str],
+    out_dir: str | os.PathLike[str],
     dpi: int = 200,
 ) -> None:
-    """Make score of the training losses and critic scores across generator updates."""
+    """Store and make plots of the training losses and critic scores across generator
+    updates. The numerical arrays of the losses and scores are stored as Numpy files."""
+    # Store loss values to numpy array files.
+    out_dir = Path(out_dir)
+    np.save(out_dir / "wasserstein_est.npy", -crit_losses)
+    np.save(out_dir / "generator_loss.npy", gen_losses)
+    np.save(out_dir / "critic_score_training_images.npy", scores_training_imgs)
+    np.save(out_dir / "critic_score_generator_images.npy", scores_gen_imgs)
+
     # Make plots.
     fig, axes = plt.subplots(3, 1, figsize=(6, 9))
     axes[0].plot(range(crit_losses.size), -crit_losses)
@@ -531,7 +526,7 @@ def _wgan_training_plot_loss_trajectories(
     axes[2].legend()
     fig.tight_layout()
     # Save figure.
-    fig.savefig(filename, dpi=dpi, bbox_inches="tight")
+    fig.savefig(out_dir / "loss_trajectories.pdf", dpi=dpi, bbox_inches="tight")
     plt.close(fig)
     return
 
@@ -563,6 +558,38 @@ def _wgan_training_make_checkpoint(
     return
 
 
+def _gen_resolve_latent_size(gen_static: WGANComponent, size_in: int) -> int:
+    """Resolve the size of the 1D latent space vector used in the generator. This is
+    done by giving priority to the attribute value given in the generator's static
+    component. Otherwise, the `size_in` argument passed to the master training function
+    (e.g. `train_wgan`) is used.
+
+    **Arguments**
+
+    - `gen_static`: The static component of the generator.
+    - `size_in`: The latent size input argument passed to the master training function.
+
+    **Returns**
+
+    The size of the 1D latent vector space.
+    """
+    if hasattr(gen_static, "size_in"):
+        size_in = getattr(gen_static, "size_in")
+        print(
+            f"Latent generator input size derived from 'size_in' attribute: {size_in}"
+        )
+    elif size_in <= 0:
+        raise ValueError(
+            "Argument 'size_in' is <=0 and generator has no 'size_in' attribute."
+            "Cannot infer the size of the latent vector space."
+            "Please specify either (the generator attribute having priority)."
+        )
+    else:
+        size_in = size_in
+        print(f"Latent generator input size derived from 'size_in' argument: {size_in}")
+    return size_in
+
+
 def _wgan_check_gen_and_crit(
     gen: WGANComponent,
     gen_state: eqx.nn.State,
@@ -585,6 +612,11 @@ def _wgan_check_gen_and_crit(
     - `size_in`: Size of 1D generator input latent vector.
     - `key`: JAX PRNG key used to generate a generator latent random input vector for
         testing.
+
+    !!! warning
+
+        Note that the generator and critic are best set to inference mode before this so
+        their states do not get invalidated by the model calls made in this function.
     """
     key, subkey1, subkey2, subkey3 = jr.split(key, 4)
     z_test = jr.normal(key=subkey1, shape=(size_in,))
@@ -635,6 +667,11 @@ def _wgan_check_gen_and_training_loader(
     **Returns**
 
     The batch size set by the training image loader.
+
+    !!! warning
+
+        Note that the generator is best set to inference mode before this so its state
+        does not get invalidated by the model call made in this function.
     """
     key, subkey1, subkey2 = jr.split(key, 3)
     z_test = jr.normal(key=subkey1, shape=(size_in,))
@@ -715,10 +752,10 @@ def _wgan_gen_loss(
 
     !!! warning
 
-    Note that the critic should be set in inference mode before calling this function.
-    Since this function is meant to be used in a JAX JIT-ed update step of the
-    generator, it implements no way of checking or enforcing this, and trusts the
-    caller made sure of this beforehand.
+        Note that the critic should be set in inference mode before calling this
+        function. Since this function is meant to be used in a JAX JIT-ed update step
+        of the generator, it implements no way of checking or enforcing this, and trusts
+        the caller made sure of this beforehand.
     """
     # Combine params and static into full models again.
     gen = eqx.combine(gen_params, gen_static)
@@ -810,10 +847,10 @@ def _wgan_gen_make_step(
 
     !!! warning
 
-    Note that the critic should be set in inference mode before calling this function.
-    Its state should not be updated. Since this function is meant to be used in a JAX
-    JIT-ed update step of the generator, it implements no way of checking or enforcing
-    this, and trusts the caller made sure of this beforehand.
+        Note that the critic should be set in inference mode before calling this
+        function. Its state should not be updated. Since this function is meant to be
+        used in a JAX JIT-ed update step of the generator, it implements no way of
+        checking or enforcing this, and trusts the caller made sure of this beforehand.
     """
     # Generate a batch of random latent input vectors for the generator. The first index
     # of the batched vectors will run over the different vectors.
@@ -898,10 +935,10 @@ def _wgan_crit_loss(
 
     !!! warning
 
-    Note that the generator should be set in inference mode before calling this
-    function. Since this function is meant to be used in a JAX JIT-ed update step of the
-    critic, it implements no way of checking or enforcing this, and trusts the
-    caller made sure of this beforehand.
+        Note that the generator should be set in inference mode before calling this
+        function. Since this function is meant to be used in a JAX JIT-ed update step of
+        the critic, it implements no way of checking or enforcing this, and trusts the
+        caller made sure of this beforehand.
     """
     # Combine params and static into full models again.
     gen = eqx.combine(gen_params, gen_static)
@@ -1019,10 +1056,10 @@ def _wgan_crit_make_step(
 
     !!! warning
 
-    Note that the generator should be set in inference mode before calling this
-    function. Its state should not be updated. Since this function is meant to be used
-    in a JAX JIT-ed update step of the critic, it implements no way of checking or
-    enforcing this, and trusts the caller made sure of this.
+        Note that the generator should be set in inference mode before calling this
+        function. Its state should not be updated. Since this function is meant to be
+        used in a JAX JIT-ed update step of the critic, it implements no way of
+        checking or enforcing this, and trusts the caller made sure of this.
     """
     # Generate a batch of random latent input vectors for the generator. The first index
     # of the batched vectors will run over the different vectors.

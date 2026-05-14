@@ -61,6 +61,8 @@ plugins:
                     show_root_heading: true
                     show_root_full_path: false
                     show_signature_annotations: true
+                    filters:
+                        - ""
     - mkdocs-ipynb:      # Activates notebook rendering
         execute: false      # Do not runs code cells to generate fresh outputs on build.
         include_source: true # Automatically put a "Download .ipynb" button on top.
@@ -68,6 +70,7 @@ plugins:
 markdown_extensions:
   - pymdownx.arithmatex:  # Math mode.
       generic: true
+  - admonition
 
 extra_javascript:
   - javascripts/mathjax.js  # For math mode.
