@@ -73,8 +73,8 @@ def train_wgan(
     key: jax.Array,
     size_in: int = 0,
     ncheck: int | None = None,
-    diagnostics: bool = False,
     override: bool = False,
+    show_progress_bar: bool = False,
 ) -> tuple[
     WGANComponent,
     WGANComponent,
@@ -138,13 +138,34 @@ def train_wgan(
         the passed along generator `gen` already has a `size_in` attribute, which
         takes priority. In case of the latter, be sure to mark this attribute as static
         with `eqx.field(static=True)`.
-    - `diagnostics`: Whether to create extra diagnostic outputs (e.g. plots) during
-        training and store them in `output_dir`.
     - `override`: Whether to override the contents of `output_dir`. Note that if this
         is set to `override = True` it will all delete the contents in `output_dir`
         if it already exists.
-
+    - `show_progress_bar`: Whether to show a tqdm progress bar. This is useful to
+        track generator update steps if you are running this function with an output
+        terminal. The progress bar is best not used in situations where terminal
+        output is piped to a log file, since the carrion returns used by tqdm
+        will not be interpreted properly, which can mess up formating.
+    return (
+        gen_params,
+        gen_static,
+        gen_state,
+        crit_params,
+        crit_static,
+        crit_state,
+        opt_gen_state,
+        opt_crit_state,
+        gen_losses,
+        crit_losses,
+        scores_training_imgs,
+        scores_gen_imgs,
+    )
     **Returns**
+
+    Returns the updated values of `gen_params`, `gen_static`, `gen_state`,
+    `crit_params`, `crit_static`, `crit_state`, `opt_gen_state` and `opt_crit_state`.
+    In addition, returns the generator and critic losses as well as the individual
+    mean critic scores of the training and generated images.
 
     TODO: describe the returned values.
     """
@@ -203,7 +224,9 @@ def train_wgan(
     score_gen_imgs_list = []  # Generated image critic score.
 
     # Loop over generator training steps.
-    for i_gen in tqdm(range(1, ngen + 1), desc="Generator updates"):
+    for i_gen in tqdm(
+        range(1, ngen + 1), desc="Generator updates", disable=not show_progress_bar
+    ):
         # Inernal loop over critic training steps.
         crit_loss, score_training_imgs, score_gen_imgs = 0, 0, 0
         for _ in range(1, ncrit_ratio + 1):
@@ -500,7 +523,7 @@ def _wgan_training_store_loss_trajectories(
     updates. The numerical arrays of the losses and scores are stored as Numpy files."""
     # Store loss values to numpy array files.
     out_dir = Path(out_dir)
-    np.save(out_dir / "wasserstein_est.npy", -crit_losses)
+    np.save(out_dir / "wasserstein_estimate.npy", -crit_losses)
     np.save(out_dir / "generator_loss.npy", gen_losses)
     np.save(out_dir / "critic_score_training_images.npy", scores_training_imgs)
     np.save(out_dir / "critic_score_generator_images.npy", scores_gen_imgs)
