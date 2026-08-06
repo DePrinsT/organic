@@ -124,9 +124,9 @@ jax = { version = ">= 0.8", extras = ["cuda13"] }
 default = { solve-group = "default" }
 cuda12 = { features = ["cuda12linux"], solve-group = "default"}
 cuda13 = { features = ["cuda13linux"], solve-group = "default"}
-dev = { features = ["dev"], solve-group = "default" }
-dev-cuda12 = { features = ["dev", "cuda12linux"], solve-group = "default" }
-dev-cuda13 = { features = ["dev", "cuda13linux"], solve-group = "default" }
+dev = { features = ["dev", "docs"], solve-group = "default" }
+dev-cuda12 = { features = ["dev", "cuda12linux", "docs"], solve-group = "default" }
+dev-cuda13 = { features = ["dev", "cuda13linux", "docs"], solve-group = "default" }
 docs = { features = ["docs"], solve-group = "default" }
 
 [tool.pixi.tasks]

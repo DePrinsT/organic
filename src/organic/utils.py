@@ -36,11 +36,11 @@ ORGANIC_ASCII_ART = (
 # --- IMAGE AND FFT CALCULATION UTILITIES ---
 
 
-@jax.jit(static_argnames="ps")
+@jax.jit
 def img_get_sky_coordinates(
     img: jax.Array, *, ps: float
 ) -> tuple[jax.Array, jax.Array]:
-    r"""Calculate the interferometric sky coordinates from a 2D image according to
+    r"""Calculate the interferometric sky coordinates for a 2D image according to
     interferometric convention (positive x is towards the left, positive y towards the
     top). Note that this returns the coordinates of the centers of the pixels, not of
     the edges. This works for both even and uneven (or mixed) amounts of pixels along

@@ -11,13 +11,13 @@ from . import (
     _consts as _consts,
 )
 from . import (
+    img_rec as img_rec,
+)
+from . import (
     model_training as model_training,
 )
 from . import (
     oi_data as oi_data,
-)
-from . import (
-    reconstruction as reconstruction,
 )
 from . import (
     sparco as sparco,
